@@ -3,8 +3,25 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Spinner } from "@/components/ui/spinner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Plus,
+  ArrowUp,
+  ArrowDown,
+  Edit,
+  Trash2,
+  BookOpen,
+  ChevronLeft,
+  AlertCircle,
+  CheckCircle
+} from "lucide-react";
 
 interface Module {
   id: string;
@@ -162,185 +179,215 @@ export default function ModulesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading modules...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Spinner size="lg" />
+          <p className="text-muted-foreground">Loading modules...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Modules</h1>
-              <p className="mt-2 text-gray-600">Manage course modules and their structure</p>
-            </div>
-            <div className="flex space-x-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="space-y-1">
+            <div className="flex items-center space-x-3">
               <Button
-                variant="outline"
+                variant="ghost"
+                size="sm"
                 onClick={() => router.push("/admin")}
+                className="text-muted-foreground hover:text-foreground"
               >
+                <ChevronLeft className="w-4 h-4 mr-2" />
                 Back to Admin
               </Button>
-              <Button
-                onClick={() => setShowCreateForm(!showCreateForm)}
-              >
-                {showCreateForm ? "Cancel" : "Create Module"}
-              </Button>
             </div>
+            <h1 className="text-3xl font-bold tracking-tight">Course Modules</h1>
+            <p className="text-muted-foreground">
+              Organize and manage your learning content structure
+            </p>
           </div>
-        </div>
 
-        {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
-        )}
-
-        {/* Create Module Form */}
-        {showCreateForm && (
-          <Card className="p-6 mb-8">
-            <h2 className="text-xl font-semibold mb-4">Create New Module</h2>
-            <form onSubmit={handleCreate} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                    Module Title
-                  </label>
-                  <Input
-                    id="title"
-                    type="text"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g., Data Structures & Algorithms"
+          <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Module
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create New Module</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleCreate} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Module Title</Label>
+                    <Input
+                      id="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Data Structures & Algorithms"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emoji">Icon</Label>
+                    <Input
+                      id="emoji"
+                      value={emoji}
+                      onChange={(e) => setEmoji(e.target.value)}
+                      placeholder="📚"
+                      maxLength={2}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Brief description of the module content..."
+                    rows={3}
                     required
                   />
                 </div>
-                <div>
-                  <label htmlFor="emoji" className="block text-sm font-medium text-gray-700 mb-2">
-                    Emoji Icon
-                  </label>
-                  <Input
-                    id="emoji"
-                    type="text"
-                    value={emoji}
-                    onChange={(e) => setEmoji(e.target.value)}
-                    placeholder="📚"
-                    maxLength={2}
-                  />
+                <div className="flex justify-end space-x-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowCreateForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={isCreating}>
+                    {isCreating && <Spinner size="sm" className="mr-2" />}
+                    Create Module
+                  </Button>
                 </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Error Alert */}
+        {error && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Modules Grid */}
+        {modules.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {modules
+              .sort((a, b) => a.orderIndex - b.orderIndex)
+              .map((module, index) => (
+                <Card key={module.id} className="group hover:shadow-lg transition-all duration-200">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="text-2xl">{module.emoji}</div>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg truncate">{module.title}</CardTitle>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge variant="secondary" className="text-xs">
+                              Order {module.orderIndex}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {module._count.chapters} chapters
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Reorder Controls */}
+                      <div className="flex flex-col space-y-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleReorder(module.id, 'up')}
+                          disabled={index === 0 || isReordering}
+                          className="h-6 w-6 p-0"
+                        >
+                          <ArrowUp className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleReorder(module.id, 'down')}
+                          disabled={index === modules.length - 1 || isReordering}
+                          className="h-6 w-6 p-0"
+                        >
+                          <ArrowDown className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="pb-3">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {module.description}
+                    </p>
+                  </CardContent>
+
+                  <CardFooter className="pt-3">
+                    <div className="flex space-x-2 w-full">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/admin/modules/${module.id}`)}
+                        className="flex-1"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Manage
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(module.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))}
+          </div>
+        ) : (
+          /* Empty State */
+          <Card className="text-center py-12">
+            <CardContent className="space-y-4">
+              <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
+                <BookOpen className="w-8 h-8 text-muted-foreground" />
               </div>
-              <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Brief description of the module"
-                  rows={3}
-                  required
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
+              <div className="space-y-2">
+                <h3 className="text-lg font-semibold">No modules yet</h3>
+                <p className="text-muted-foreground max-w-sm mx-auto">
+                  Create your first module to start organizing your course content and building learning paths.
+                </p>
               </div>
-              <div className="flex justify-end space-x-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowCreateForm(false)}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isCreating}>
-                  {isCreating ? "Creating..." : "Create Module"}
-                </Button>
-              </div>
-            </form>
+              <Button onClick={() => setShowCreateForm(true)}>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Your First Module
+              </Button>
+            </CardContent>
           </Card>
         )}
 
-        {/* Modules List */}
-        <div className="space-y-4">
-          {modules
-            .sort((a, b) => a.orderIndex - b.orderIndex)
-            .map((module, index) => (
-              <Card key={module.id} className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">{module.emoji}</span>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{module.title}</h3>
-                      <p className="text-sm text-gray-500">Order: {module.orderIndex}</p>
-                    </div>
-                  </div>
-
-                  {/* Reorder Controls */}
-                  <div className="flex flex-col space-y-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleReorder(module.id, 'up')}
-                      disabled={index === 0 || isReordering}
-                      className="px-2 py-1 h-8 w-8 p-0"
-                      title="Move up"
-                    >
-                      ↑
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleReorder(module.id, 'down')}
-                      disabled={index === modules.length - 1 || isReordering}
-                      className="px-2 py-1 h-8 w-8 p-0"
-                      title="Move down"
-                    >
-                      ↓
-                    </Button>
-                  </div>
-                </div>
-
-                <p className="text-gray-600 mb-4 line-clamp-3">{module.description}</p>
-
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <span>{module._count.chapters} chapters</span>
-                </div>
-
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => router.push(`/admin/modules/${module.id}`)}
-                    className="flex-1"
-                  >
-                    Manage Chapters
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(module.id)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </Card>
-            ))}
-        </div>
-
-        {modules.length === 0 && !isLoading && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📚</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No modules yet</h3>
-            <p className="text-gray-600 mb-6">Create your first module to get started with content organization.</p>
-            <Button onClick={() => setShowCreateForm(true)}>
-              Create Your First Module
-            </Button>
+        {/* Success Message */}
+        {modules.length > 0 && !error && (
+          <div className="mt-8 text-center">
+            <div className="inline-flex items-center space-x-2 text-sm text-muted-foreground bg-muted px-3 py-2 rounded-full">
+              <CheckCircle className="w-4 h-4 text-success" />
+              <span>{modules.length} module{modules.length !== 1 ? 's' : ''} organized</span>
+            </div>
           </div>
         )}
       </div>

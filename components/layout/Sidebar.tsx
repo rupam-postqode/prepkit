@@ -5,6 +5,25 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import {
+  ChevronDown,
+  ChevronRight,
+  Home,
+  BookOpen,
+  Briefcase,
+  Users,
+  BarChart3,
+  Plus,
+  Settings,
+  LogOut,
+  Menu,
+  X
+} from "lucide-react";
 
 interface SidebarProps {
   className?: string;
@@ -15,6 +34,9 @@ interface Module {
   title: string;
   slug: string;
   emoji: string;
+  _count: {
+    chapters: number;
+  };
   chapters: {
     id: string;
     title: string;
@@ -110,160 +132,226 @@ export function Sidebar({ className }: SidebarProps) {
 
   const adminNavigation = [
     {
-      name: "Admin Dashboard",
+      name: "Dashboard",
       href: "/admin",
-      icon: "⚙️",
+      icon: Settings,
+      description: "Admin overview"
     },
     {
-      name: "Manage Modules",
+      name: "Modules",
       href: "/admin/modules",
-      icon: "📚",
+      icon: BookOpen,
+      description: "Manage course modules"
     },
     {
-      name: "Manage Lessons",
+      name: "Lessons",
       href: "/admin/lessons",
-      icon: "📖",
+      icon: BookOpen,
+      description: "Manage lessons"
     },
     {
       name: "Create Lesson",
       href: "/admin/lessons/create",
-      icon: "📝",
+      icon: Plus,
+      description: "Add new content"
     },
     {
       name: "Job Board",
       href: "/admin/jobs",
-      icon: "💼",
+      icon: Briefcase,
+      description: "Manage jobs"
     },
     {
       name: "Users",
       href: "/admin/users",
-      icon: "👥",
+      icon: Users,
+      description: "User management"
     },
     {
       name: "Analytics",
       href: "/admin/analytics",
-      icon: "📊",
+      icon: BarChart3,
+      description: "View insights"
+    },
+  ];
+
+  const userNavigation = [
+    {
+      name: "Dashboard",
+      href: "/dashboard",
+      icon: Home,
+      description: "Your overview"
+    },
+    {
+      name: "Job Board",
+      href: "/jobs",
+      icon: Briefcase,
+      description: "Find opportunities"
     },
   ];
 
   return (
-    <div className={cn("bg-white border-r border-gray-200", className)}>
-      <div className="flex flex-col h-full">
-        {/* Logo */}
-        <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200">
-          <Link href={isAdmin ? "/admin" : "/dashboard"} className="flex items-center">
-            <div className="text-xl font-bold text-indigo-600">PrepKit</div>
-          </Link>
-        </div>
+    <div className={cn(
+      "flex flex-col h-full bg-card border-r border-border shadow-sm",
+      className
+    )}>
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 border-b border-border">
+        <Link
+          href={isAdmin ? "/admin" : "/dashboard"}
+          className="flex items-center space-x-3 group"
+        >
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center group-hover:bg-primary/90 transition-colors">
+            <span className="text-primary-foreground font-bold text-sm">PK</span>
+          </div>
+          <div>
+            <h1 className="font-semibold text-foreground">PrepKit</h1>
+            <p className="text-xs text-muted-foreground">
+              {isAdmin ? "Admin Panel" : "Interview Prep"}
+            </p>
+          </div>
+        </Link>
+      </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-          {isAdmin ? (
-            /* Admin Navigation */
-            <>
-              {adminNavigation.map((item) => (
+      {/* Navigation */}
+      <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        {isAdmin ? (
+          /* Admin Navigation */
+          <div className="space-y-1">
+            {adminNavigation.map((item) => {
+              const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+              return (
                 <Link
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                    pathname === item.href || pathname?.startsWith(item.href + "/")
-                      ? "bg-indigo-50 text-indigo-700 border-r-2 border-indigo-700"
-                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                    "flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
+                    isActive
+                      ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                   )}
                 >
-                  <span className="mr-3 text-lg">{item.icon}</span>
-                  {item.name}
-                </Link>
-              ))}
-            </>
-          ) : (
-            /* User Navigation */
-            <>
-              {/* Dashboard */}
-              <Link
-                href="/dashboard"
-                className={cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                  pathname === "/dashboard"
-                    ? "bg-indigo-50 text-indigo-700 border-r-2 border-indigo-700"
-                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                )}
-              >
-                <span className="mr-3 text-lg">🏠</span>
-                Dashboard
-              </Link>
-
-              {/* Jobs */}
-              <Link
-                href="/jobs"
-                className={cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                  pathname === "/jobs" || pathname?.startsWith("/jobs/")
-                    ? "bg-indigo-50 text-indigo-700 border-r-2 border-indigo-700"
-                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                )}
-              >
-                <span className="mr-3 text-lg">💼</span>
-                Job Board
-              </Link>
-
-              {/* Learning Path Navigation */}
-              {learningPath && (
-                <div className="border-t border-gray-100 pt-2 mt-2">
-                  <button
-                    onClick={() => setExpandedPath(!expandedPath)}
-                    className={cn(
-                      "flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors text-left",
-                      "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
-                    )}
-                  >
-                    <span className="mr-3 text-lg">{learningPath.emoji}</span>
-                    <span className="flex-1">{learningPath.title}</span>
-                    <span className="ml-2 text-xs">
-                      {expandedPath ? "▼" : "▶"}
-                    </span>
-                  </button>
-
-                  {/* Path Progress Summary */}
-                  <div className="ml-6 mt-1 mb-2">
-                    <div className="px-3 py-1 text-xs text-gray-600">
-                      Week {learningPath.currentWeek} • {Math.round(learningPath.progressPercentage)}% complete
+                  <item.icon className={cn(
+                    "w-5 h-5 shrink-0",
+                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                  )} />
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate">{item.name}</div>
+                    <div className="text-xs text-muted-foreground/70 truncate">
+                      {item.description}
                     </div>
                   </div>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          /* User Navigation */
+          <div className="space-y-4">
+            {/* Main Navigation */}
+            <div className="space-y-1">
+              {userNavigation.map((item) => {
+                const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
+                      isActive
+                        ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                    )}
+                  >
+                    <item.icon className={cn(
+                      "w-5 h-5 shrink-0",
+                      isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    )} />
+                    <div className="flex-1 min-w-0">
+                      <div className="truncate">{item.name}</div>
+                      <div className="text-xs text-muted-foreground/70 truncate">
+                        {item.description}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
 
-                  {/* Weeks and Lessons */}
+            <Separator />
+
+            {/* Learning Path */}
+            {learningPath && (
+              <div className="space-y-3">
+                <div className="px-3">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Learning Path
+                  </h3>
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={() => setExpandedPath(!expandedPath)}
+                    className="flex items-center space-x-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-left hover:bg-accent/50 transition-colors group"
+                  >
+                    <span className="text-lg">{learningPath.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="truncate font-medium">{learningPath.title}</div>
+                      <div className="text-xs text-muted-foreground">
+                        Week {learningPath.currentWeek} of {learningPath.durationWeeks}
+                      </div>
+                    </div>
+                    {expandedPath ? (
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </button>
+
+                  {/* Progress Bar */}
+                  <div className="px-3 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Progress</span>
+                      <span className="font-medium">{Math.round(learningPath.progressPercentage)}%</span>
+                    </div>
+                    <Progress value={learningPath.progressPercentage} className="h-2" />
+                  </div>
+
+                  {/* Expanded Content */}
                   {expandedPath && (
-                    <div className="ml-6 mt-1 space-y-1">
+                    <div className="ml-6 space-y-2 animate-in slide-in-from-top-2 duration-200">
                       {Object.entries(learningPath.lessonsByWeek)
                         .sort(([a], [b]) => {
                           const weekA = parseInt(a.split(' ')[1]);
                           const weekB = parseInt(b.split(' ')[1]);
                           return weekA - weekB;
                         })
+                        .slice(0, 3) // Show only first 3 weeks for space
                         .map(([weekKey, lessons]) => (
-                          <div key={weekKey}>
-                            <div className="px-3 py-1 text-xs font-medium text-gray-600 uppercase tracking-wide">
+                          <div key={weekKey} className="space-y-1">
+                            <div className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
                               {weekKey}
                             </div>
-                            <div className="ml-3 space-y-1">
+                            <div className="space-y-1">
                               {lessons
                                 .sort((a, b) => a.dayNumber - b.dayNumber)
+                                .slice(0, 3) // Show only first 3 lessons per week
                                 .map((lesson) => (
                                   <Link
                                     key={lesson.id}
                                     href={`/lessons/${lesson.id}`}
                                     className={cn(
-                                      "flex items-center px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                                      "flex items-center space-x-2 px-3 py-2 text-xs rounded-md transition-colors",
                                       pathname === `/lessons/${lesson.id}`
-                                        ? "bg-indigo-50 text-indigo-700"
-                                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                        ? "bg-primary/10 text-primary"
+                                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                                     )}
                                   >
-                                    <span className="mr-2 text-xs">
-                                      {lesson.completed ? "✅" : "○"}
-                                    </span>
-                                    <span className="truncate">{lesson.title}</span>
+                                    <div className={cn(
+                                      "w-2 h-2 rounded-full",
+                                      lesson.completed ? "bg-success" : "bg-muted-foreground/30"
+                                    )} />
+                                    <span className="truncate flex-1">{lesson.title}</span>
                                   </Link>
                                 ))}
                             </div>
@@ -272,88 +360,89 @@ export function Sidebar({ className }: SidebarProps) {
                     </div>
                   )}
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Dynamic Modules */}
+            <Separator />
+
+            {/* Modules */}
+            <div className="space-y-3">
+              <div className="px-3">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Modules
+                </h3>
+              </div>
+
               {loading ? (
-                <div className="px-3 py-2">
-                  <div className="animate-pulse">
-                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                  </div>
+                <div className="px-3 space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-12 bg-muted rounded-lg"></div>
+                    </div>
+                  ))}
                 </div>
               ) : (
-                modules.map((module) => (
-                  <div key={module.id}>
+                <div className="space-y-1">
+                  {modules.slice(0, 5).map((module) => ( // Limit to 5 modules for space
                     <button
+                      key={module.id}
                       onClick={() => toggleModule(module.id)}
                       className={cn(
-                        "flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors text-left",
+                        "flex items-center space-x-3 w-full px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
                         pathname?.includes(`/modules/${module.slug}`)
-                          ? "bg-indigo-50 text-indigo-700 border-r-2 border-indigo-700"
-                          : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                          ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                       )}
                     >
-                      <span className="mr-3 text-lg">{module.emoji}</span>
-                      <span className="flex-1">{module.title}</span>
-                      <span className="ml-2 text-xs">
-                        {expandedModules.has(module.id) ? "▼" : "▶"}
-                      </span>
-                    </button>
-
-                    {/* Chapters and Lessons */}
-                    {expandedModules.has(module.id) && (
-                      <div className="ml-6 mt-1 space-y-1">
-                        {module.chapters.map((chapter) => (
-                          <div key={chapter.id}>
-                            <div className="px-3 py-1 text-xs font-medium text-gray-600 uppercase tracking-wide">
-                              {chapter.title}
-                            </div>
-                            <div className="ml-3 space-y-1">
-                              {chapter.lessons.map((lesson) => (
-                                <Link
-                                  key={lesson.id}
-                                  href={`/lessons/${lesson.id}`}
-                                  className={cn(
-                                    "flex items-center px-3 py-1 text-xs font-medium rounded-md transition-colors",
-                                    pathname === `/lessons/${lesson.id}`
-                                      ? "bg-indigo-50 text-indigo-700"
-                                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                                  )}
-                                >
-                                  <span className="mr-2 text-xs">
-                                    {lesson.completed ? "✅" : "○"}
-                                  </span>
-                                  {lesson.title}
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
+                      <span className="text-lg">{module.emoji}</span>
+                      <div className="flex-1 min-w-0 text-left">
+                        <div className="truncate">{module.title}</div>
+                        <div className="text-xs text-muted-foreground/70">
+                          {module._count.chapters} chapters
+                        </div>
                       </div>
-                    )}
-                  </div>
-                ))
+                      {expandedModules.has(module.id) ? (
+                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </button>
+                  ))}
+                </div>
               )}
-            </>
-          )}
-        </nav>
-
-        {/* Footer with Sign Out */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="space-y-2">
-            <div className="text-xs text-gray-500 text-center mb-2">
-              Signed in as {session?.user?.name}
             </div>
-            <button
-              onClick={handleSignOut}
-              className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors"
-            >
-              <span className="mr-2">🚪</span>
-              Sign Out
-            </button>
+          </div>
+        )}
+      </nav>
+
+      {/* User Profile & Sign Out */}
+      <div className="p-4 border-t border-border">
+        <div className="flex items-center space-x-3 mb-3">
+          <Avatar className="w-8 h-8">
+            <AvatarImage src={session?.user?.image || ""} />
+            <AvatarFallback className="text-xs">
+              {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0">
+            <div className="text-sm font-medium truncate">
+              {session?.user?.name || "User"}
+            </div>
+            <div className="text-xs text-muted-foreground truncate">
+              {session?.user?.email || ""}
+            </div>
           </div>
         </div>
+
+        <Button
+          onClick={handleSignOut}
+          variant="outline"
+          size="sm"
+          className="w-full justify-start"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sign Out
+        </Button>
       </div>
     </div>
   );

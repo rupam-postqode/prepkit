@@ -3,7 +3,27 @@
 import { useState, useEffect } from "react";
 import { Lesson, LessonProgress, PracticeLink } from "@prisma/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
+import { Spinner } from "@/components/ui/spinner";
+import { Separator } from "@/components/ui/separator";
+import {
+  FileText,
+  Play,
+  BookOpen,
+  Code,
+  CheckCircle,
+  AlertCircle,
+  Clock,
+  Target,
+  ExternalLink,
+  Lock,
+  Eye,
+  EyeOff
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 
 interface LessonViewerProps {
@@ -150,60 +170,94 @@ export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen relative">
+    <div className="flex flex-col min-h-screen relative bg-background">
       {/* Content Watermark */}
       <ContentWatermark userId={session?.user?.id || userId} />
 
-      {/* Tab Navigation - Horizontal scroll on mobile */}
-      <div className="border-b border-gray-200 bg-white overflow-x-auto">
-        <div className="px-4 lg:px-6">
-          <nav className="flex space-x-4 lg:space-x-8 min-w-max">
-            <TabButton
-              label="📄 Content"
-              active={activeTab === "markdown"}
-              onClick={() => setActiveTab("markdown")}
-            />
-            <TabButton
-              label="🎥 Video"
-              active={activeTab === "video"}
-              onClick={() => setActiveTab("video")}
-            />
-            <TabButton
-              label="📝 Notes"
-              active={activeTab === "notes"}
-              onClick={() => setActiveTab("notes")}
-            />
-            <TabButton
-              label="💻 Practice"
-              active={activeTab === "practice"}
-              onClick={() => setActiveTab("practice")}
-            />
-          </nav>
+      {/* Progress Bar */}
+      <div className="bg-card border-b border-border px-6 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                {Math.floor((progress.timeSpentSeconds || 0) / 60)}m spent
+              </span>
+            </div>
+            {lesson.premium && (
+              <Badge variant="secondary" className="text-xs">
+                <Lock className="w-3 h-3 mr-1" />
+                Premium
+              </Badge>
+            )}
+          </div>
+
+          {!isCompleted && (
+            <Button onClick={handleMarkComplete} size="sm">
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Mark Complete
+            </Button>
+          )}
+
+          {isCompleted && (
+            <Badge variant="default" className="bg-success text-success-foreground">
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Completed
+            </Badge>
+          )}
         </div>
       </div>
 
-      {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto ios-scroll">
-        {activeTab === "markdown" && (
-          <MarkdownTab
-            content={lessonContent}
-            loading={contentLoading}
-            error={contentError}
-          />
-        )}
-        {activeTab === "video" && (
-          <VideoTab videoUrl={lesson.videoUrl} />
-        )}
-        {activeTab === "notes" && (
-          <NotesTab
-            importantPoints={lesson.importantPoints}
-            commonMistakes={lesson.commonMistakes}
-            quickReference={lesson.quickReference}
-          />
-        )}
-        {activeTab === "practice" && (
-          <PracticeTab practiceLinks={lesson.practiceLinks} />
-        )}
+      {/* Main Content with Tabs */}
+      <div className="flex-1 overflow-hidden">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabType)} className="h-full flex flex-col">
+          <div className="border-b border-border bg-card px-6">
+            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-none lg:flex">
+              <TabsTrigger value="markdown" className="flex items-center space-x-2">
+                <FileText className="w-4 h-4" />
+                <span className="hidden sm:inline">Content</span>
+              </TabsTrigger>
+              <TabsTrigger value="video" className="flex items-center space-x-2">
+                <Play className="w-4 h-4" />
+                <span className="hidden sm:inline">Video</span>
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="flex items-center space-x-2">
+                <BookOpen className="w-4 h-4" />
+                <span className="hidden sm:inline">Notes</span>
+              </TabsTrigger>
+              <TabsTrigger value="practice" className="flex items-center space-x-2">
+                <Code className="w-4 h-4" />
+                <span className="hidden sm:inline">Practice</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            <TabsContent value="markdown" className="m-0 h-full">
+              <MarkdownTab
+                content={lessonContent}
+                loading={contentLoading}
+                error={contentError}
+              />
+            </TabsContent>
+
+            <TabsContent value="video" className="m-0 h-full">
+              <VideoTab videoUrl={lesson.videoUrl} />
+            </TabsContent>
+
+            <TabsContent value="notes" className="m-0 h-full">
+              <NotesTab
+                importantPoints={lesson.importantPoints}
+                commonMistakes={lesson.commonMistakes}
+                quickReference={lesson.quickReference}
+              />
+            </TabsContent>
+
+            <TabsContent value="practice" className="m-0 h-full">
+              <PracticeTab practiceLinks={lesson.practiceLinks} />
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
     </div>
   );
@@ -235,12 +289,10 @@ function TabButton({
 function MarkdownTab({ content, loading, error }: { content: string; loading: boolean; error: string | null }) {
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-            <p className="text-gray-600 mt-2">Loading content...</p>
-          </div>
+      <div className="flex items-center justify-center py-16">
+        <div className="text-center space-y-4">
+          <Spinner size="lg" />
+          <p className="text-muted-foreground">Loading lesson content...</p>
         </div>
       </div>
     );
@@ -248,31 +300,45 @@ function MarkdownTab({ content, loading, error }: { content: string; loading: bo
 
   if (error) {
     return (
-      <div className="p-8">
-        <div className="text-center py-12">
-          <div className="text-red-600 text-lg mb-2">⚠️</div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Content Access Error</h3>
-          <p className="text-gray-600">{error}</p>
-        </div>
+      <div className="flex items-center justify-center py-16">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Access Error:</strong> {error}
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
 
   if (!content) {
     return (
-      <div className="p-8">
-        <div className="text-center py-12 text-gray-500">
-          <div className="text-4xl mb-4">📄</div>
-          <p>No content available for this lesson.</p>
-        </div>
+      <div className="flex items-center justify-center py-16">
+        <Card className="max-w-md text-center">
+          <CardContent className="pt-6">
+            <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-semibold mb-2">No Content Available</h3>
+            <p className="text-sm text-muted-foreground">
+              This lesson doesn't have content yet. Check back later or contact support.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="p-8">
+    <div className="max-w-4xl mx-auto p-6 lg:p-8">
       <div
-        className="prose prose-gray max-w-none content-protected"
+        className="prose prose-slate dark:prose-invert max-w-none content-protected
+                   prose-headings:text-foreground prose-headings:font-semibold
+                   prose-p:text-muted-foreground prose-p:leading-relaxed
+                   prose-strong:text-foreground prose-strong:font-semibold
+                   prose-code:text-primary prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+                   prose-pre:bg-muted prose-pre:border prose-pre:border-border
+                   prose-blockquote:border-l-primary prose-blockquote:text-muted-foreground
+                   prose-ul:text-muted-foreground prose-ol:text-muted-foreground
+                   prose-li:text-muted-foreground prose-li:marker:text-muted-foreground/70"
         style={{
           userSelect: 'none',
           WebkitUserSelect: 'none',
@@ -287,6 +353,14 @@ function MarkdownTab({ content, loading, error }: { content: string; loading: bo
           __html: content.replace(/\n/g, '<br>'),
         }}
       />
+
+      {/* Content Protection Notice */}
+      <Alert className="mt-8">
+        <Lock className="h-4 w-4" />
+        <AlertDescription>
+          This content is protected. Copying, screenshots, and sharing are disabled for educational integrity.
+        </AlertDescription>
+      </Alert>
     </div>
   );
 }
@@ -294,20 +368,28 @@ function MarkdownTab({ content, loading, error }: { content: string; loading: bo
 function VideoTab({ videoUrl }: { videoUrl: string | null }) {
   if (!videoUrl) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        <div className="text-4xl mb-4">🎥</div>
-        <p>No video available for this lesson.</p>
+      <div className="flex items-center justify-center py-16">
+        <Card className="max-w-md text-center">
+          <CardContent className="pt-6">
+            <Play className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-semibold mb-2">No Video Available</h3>
+            <p className="text-sm text-muted-foreground">
+              This lesson doesn't have a video yet. The content is available in text format.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="p-8">
-      <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
+    <div className="max-w-4xl mx-auto p-6 lg:p-8 space-y-6">
+      <div className="aspect-video bg-black rounded-lg overflow-hidden relative shadow-lg">
         {/* Video Protection Overlay */}
         <div className="absolute inset-0 pointer-events-none z-10">
-          <div className="absolute top-4 right-4 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
-            PrepKit Protected Content
+          <div className="absolute top-4 right-4 bg-black/70 text-white text-xs px-3 py-1.5 rounded-md font-medium backdrop-blur-sm">
+            <Lock className="w-3 h-3 inline mr-1" />
+            Protected Content
           </div>
         </div>
 
@@ -329,25 +411,18 @@ function VideoTab({ videoUrl }: { videoUrl: string | null }) {
             }
           }}
         >
-          {"Your browser does not support the video tag."}
+          Your browser does not support the video tag.
         </video>
       </div>
 
       {/* Video Protection Notice */}
-      <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start space-x-3">
-          <div className="text-blue-600 text-lg">🔒</div>
-          <div className="flex-1">
-            <h4 className="text-sm font-medium text-blue-900 mb-1">
-              Protected Video Content
-            </h4>
-            <p className="text-xs text-blue-700">
-              This video is protected content. Downloads, screenshots, and sharing are disabled.
-              Right-click functionality is restricted for content security.
-            </p>
-          </div>
-        </div>
-      </div>
+      <Alert>
+        <Lock className="h-4 w-4" />
+        <AlertDescription>
+          <strong>Protected Video Content:</strong> Downloads, screenshots, and sharing are disabled.
+          Right-click functionality is restricted for content security.
+        </AlertDescription>
+      </Alert>
     </div>
   );
 }
@@ -364,47 +439,81 @@ function NotesTab({
   const parsedImportantPoints = importantPoints ? JSON.parse(importantPoints) : [];
   const parsedCommonMistakes = commonMistakes ? JSON.parse(commonMistakes) : [];
 
+  if (parsedImportantPoints.length === 0 && parsedCommonMistakes.length === 0 && !quickReference) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Card className="max-w-md text-center">
+          <CardContent className="pt-6">
+            <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-semibold mb-2">No Notes Available</h3>
+            <p className="text-sm text-muted-foreground">
+              This lesson doesn't have additional notes or study materials yet.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8">
-      <div className="space-y-6">
-        {parsedImportantPoints.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Important Points</h3>
-            <ul className="list-disc list-inside space-y-1 text-gray-700">
+    <div className="max-w-4xl mx-auto p-6 lg:p-8 space-y-8">
+      {parsedImportantPoints.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Target className="w-5 h-5 text-primary" />
+              <span>Important Points</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
               {parsedImportantPoints.map((point: string, index: number) => (
-                <li key={index}>{point}</li>
+                <li key={index} className="flex items-start space-x-3">
+                  <CheckCircle className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground leading-relaxed">{point}</span>
+                </li>
               ))}
             </ul>
-          </div>
-        )}
+          </CardContent>
+        </Card>
+      )}
 
-        {parsedCommonMistakes.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Common Mistakes</h3>
-            <ul className="list-disc list-inside space-y-1 text-gray-700">
+      {parsedCommonMistakes.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <AlertCircle className="w-5 h-5 text-warning" />
+              <span>Common Mistakes</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
               {parsedCommonMistakes.map((mistake: string, index: number) => (
-                <li key={index}>{mistake}</li>
+                <li key={index} className="flex items-start space-x-3">
+                  <AlertCircle className="w-5 h-5 text-destructive mt-0.5 flex-shrink-0" />
+                  <span className="text-muted-foreground leading-relaxed">{mistake}</span>
+                </li>
               ))}
             </ul>
-          </div>
-        )}
+          </CardContent>
+        </Card>
+      )}
 
-        {quickReference && (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Quick Reference</h3>
-            <div className="bg-gray-50 p-4 rounded-lg font-mono text-sm whitespace-pre-wrap">
+      {quickReference && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Code className="w-5 h-5 text-primary" />
+              <span>Quick Reference</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-muted p-4 rounded-lg font-mono text-sm whitespace-pre-wrap border">
               {quickReference}
             </div>
-          </div>
-        )}
-
-        {parsedImportantPoints.length === 0 && parsedCommonMistakes.length === 0 && !quickReference && (
-          <div className="text-center text-gray-500">
-            <div className="text-4xl mb-4">📝</div>
-            <p>No notes available for this lesson.</p>
-          </div>
-        )}
-      </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
@@ -412,49 +521,79 @@ function NotesTab({
 function PracticeTab({ practiceLinks }: { practiceLinks: PracticeLink[] }) {
   if (practiceLinks.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        <div className="text-4xl mb-4">💻</div>
-        <p>No practice problems available for this lesson.</p>
+      <div className="flex items-center justify-center py-16">
+        <Card className="max-w-md text-center">
+          <CardContent className="pt-6">
+            <Code className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="font-semibold mb-2">No Practice Problems</h3>
+          <p className="text-sm text-muted-foreground">
+            This lesson doesn't have practice problems yet. Check back later.
+          </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="p-8">
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Practice Problems</h3>
-        <div className="grid gap-4">
-          {practiceLinks.map((link) => (
-            <Card key={link.id} className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-gray-900">{link.problemTitle}</h4>
-                  <p className="text-sm text-gray-600 capitalize">{link.platform.toLowerCase()}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                    link.difficulty === 'EASY'
-                      ? 'bg-green-100 text-green-800'
-                      : link.difficulty === 'MEDIUM'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {link.difficulty}
-                  </span>
-                  <a
-                    href={link.problemUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-indigo-600 hover:text-indigo-800"
-                  >
-                    Solve →
-                  </a>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+    <div className="max-w-4xl mx-auto p-6 lg:p-8">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold mb-2">Practice Problems</h2>
+        <p className="text-muted-foreground">
+          Apply what you've learned with these coding challenges
+        </p>
       </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {practiceLinks.map((link) => (
+          <Card key={link.id} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-foreground mb-1 truncate">
+                    {link.problemTitle}
+                  </h3>
+                  <p className="text-sm text-muted-foreground capitalize">
+                    {link.platform.toLowerCase()}
+                  </p>
+                </div>
+                <Badge
+                  variant={
+                    link.difficulty === 'EASY' ? 'default' :
+                    link.difficulty === 'MEDIUM' ? 'secondary' : 'destructive'
+                  }
+                  className={
+                    link.difficulty === 'EASY' ? 'bg-success text-success-foreground' :
+                    link.difficulty === 'MEDIUM' ? 'bg-warning text-warning-foreground' :
+                    'bg-destructive text-destructive-foreground'
+                  }
+                >
+                  {link.difficulty}
+                </Badge>
+              </div>
+
+              <Button asChild className="w-full">
+                <a
+                  href={link.problemUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center space-x-2"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>Solve Problem</span>
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <Alert className="mt-6">
+        <Target className="h-4 w-4" />
+        <AlertDescription>
+          These practice problems will help reinforce your understanding. Try to solve them on your own first before checking solutions.
+        </AlertDescription>
+      </Alert>
     </div>
   );
 }
