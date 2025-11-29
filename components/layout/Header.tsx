@@ -25,6 +25,12 @@ export function Header() {
               Dashboard
             </Link>
             <Link
+              href="/search"
+              className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium"
+            >
+              Search
+            </Link>
+            <Link
               href="#modules"
               className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium"
             >
