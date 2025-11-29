@@ -1,5 +1,4 @@
 import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Card } from "@/components/ui/card";
@@ -7,12 +6,8 @@ import { Card } from "@/components/ui/card";
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    redirect("/login");
-  }
-
   // Fetch user's progress data
-  const userId = session.user?.id || "";
+  const userId = session?.user?.id || "";
 
   // Get user's lesson progress
   const lessonProgress = await prisma.lessonProgress.findMany({
@@ -97,7 +92,7 @@ export default async function DashboardPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {session.user?.name}! 👋
+            Welcome back, {session?.user?.name}! 👋
           </h1>
           <p className="mt-2 text-gray-600">
             Continue your interview preparation journey. You're making great progress!
