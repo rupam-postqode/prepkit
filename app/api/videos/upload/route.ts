@@ -1,21 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { randomUUID } from "crypto";
+import { v2 as cloudinary } from "cloudinary";
 import { prisma } from "@/lib/db";
 
-// AWS S3 Configuration
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
-  },
+// Cloudinary Configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME || "prepkit-videos";
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
 const ALLOWED_TYPES = ["video/mp4", "video/webm", "video/avi", "video/mov"];
 
@@ -64,47 +59,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate unique filename
-    const fileExtension = file.name.split(".").pop() || "mp4";
-    const fileName = `videos/${randomUUID()}.${fileExtension}`;
+    // Convert file to base64 for Cloudinary upload
     const fileBuffer = Buffer.from(await file.arrayBuffer());
+    const base64String = `data:${file.type};base64,${fileBuffer.toString('base64')}`;
 
-    // Upload to S3
-    const uploadCommand = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: fileName,
-      Body: fileBuffer,
-      ContentType: file.type,
-      Metadata: {
-        originalName: file.name,
-        uploadedBy: session.user.id,
-        uploadedAt: new Date().toISOString(),
-      },
-    });
-
-    await s3Client.send(uploadCommand);
-
-    // Generate signed URL for temporary access
-    const getCommand = new GetObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: fileName,
-    });
-
-    const signedUrl = await getSignedUrl(s3Client, getCommand, {
-      expiresIn: 3600, // 1 hour
+    // Upload to Cloudinary
+    const uploadResult = await new Promise<any>((resolve, reject) => {
+      cloudinary.uploader.upload(
+        base64String,
+        {
+          resource_type: "video",
+          folder: "prepkit/videos",
+          public_id: `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          quality: "auto",
+          format: "mp4", // Convert to MP4 for consistency
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
     });
 
     // Store video metadata in database
     const video = await prisma.video.create({
       data: {
-        fileName,
+        fileName: uploadResult.public_id,
         originalName: file.name,
         fileSize: file.size,
         mimeType: file.type,
-        s3Key: fileName,
-        s3Bucket: BUCKET_NAME,
+        duration: uploadResult.duration || 0,
+        s3Key: uploadResult.public_id, // Using s3Key field for Cloudinary public_id
+        s3Bucket: "cloudinary", // Using s3Bucket field to indicate Cloudinary
         uploadedBy: session.user.id,
-        status: "UPLOADED", // Will be updated to PROCESSED after transcoding
+        status: "PROCESSED", // Cloudinary processes videos automatically
       },
     });
 
@@ -117,7 +105,8 @@ export async function POST(request: NextRequest) {
         fileSize: video.fileSize,
         mimeType: video.mimeType,
         status: video.status,
-        signedUrl, // Temporary access URL
+        duration: video.duration,
+        url: uploadResult.secure_url, // Direct Cloudinary URL
       },
     });
 
@@ -171,15 +160,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Generate fresh signed URL
-    const getCommand = new GetObjectCommand({
-      Bucket: video.s3Bucket,
-      Key: video.s3Key,
-    });
-
-    const signedUrl = await getSignedUrl(s3Client, getCommand, {
-      expiresIn: 3600, // 1 hour
-    });
+    // Generate Cloudinary video URL
+    const cloudinaryUrl = `https://res.cloudinary.com/${process.env.CLOUDINARY_CLOUD_NAME}/video/upload/${video.s3Key}.mp4`;
 
     return NextResponse.json({
       video: {
@@ -190,7 +172,7 @@ export async function GET(request: NextRequest) {
         mimeType: video.mimeType,
         status: video.status,
         duration: video.duration,
-        signedUrl,
+        url: cloudinaryUrl, // Direct Cloudinary URL
       },
     });
 

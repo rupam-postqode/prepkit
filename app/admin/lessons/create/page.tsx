@@ -17,7 +17,7 @@ export default function CreateLessonPage() {
     id: string;
     fileName: string;
     originalName: string;
-    signedUrl: string;
+    url: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");

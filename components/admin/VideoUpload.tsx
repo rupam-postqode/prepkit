@@ -9,7 +9,7 @@ interface VideoUploadProps {
     id: string;
     fileName: string;
     originalName: string;
-    signedUrl: string;
+    url: string;
   }) => void;
   currentVideoId?: string;
 }
@@ -28,7 +28,7 @@ export function VideoUpload({ onVideoUploaded, currentVideoId }: VideoUploadProp
     id: string;
     fileName: string;
     originalName: string;
-    signedUrl: string;
+    url: string;
   } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -170,7 +170,7 @@ export function VideoUpload({ onVideoUploaded, currentVideoId }: VideoUploadProp
                 <div className="font-medium">{uploadedVideo.originalName}</div>
                 <div className="mt-2">
                   <video
-                    src={uploadedVideo.signedUrl}
+                    src={uploadedVideo.url}
                     controls
                     className="max-w-full h-auto max-h-48 mx-auto rounded"
                     preload="metadata"
