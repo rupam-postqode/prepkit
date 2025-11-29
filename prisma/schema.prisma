@@ -261,10 +261,34 @@ model Payment {
   status                  PaymentStatus
   method                  String? // "card", "upi", "netbanking", etc.
 
+  refunds                 Refund[]
+
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 
   @@index([userId])
+  @@index([status])
+}
+
+model Refund {
+  id                      String  @id @default(cuid())
+  paymentId               String
+  payment                 Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  razorpayRefundId        String  @unique
+  amount                  Int     // in paise
+  currency                String  @default("INR")
+
+  status                  RefundStatus @default(PROCESSED)
+  reason                  String?
+
+  processedBy             String  // User ID who processed the refund
+  processedAt             DateTime @default(now())
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([paymentId])
   @@index([status])
 }
 
@@ -329,6 +353,12 @@ enum PaymentStatus {
   CAPTURED
   FAILED
   REFUNDED
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSED
+  FAILED
 }
 
 // ============ LEARNING PATHS ============

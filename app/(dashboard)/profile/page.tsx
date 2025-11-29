@@ -481,41 +481,119 @@ export default function ProfilePage() {
 
           {/* Billing Tab */}
           <TabsContent value="billing">
-            <Card>
-              <CardHeader>
-                <CardTitle>Subscription & Billing</CardTitle>
-                <CardDescription>
-                  Manage your subscription and view billing history.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Current Plan */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-medium text-gray-900">Current Plan</h4>
-                  <div className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h5 className="font-medium">Free Plan</h5>
-                        <p className="text-sm text-gray-500">Basic access to all features</p>
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Subscription & Billing</CardTitle>
+                  <CardDescription>
+                    Manage your subscription and view billing history.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Current Plan */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-gray-900">Current Plan</h4>
+                    <div className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h5 className="font-medium">
+                            {profile?.subscriptionPlan === "LIFETIME"
+                              ? "Lifetime Access"
+                              : profile?.subscriptionStatus === "ACTIVE"
+                                ? "Premium Plan"
+                                : "Free Plan"}
+                          </h5>
+                          <p className="text-sm text-gray-500">
+                            {profile?.subscriptionPlan === "LIFETIME"
+                              ? "Lifetime access to all premium features"
+                              : profile?.subscriptionStatus === "ACTIVE"
+                                ? "Full access to all premium features"
+                                : "Basic access to core features"}
+                          </p>
+                          {profile?.subscriptionEndDate && (
+                            <p className="text-xs text-gray-400 mt-1">
+                              {profile.subscriptionPlan === "LIFETIME"
+                                ? "Never expires"
+                                : `Expires: ${new Date(profile.subscriptionEndDate).toLocaleDateString()}`}
+                            </p>
+                          )}
+                        </div>
+                        <Badge
+                          variant={
+                            profile?.subscriptionStatus === "ACTIVE"
+                              ? "default"
+                              : profile?.subscriptionStatus === "EXPIRED"
+                                ? "destructive"
+                                : "secondary"
+                          }
+                        >
+                          {profile?.subscriptionStatus === "ACTIVE"
+                            ? "Active"
+                            : profile?.subscriptionStatus === "EXPIRED"
+                              ? "Expired"
+                              : "Free"}
+                        </Badge>
                       </div>
-                      <Badge variant="secondary">Active</Badge>
+                    </div>
+                    {profile?.subscriptionStatus !== "ACTIVE" && (
+                      <Button onClick={() => router.push("/pricing")}>
+                        Upgrade Plan
+                      </Button>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  {/* Quick Actions */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-gray-900">Quick Actions</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Button
+                        variant="outline"
+                        className="justify-start"
+                        onClick={() => router.push("/profile/payment-history")}
+                      >
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        View Payment History
+                      </Button>
+                      {profile?.subscriptionStatus === "ACTIVE" && profile?.subscriptionPlan !== "LIFETIME" && (
+                        <Button variant="outline" className="justify-start">
+                          <Settings className="w-4 h-4 mr-2" />
+                          Manage Subscription
+                        </Button>
+                      )}
                     </div>
                   </div>
-                  <Button>Upgrade Plan</Button>
-                </div>
+                </CardContent>
+              </Card>
 
-                <Separator />
-
-                {/* Billing History */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-medium text-gray-900">Billing History</h4>
-                  <div className="text-center py-8 text-gray-500">
-                    <p>No billing history available</p>
-                    <p className="text-sm">Upgrade to a paid plan to see billing details</p>
+              {/* Billing History Preview */}
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Billing History</CardTitle>
+                      <CardDescription>
+                        View your complete payment and refund history.
+                      </CardDescription>
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={() => router.push("/profile/payment-history")}
+                    >
+                      View All
+                    </Button>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8 text-gray-500">
+                    <CreditCard className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p className="mb-2">Complete billing history</p>
+                    <p className="text-sm">View detailed payment records, refunds, and receipts</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

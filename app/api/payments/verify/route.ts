@@ -3,23 +3,35 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import crypto from "crypto";
 import { prisma } from "@/lib/db";
+import { withPaymentSecurity, addSecurityHeaders } from "@/lib/payment-security";
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
+    // Parse request body first for validation
+    const requestBody = await request.json();
     const {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature
-    } = await request.json();
+    } = requestBody;
+
+    // Apply security middleware
+    const securityResponse = withPaymentSecurity(request, "VERIFY_PAYMENT", {
+      validateInput: { type: "verify-payment", data: requestBody },
+    });
+
+    if (securityResponse) {
+      return securityResponse;
+    }
+
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+      return addSecurityHeaders(NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      ));
+    }
 
     const userId = session.user?.id || "";
 

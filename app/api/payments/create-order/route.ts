@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { withPaymentSecurity, addSecurityHeaders } from "@/lib/payment-security";
+import Razorpay from "razorpay";
 
 // Initialize Razorpay (lazy initialization)
 const getRazorpay = () => {
-  const Razorpay = require("razorpay");
   return new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID || "",
     key_secret: process.env.RAZORPAY_KEY_SECRET || "",
@@ -21,13 +22,22 @@ const PRICING_PLAN = {
 
 export async function POST(request: NextRequest) {
   try {
+    // Apply security middleware
+    const securityResponse = withPaymentSecurity(request, "CREATE_ORDER", {
+      validateInput: { type: "create-order", data: {} },
+    });
+
+    if (securityResponse) {
+      return securityResponse;
+    }
+
     const session = await getServerSession(authOptions);
 
     if (!session) {
-      return NextResponse.json(
+      return addSecurityHeaders(NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
-      );
+      ));
     }
 
     const userId = session.user?.id || "";
