@@ -24,6 +24,7 @@ export default function ModulesPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [error, setError] = useState("");
+  const [isReordering, setIsReordering] = useState(false);
 
   // Form state
   const [title, setTitle] = useState("");
@@ -109,6 +110,53 @@ export default function ModulesPage() {
       await fetchModules();
     } catch (error) {
       setError(error instanceof Error ? error.message : "An error occurred");
+    }
+  };
+
+  // Reorder modules
+  const handleReorder = async (moduleId: string, direction: 'up' | 'down') => {
+    const currentIndex = modules.findIndex(m => m.id === moduleId);
+    if (currentIndex === -1) return;
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= modules.length) return;
+
+    // Create new order indices
+    const reorderedModules = [...modules];
+    const [movedModule] = reorderedModules.splice(currentIndex, 1);
+    reorderedModules.splice(newIndex, 0, movedModule);
+
+    // Calculate new order indices (starting from 1)
+    const reorderItems = reorderedModules.map((module, index) => ({
+      id: module.id,
+      newOrderIndex: index + 1
+    }));
+
+    setIsReordering(true);
+    setError("");
+
+    try {
+      const response = await fetch('/api/admin/modules/reorder', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ items: reorderItems }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || 'Failed to reorder modules');
+      }
+
+      // Refresh modules to get updated order
+      await fetchModules();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to reorder modules");
+      // Refresh to revert optimistic update
+      await fetchModules();
+    } finally {
+      setIsReordering(false);
     }
   };
 
@@ -218,45 +266,71 @@ export default function ModulesPage() {
         )}
 
         {/* Modules List */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {modules.map((module) => (
-            <Card key={module.id} className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <span className="text-2xl">{module.emoji}</span>
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{module.title}</h3>
-                    <p className="text-sm text-gray-500">Order: {module.orderIndex}</p>
+        <div className="space-y-4">
+          {modules
+            .sort((a, b) => a.orderIndex - b.orderIndex)
+            .map((module, index) => (
+              <Card key={module.id} className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-2xl">{module.emoji}</span>
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">{module.title}</h3>
+                      <p className="text-sm text-gray-500">Order: {module.orderIndex}</p>
+                    </div>
+                  </div>
+
+                  {/* Reorder Controls */}
+                  <div className="flex flex-col space-y-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleReorder(module.id, 'up')}
+                      disabled={index === 0 || isReordering}
+                      className="px-2 py-1 h-8 w-8 p-0"
+                      title="Move up"
+                    >
+                      ↑
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleReorder(module.id, 'down')}
+                      disabled={index === modules.length - 1 || isReordering}
+                      className="px-2 py-1 h-8 w-8 p-0"
+                      title="Move down"
+                    >
+                      ↓
+                    </Button>
                   </div>
                 </div>
-              </div>
 
-              <p className="text-gray-600 mb-4 line-clamp-3">{module.description}</p>
+                <p className="text-gray-600 mb-4 line-clamp-3">{module.description}</p>
 
-              <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                <span>{module._count.chapters} chapters</span>
-              </div>
+                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                  <span>{module._count.chapters} chapters</span>
+                </div>
 
-              <div className="flex space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => router.push(`/admin/modules/${module.id}`)}
-                  className="flex-1"
-                >
-                  Manage Chapters
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDelete(module.id)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  Delete
-                </Button>
-              </div>
-            </Card>
-          ))}
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push(`/admin/modules/${module.id}`)}
+                    className="flex-1"
+                  >
+                    Manage Chapters
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDelete(module.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    Delete
+                  </Button>
+                </div>
+              </Card>
+            ))}
         </div>
 
         {modules.length === 0 && !isLoading && (
