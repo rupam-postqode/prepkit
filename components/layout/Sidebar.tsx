@@ -23,6 +23,7 @@ import {
   LogOut,
   Menu,
   X,
+  User,
   type LucideIcon
 } from "lucide-react";
 
@@ -181,7 +182,14 @@ export function Sidebar({ className }: SidebarProps) {
     href: string;
     icon: LucideIcon;
     description: string;
-  }> = [];
+  }> = [
+    {
+      name: "Profile",
+      href: "/profile",
+      icon: User,
+      description: "Manage your account"
+    },
+  ];
 
   return (
     <div className={cn(
