@@ -4,6 +4,18 @@ async function main() {
   console.log('🌱 Seeding database...')
 
   // Create modules
+  const jsModule = await prisma.module.upsert({
+    where: { slug: 'javascript-fundamentals' },
+    update: {},
+    create: {
+      title: 'JavaScript Fundamentals',
+      slug: 'javascript-fundamentals',
+      description: 'Master JavaScript programming fundamentals, ES6+ features, and modern development practices',
+      emoji: '💛',
+      orderIndex: 1,
+    },
+  })
+
   const dsaModule = await prisma.module.upsert({
     where: { slug: 'dsa' },
     update: {},
@@ -12,7 +24,7 @@ async function main() {
       slug: 'dsa',
       description: 'Master the fundamentals of data structures and algorithms for technical interviews',
       emoji: '📚',
-      orderIndex: 1,
+      orderIndex: 2,
     },
   })
 
@@ -24,7 +36,7 @@ async function main() {
       slug: 'machine-coding',
       description: 'Practice building real-world applications under time constraints',
       emoji: '🎯',
-      orderIndex: 2,
+      orderIndex: 3,
     },
   })
 
@@ -36,7 +48,7 @@ async function main() {
       slug: 'system-design',
       description: 'Learn to design scalable, distributed systems',
       emoji: '🏗️',
-      orderIndex: 3,
+      orderIndex: 4,
     },
   })
 
@@ -48,7 +60,7 @@ async function main() {
       slug: 'behavioral',
       description: 'Master communication and behavioral interview skills',
       emoji: '💬',
-      orderIndex: 4,
+      orderIndex: 5,
     },
   })
 
