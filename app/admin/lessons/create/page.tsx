@@ -6,12 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RichTextEditor, getWordCount, getReadingTime } from "@/components/admin/RichTextEditor";
+import { VideoUpload } from "@/components/admin/VideoUpload";
 
 export default function CreateLessonPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [markdownContent, setMarkdownContent] = useState("");
   const [difficulty, setDifficulty] = useState("BEGINNER");
+  const [uploadedVideo, setUploadedVideo] = useState<{
+    id: string;
+    fileName: string;
+    originalName: string;
+    signedUrl: string;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -209,6 +216,13 @@ export default function CreateLessonPage() {
                 placeholder="Write your lesson content using Markdown..."
                 height={500}
                 preview="live"
+              />
+            </div>
+
+            <div>
+              <VideoUpload
+                onVideoUploaded={setUploadedVideo}
+                currentVideoId={uploadedVideo?.id}
               />
             </div>
 
