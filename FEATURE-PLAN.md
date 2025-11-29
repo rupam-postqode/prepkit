@@ -2,17 +2,16 @@
 
 ## Current Status Overview
 **Completed Features:** ✅ Landing page, Auth system, Database schema, Basic UI, Dashboard, Admin panel, Lesson viewer, Rich text editor, Video upload (Cloudinary), Payment system (₹999 lifetime), Pricing page, Content protection
-**Missing Features:** ❌ Search functionality, Email notifications, Production deployment
+**Missing Features:** ❌ Content structure management, Video-lesson integration, Practice links, Lesson navigation, Search functionality
+**MVP Readiness:** 70-75% Complete (Core foundation ready, missing content management features)
 
 ## Implementation Schedule
-**Total Timeline:** 8-9 weeks (including completed work)
-- **✅ COMPLETED:** Foundation (Database, Auth, UI, Dashboard)
-- **Week 1:** Admin Content Editor (Rich Text + Video Upload)
-- **Week 2:** Payment Integration (Razorpay)
-- **Week 3:** Content Protection + Search
-- **Week 4:** Email System + Performance
-- **Week 5:** Testing + Content Creation
-- **Week 6:** Production Deployment + Launch
+**Total Timeline:** 3-4 weeks (focused on missing MVP features)
+- **✅ COMPLETED:** Foundation, Auth, UI, Dashboard, Payments, Content Protection
+- **Week 1:** Content Structure Management (Modules/Chapters)
+- **Week 2:** Content Integration (Videos, Practice Links, Navigation)
+- **Week 3:** Search & Admin Enhancements
+- **Week 4:** Testing, Polish & Launch Preparation
 
 ## ✅ COMPLETED FEATURES
 
@@ -82,74 +81,76 @@
 
 ## 🚧 REMAINING FEATURES (Pre-Launch)
 
-### Feature 8: Search & Discovery
-**Status:** ❌ Missing (Nice to Have)
-**Estimated Time:** 2-3 days
-**Priority:** Medium
-
-**What's Missing:**
-1. Lesson search functionality
-2. Content filtering by topic/difficulty
-3. Search results page
-4. Basic recommendations
-
-**Steps:**
-1. Implement PostgreSQL full-text search
-2. Create search API endpoint
-3. Build search UI components
-4. Add filtering and sorting options
-
-### Feature 9: Email Notifications
-**Status:** ❌ Missing (Nice to Have)
-**Estimated Time:** 2-3 days
-**Priority:** Low
-
-**What's Missing:**
-1. Welcome emails for new users
-2. Password reset functionality
-3. Basic email service integration
-
-**Steps:**
-1. Set up Resend or similar email service
-2. Create email templates
-3. Implement notification system
-4. Add email preferences
-
-### Feature 10: Production Deployment
-**Status:** ❌ Missing (Critical for Launch)
-**Estimated Time:** 3-4 days
+### Feature 8: Content Structure Management
+**Status:** ❌ Missing (Critical)
+**Estimated Time:** 5-7 days
 **Priority:** High
 
 **What's Missing:**
-1. Vercel deployment configuration
-2. Environment variable setup
-3. Database migration for production
-4. Basic monitoring and error tracking
+1. Module/Chapter CRUD operations for admin
+2. Dynamic chapter selection in lesson creation
+3. Proper content hierarchy management
+4. Admin interface for organizing content structure
 
 **Steps:**
-1. Configure Vercel project
-2. Set up production database (Neon)
-3. Configure environment variables
-4. Set up CI/CD pipeline
-5. Add basic error monitoring
+1. Create admin pages for module management (/admin/modules)
+2. Create admin pages for chapter management (/admin/chapters)
+3. Update lesson creation form with dynamic chapter selection
+4. Implement proper ordering and hierarchy display
+
+### Feature 9: Content Integration & Navigation
+**Status:** ❌ Missing (Critical)
+**Estimated Time:** 4-5 days
+**Priority:** High
+
+**What's Missing:**
+1. Video-lesson association and proper video player
+2. Practice links system (LeetCode, CodeSandbox integration)
+3. Lesson navigation and routing (/lessons/[lessonId])
+4. Sidebar navigation with expandable chapters
+5. Breadcrumb navigation system
+
+**Steps:**
+1. Link uploaded videos to specific lessons
+2. Implement practice links admin interface and display
+3. Create proper lesson routing and navigation
+4. Build expandable sidebar with chapter hierarchy
+5. Add breadcrumb navigation
+
+### Feature 10: Search & Admin Enhancements
+**Status:** ❌ Missing (Medium)
+**Estimated Time:** 3-4 days
+**Priority:** Medium
+
+**What's Missing:**
+1. Full-text search across lessons
+2. Enhanced admin content management
+3. User management improvements
+4. Content analytics and monitoring
+
+**Steps:**
+1. Implement PostgreSQL full-text search
+2. Create search API and UI components
+3. Enhance admin panel with better content management
+4. Add user activity monitoring and analytics
 
 ## Dependencies Graph
 
 ```
-1. Foundation (DB + Auth + UI)
-├── 2. Admin Content Editor
-├── 3. Lesson Viewer
-├── 4. Razorpay Payments
-├── 5. User Dashboard
-└── 6. Content & Launch
+1. Foundation (DB + Auth + UI + Payments)
+├── 2. Content Structure (Modules/Chapters)
+├── 3. Content Integration (Videos + Practice Links)
+├── 4. Navigation & UX (Lesson routing + Sidebar)
+├── 5. Search & Admin Enhancements
+└── 6. Testing & Launch
 ```
 
 ## MVP Success Criteria
 
-- **Core User Flow:** Register → Subscribe → Access Lessons → Track Progress
-- **Admin Flow:** Create Content → Upload Videos → Manage Users → View Revenue
-- **Technical:** <2s page loads, mobile-responsive, secure payments
-- **Business:** Working subscription model, content protection, basic analytics
+- **Core User Flow:** Register → Subscribe → Browse Modules → Watch Lessons → Complete Practice → Track Progress
+- **Admin Flow:** Create Modules → Add Chapters → Create Lessons → Upload Videos → Add Practice Links → Manage Users
+- **Technical:** <2s page loads, mobile-responsive, secure payments, working content hierarchy
+- **Business:** Working subscription model, content protection, structured learning paths, admin content management
 
 ## Weekly Milestones
 
@@ -169,36 +170,44 @@
 - [x] Content protection (copy prevention, watermarking)
 - [x] Payment verification and subscription management
 
-### 🚧 REMAINING WORK (Final 3 Features)
+### 🚧 REMAINING WORK (3 Core Features)
 
-### Feature 8: Search & Discovery (2-3 days)
-**Priority:** Medium
+### Week 1: Content Structure Management (5-7 days)
+**Priority:** High - Foundation for all content
+- [ ] Create admin module management (/admin/modules)
+- [ ] Create admin chapter management (/admin/chapters)
+- [ ] Update lesson creation with dynamic chapter selection
+- [ ] Implement content hierarchy ordering
+- [ ] Add proper validation and error handling
+
+### Week 2: Content Integration & Navigation (4-5 days)
+**Priority:** High - Core user experience
+- [ ] Link videos properly to lessons in database
+- [ ] Implement practice links admin interface
+- [ ] Create lesson routing (/lessons/[lessonId])
+- [ ] Build expandable sidebar navigation
+- [ ] Add breadcrumb navigation system
+- [ ] Implement lesson completion tracking
+
+### Week 3: Search & Admin Enhancements (3-4 days)
+**Priority:** Medium - Quality of life features
 - [ ] Implement PostgreSQL full-text search
-- [ ] Create search API endpoint (/api/search)
-- [ ] Build search UI components
-- [ ] Add filtering by topic/difficulty
-- [ ] Search results page with pagination
+- [ ] Create search API and UI components
+- [ ] Enhance admin content management dashboard
+- [ ] Add user activity monitoring
+- [ ] Improve error handling and UX
 
-### Feature 9: Email Notifications (2-3 days)
-**Priority:** Low
-- [ ] Set up Resend email service
-- [ ] Create welcome email templates
-- [ ] Implement password reset emails
-- [ ] Add email preferences for users
-- [ ] Basic notification system
-
-### Feature 10: Production Deployment (3-4 days)
-**Priority:** High
-- [ ] Configure Vercel deployment
-- [ ] Set up production database (Neon)
-- [ ] Configure environment variables
-- [ ] Set up CI/CD pipeline
-- [ ] Add basic error monitoring (Sentry)
+### Week 4: Testing & Launch Preparation (2-3 days)
+**Priority:** High - Pre-launch validation
+- [ ] End-to-end testing of user flows
+- [ ] Payment flow verification
+- [ ] Content protection testing
+- [ ] Mobile responsiveness optimization
 - [ ] Performance optimization
-- [ ] Beta launch preparation
+- [ ] Admin content population preparation
 
 ---
 
 **Last Updated:** November 29, 2025
-**Version:** 2.0 - Major Features Complete
-**Next Review:** After Production Deployment
+**Version:** 3.0 - MVP Requirements Defined
+**Next Review:** After Content Structure Implementation
