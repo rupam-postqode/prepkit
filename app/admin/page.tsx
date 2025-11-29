@@ -105,12 +105,20 @@ export default async function AdminDashboard() {
         </Card>
 
         {/* Quick Actions */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <a href="/admin/lessons/create">
             <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
               <div className="text-3xl mb-4">📝</div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Create Lesson</h3>
               <p className="text-gray-600 text-sm">Add new learning content to the platform</p>
+            </Card>
+          </a>
+
+          <a href="/admin/jobs">
+            <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="text-3xl mb-4">💼</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Job Board</h3>
+              <p className="text-gray-600 text-sm">Post and manage job listings for the community</p>
             </Card>
           </a>
 

@@ -31,6 +31,7 @@ model User {
   subscriptions         Subscription[]
   feedback              Feedback[]
   videos                Video[]
+  jobs                  Job[]
 
   // Metadata
   createdAt             DateTime @default(now())
@@ -312,4 +313,36 @@ enum PaymentStatus {
   CAPTURED
   FAILED
   REFUNDED
+}
+
+// ============ JOBS BOARD ============
+model Job {
+  id          String   @id @default(cuid())
+  title       String
+  company     String
+  location    String?
+  type        JobType
+  experience  String   // "0-2 years", "2-5 years", etc.
+  salary      String?  // "₹5-10 LPA", "$50-80K", etc.
+  description String
+  requirements String?
+  externalUrl String   // Link to actual job posting
+  isActive    Boolean  @default(true)
+
+  postedBy    String   // Admin user ID
+  postedByUser User    @relation(fields: [postedBy], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  FREELANCE
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,32 @@ import { Button } from "@/components/ui/button";
 export function Header() {
   const { data: session, status } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [hasJobAccess, setHasJobAccess] = useState(false);
+  const [canViewJobs, setCanViewJobs] = useState(false);
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (session?.user) {
+        try {
+          // Check if user can manage jobs (post jobs)
+          const manageResponse = await fetch('/api/admin/jobs');
+          setHasJobAccess(manageResponse.ok);
+
+          // Check if user can view jobs
+          const viewResponse = await fetch('/api/jobs');
+          setCanViewJobs(viewResponse.ok);
+        } catch (error) {
+          setHasJobAccess(false);
+          setCanViewJobs(false);
+        }
+      } else {
+        setHasJobAccess(false);
+        setCanViewJobs(false);
+      }
+    };
+
+    checkAccess();
+  }, [session]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -40,6 +66,14 @@ export function Header() {
             >
               Search
             </Link>
+            {canViewJobs && (
+              <Link
+                href="/jobs"
+                className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors"
+              >
+                Jobs
+              </Link>
+            )}
             <Link
               href="#modules"
               className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors"
@@ -147,6 +181,16 @@ export function Header() {
               >
                 Search
               </Link>
+
+              {canViewJobs && (
+                <Link
+                  href="/jobs"
+                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors touch-target"
+                  onClick={closeMobileMenu}
+                >
+                  Jobs
+                </Link>
+              )}
 
               <Link
                 href="#modules"
