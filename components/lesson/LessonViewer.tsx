@@ -41,7 +41,43 @@ function ContentWatermark({ userId }: { userId: string }) {
 export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
   const [activeTab, setActiveTab] = useState<TabType>("markdown");
   const [isCompleted, setIsCompleted] = useState(!!progress.completedAt);
+  const [lessonContent, setLessonContent] = useState<string>("");
+  const [contentLoading, setContentLoading] = useState(true);
+  const [contentError, setContentError] = useState<string | null>(null);
   const { data: session } = useSession();
+
+  // Fetch protected content on mount
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        setContentLoading(true);
+        setContentError(null);
+
+        const response = await fetch(`/api/lessons/${lesson.id}/content`);
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          setContentError(errorData.accessReason || 'Access denied');
+          return;
+        }
+
+        const data = await response.json();
+
+        if (data.accessGranted) {
+          setLessonContent(data.content || '');
+        } else {
+          setContentError(data.accessReason || 'Access denied');
+        }
+      } catch (error) {
+        console.error('Failed to fetch lesson content:', error);
+        setContentError('Failed to load content');
+      } finally {
+        setContentLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, [lesson.id]);
 
   // Content protection effects
   useEffect(() => {
@@ -149,7 +185,11 @@ export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
       {/* Tab Content */}
       <div className="flex-1 overflow-y-auto ios-scroll">
         {activeTab === "markdown" && (
-          <MarkdownTab content={lesson.markdownContent || "No content available."} />
+          <MarkdownTab
+            content={lessonContent}
+            loading={contentLoading}
+            error={contentError}
+          />
         )}
         {activeTab === "video" && (
           <VideoTab videoUrl={lesson.videoUrl} />
@@ -192,7 +232,43 @@ function TabButton({
   );
 }
 
-function MarkdownTab({ content }: { content: string }) {
+function MarkdownTab({ content, loading, error }: { content: string; loading: boolean; error: string | null }) {
+  if (loading) {
+    return (
+      <div className="p-8">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+            <p className="text-gray-600 mt-2">Loading content...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="text-center py-12">
+          <div className="text-red-600 text-lg mb-2">⚠️</div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Content Access Error</h3>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!content) {
+    return (
+      <div className="p-8">
+        <div className="text-center py-12 text-gray-500">
+          <div className="text-4xl mb-4">📄</div>
+          <p>No content available for this lesson.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
       <div

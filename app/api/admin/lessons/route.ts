@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-check";
 import { prisma } from "@/lib/db";
+import { ContentProtectionService } from "@/lib/content-protection";
+import { handleApiError, ErrorCode } from "@/lib/error-handler";
 
 export async function POST(request: NextRequest) {
   try {
     // Check admin access
-    await requireAdmin();
+    const adminUser = await requireAdmin();
 
-    const { title, description, markdownContent, difficulty, chapterId, importantPoints, commonMistakes, quickReference } = await request.json();
+    const { title, description, markdownContent, difficulty, chapterId, importantPoints, commonMistakes, quickReference, premium } = await request.json();
 
     // Validate input
     if (!title || !description || !markdownContent || !difficulty || !chapterId) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
+      const errorResponse = handleApiError(
+        new Error('Missing required fields'),
+        { userId: adminUser?.user?.id, method: 'POST', url: '/api/admin/lessons' }
       );
+      return NextResponse.json(errorResponse, { status: 400 });
     }
 
     // Verify chapter exists
@@ -23,10 +26,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (!chapter) {
-      return NextResponse.json(
-        { error: "Chapter not found" },
-        { status: 404 }
+      const errorResponse = handleApiError(
+        new Error('Chapter not found'),
+        { userId: adminUser?.user?.id, method: 'POST', url: '/api/admin/lessons' }
       );
+      return NextResponse.json(errorResponse, { status: 404 });
     }
 
     // Generate slug from title
@@ -43,16 +47,17 @@ export async function POST(request: NextRequest) {
 
     const orderIndex = lastLesson ? lastLesson.orderIndex + 1 : 1;
 
-    // Create the lesson
+    // Create the lesson first (without content)
     const lesson = await prisma.lesson.create({
       data: {
         title,
         slug,
         description,
-        markdownContent,
+        markdownContent: '', // Will be encrypted and stored separately
         difficulty,
         chapterId,
         orderIndex,
+        premium: premium || false,
         publishedAt: new Date(), // Auto-publish for now
         importantPoints,
         commonMistakes,
@@ -60,20 +65,40 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(lesson, { status: 201 });
+    // Encrypt and store content using content protection service
+    try {
+      await ContentProtectionService.encryptLessonContent(
+        lesson.id,
+        markdownContent,
+        lesson.premium
+      );
+    } catch (encryptionError) {
+      console.error('Content encryption failed:', encryptionError);
+      // If encryption fails, delete the lesson and return error
+      await prisma.lesson.delete({ where: { id: lesson.id } });
+
+      const errorResponse = handleApiError(
+        encryptionError,
+        { userId: adminUser?.user?.id, method: 'POST', url: '/api/admin/lessons' }
+      );
+      return NextResponse.json(errorResponse, { status: 500 });
+    }
+
+    // Return the created lesson
+    return NextResponse.json({ success: true, data: lesson }, { status: 201 });
   } catch (error) {
-    console.error("Create lesson error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+    const errorResponse = handleApiError(
+      error,
+      { method: 'POST', url: '/api/admin/lessons' }
     );
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
 export async function GET(request: NextRequest) {
   try {
     // Check admin access
-    await requireAdmin();
+    const adminUser = await requireAdmin();
 
     const lessons = await prisma.lesson.findMany({
       include: {
@@ -96,12 +121,12 @@ export async function GET(request: NextRequest) {
       ],
     });
 
-    return NextResponse.json(lessons);
+    return NextResponse.json({ success: true, data: lessons });
   } catch (error) {
-    console.error("Get lessons error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
+    const errorResponse = handleApiError(
+      error,
+      { method: 'GET', url: '/api/admin/lessons' }
     );
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

@@ -93,9 +93,17 @@ model Lesson {
   // Content
   videoUrl          String?  // S3/CloudFront URL
   videoDurationSec  Int?
-  markdownContent   String  // Stored in DB or reference S3
+  markdownContent   String  // Plain text for backward compatibility
 
-  // Notes & Resources
+  // Encrypted Content (Enterprise Protection)
+  encryptedContent     String?  // AES-256-GCM encrypted content
+  encryptionKey        String?  // Encryption key (encrypted)
+  encryptionIv         String?  // Initialization vector
+  encryptionTag        String?  // Authentication tag
+  keyVersion          String?  // Key version for rotation
+  contentHash         String?  // SHA-256 hash for integrity
+
+  // Notes & Resources (also encrypted for premium content)
   importantPoints   String? // JSON string of important points array
   commonMistakes    String? // JSON string of common mistakes array
   quickReference    String? // Code examples, formulas, syntax reminders
