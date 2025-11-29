@@ -233,7 +233,7 @@ model Payment {
 
   userId                  String
 
-  razorpayPaymentId       String  @unique
+  razorpayPaymentId       String? @unique
   razorpayOrderId         String
 
   amount                  Int     // in paise
