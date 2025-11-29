@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { RichTextEditor, getWordCount, getReadingTime } from "@/components/admin/RichTextEditor";
 
 export default function CreateLessonPage() {
   const [title, setTitle] = useState("");
@@ -13,7 +14,79 @@ export default function CreateLessonPage() {
   const [difficulty, setDifficulty] = useState("BEGINNER");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
   const router = useRouter();
+
+  // Auto-save functionality
+  const autoSave = useCallback(async (data: {
+    title: string;
+    description: string;
+    markdownContent: string;
+    difficulty: string;
+  }) => {
+    if (!data.title.trim() && !data.description.trim() && !data.markdownContent.trim()) {
+      return; // Don't save empty drafts
+    }
+
+    setIsAutoSaving(true);
+    try {
+      // Save to localStorage as draft
+      const draftKey = `lesson-draft-${Date.now()}`;
+      localStorage.setItem(draftKey, JSON.stringify({
+        ...data,
+        timestamp: new Date().toISOString(),
+      }));
+
+      // Keep only last 3 drafts
+      const draftKeys = Object.keys(localStorage).filter(key => key.startsWith('lesson-draft-'));
+      if (draftKeys.length > 3) {
+        draftKeys.sort().slice(0, -3).forEach(key => localStorage.removeItem(key));
+      }
+
+      setLastSaved(new Date());
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+    } finally {
+      setIsAutoSaving(false);
+    }
+  }, []);
+
+  // Auto-save on content changes (debounced)
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    const debouncedAutoSave = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        autoSave({ title, description, markdownContent, difficulty });
+      }, 2000); // Save after 2 seconds of inactivity
+    };
+
+    if (title || description || markdownContent) {
+      debouncedAutoSave();
+    }
+
+    return () => clearTimeout(timeoutId);
+  }, [title, description, markdownContent, difficulty, autoSave]);
+
+  // Load draft on mount
+  useEffect(() => {
+    const draftKeys = Object.keys(localStorage).filter(key => key.startsWith('lesson-draft-'));
+    if (draftKeys.length > 0) {
+      const latestDraftKey = draftKeys.sort().pop()!;
+      try {
+        const draft = JSON.parse(localStorage.getItem(latestDraftKey)!);
+        setTitle(draft.title || "");
+        setDescription(draft.description || "");
+        setMarkdownContent(draft.markdownContent || "");
+        setDifficulty(draft.difficulty || "BEGINNER");
+        setLastSaved(new Date(draft.timestamp));
+      } catch (error) {
+        console.error("Failed to load draft:", error);
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +126,22 @@ export default function CreateLessonPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Create New Lesson</h1>
-          <p className="mt-2 text-gray-600">Add new learning content to the platform</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Create New Lesson</h1>
+              <p className="mt-2 text-gray-600">Add new learning content to the platform</p>
+            </div>
+            {lastSaved && (
+              <div className="text-right">
+                <div className="text-sm text-green-600 font-medium">
+                  {isAutoSaving ? "💾 Saving..." : "✅ Auto-saved"}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {lastSaved.toLocaleTimeString()}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <Card className="p-6">
@@ -105,17 +192,23 @@ export default function CreateLessonPage() {
             </div>
 
             <div>
-              <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
-                Markdown Content
-              </label>
-              <textarea
-                id="content"
+              <div className="flex items-center justify-between mb-2">
+                <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+                  Lesson Content
+                </label>
+                {markdownContent && (
+                  <div className="text-xs text-gray-500 space-x-4">
+                    <span>{getWordCount(markdownContent)} words</span>
+                    <span>{getReadingTime(markdownContent)} min read</span>
+                  </div>
+                )}
+              </div>
+              <RichTextEditor
                 value={markdownContent}
-                onChange={(e) => setMarkdownContent(e.target.value)}
-                rows={20}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Write your lesson content in Markdown format..."
-                required
+                onChange={setMarkdownContent}
+                placeholder="Write your lesson content using Markdown..."
+                height={500}
+                preview="live"
               />
             </div>
 
