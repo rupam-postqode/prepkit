@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { requireSubscription, getUserAccessLevel } from "@/lib/subscription-check";
 import { LessonViewer } from "@/components/lesson/LessonViewer";
 
 interface LessonPageProps {
@@ -53,6 +54,16 @@ export default async function LessonPage({ params }: LessonPageProps) {
         </div>
       </div>
     );
+  }
+
+  // Check premium content access
+  const userAccessLevel = await getUserAccessLevel();
+  const isAdmin = userAccessLevel === "admin";
+  const hasSubscription = userAccessLevel === "premium";
+
+  // If lesson is premium and user doesn't have access, redirect to pricing
+  if (lesson.premium && !isAdmin && !hasSubscription) {
+    redirect("/pricing?message=This premium lesson requires a subscription");
   }
 
   // Get or create lesson progress

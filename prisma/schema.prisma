@@ -92,6 +92,8 @@ model Lesson {
   videoDurationSec  Int?
   markdownContent   String  // Stored in DB or reference S3
 
+  premium           Boolean @default(false) // Whether lesson requires subscription
+
   difficulty        Difficulty
 
   // Metadata

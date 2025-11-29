@@ -148,7 +148,956 @@ Practice these concepts with the LeetCode problems linked below.`,
     },
   })
 
-  console.log('✅ Database seeded successfully!')
+  // Create more DSA chapters and lessons
+  const linkedListsChapter = await prisma.chapter.upsert({
+    where: {
+      moduleId_slug: {
+        moduleId: dsaModule.id,
+        slug: 'linked-lists'
+      }
+    },
+    update: {},
+    create: {
+      moduleId: dsaModule.id,
+      title: 'Linked Lists',
+      slug: 'linked-lists',
+      description: 'Master singly and doubly linked list operations',
+      orderIndex: 2,
+      difficultyLevel: 'BEGINNER',
+      estimatedHours: 6,
+    },
+  })
+
+  // Linked List Introduction (FREE)
+  const linkedListIntroLesson = await prisma.lesson.upsert({
+    where: {
+      chapterId_slug: {
+        chapterId: linkedListsChapter.id,
+        slug: 'linked-list-introduction'
+      }
+    },
+    update: {},
+    create: {
+      chapterId: linkedListsChapter.id,
+      title: 'Linked List Introduction',
+      slug: 'linked-list-introduction',
+      description: 'Understanding linked list structure and basic operations',
+      orderIndex: 1,
+      markdownContent: `# Linked Lists - Introduction
+
+## What is a Linked List?
+
+A **Linked List** is a linear data structure where elements are stored in **nodes**, and each node points to the next node in the sequence.
+
+### Key Characteristics:
+- **Dynamic Size**: Can grow and shrink during runtime
+- **Non-contiguous**: Elements can be stored anywhere in memory
+- **Sequential Access**: Must traverse from head to access elements
+- **Efficient Insertions/Deletions**: O(1) at known positions
+
+### Types of Linked Lists:
+1. **Singly Linked List**: Each node points to the next node
+2. **Doubly Linked List**: Each node points to both next and previous nodes
+3. **Circular Linked List**: Last node points back to the first node
+
+### Basic Operations:
+- **Insert**: Add node at beginning, end, or specific position
+- **Delete**: Remove node from beginning, end, or specific position
+- **Search**: Find node with specific value
+- **Traverse**: Visit all nodes in the list
+
+### Time Complexities:
+- Access: O(n)
+- Search: O(n)
+- Insert/Delete at ends: O(1)
+- Insert/Delete at position: O(n)
+
+### Common Problems:
+- Detecting cycles
+- Finding middle element
+- Reversing the list
+- Merging two sorted lists
+
+Practice these concepts with the problems below.`,
+      difficulty: 'BEGINNER',
+      publishedAt: new Date(),
+    },
+  })
+
+  // Two Pointer Technique (PREMIUM)
+  const twoPointersLesson = await prisma.lesson.upsert({
+    where: {
+      chapterId_slug: {
+        chapterId: arraysChapter.id,
+        slug: 'two-pointers-technique'
+      }
+    },
+    update: {},
+    create: {
+      chapterId: arraysChapter.id,
+      title: 'Two Pointers Technique',
+      slug: 'two-pointers-technique',
+      description: 'Master the two pointers approach for array problems',
+      orderIndex: 2,
+      premium: true,
+      markdownContent: `# Two Pointers Technique
+
+## What is Two Pointers?
+
+The **Two Pointers** technique uses two indices to traverse an array simultaneously, often from opposite ends or at different speeds.
+
+### When to Use:
+- Sorted arrays
+- Finding pairs that satisfy conditions
+- Removing duplicates
+- Palindrome checking
+- Container problems (maximum area, etc.)
+
+### Common Patterns:
+
+#### 1. Opposite Direction (from ends)
+\`\`\`javascript
+function twoSum(nums, target) {
+    let left = 0;
+    let right = nums.length - 1;
+
+    while (left < right) {
+        const sum = nums[left] + nums[right];
+        if (sum === target) {
+            return [left, right];
+        } else if (sum < target) {
+            left++;
+        } else {
+            right--;
+        }
+    }
+    return [];
+}
+\`\`\`
+
+#### 2. Same Direction (different speeds)
+\`\`\`javascript
+function removeDuplicates(nums) {
+    if (nums.length === 0) return 0;
+
+    let slow = 0;
+    for (let fast = 1; fast < nums.length; fast++) {
+        if (nums[fast] !== nums[slow]) {
+            slow++;
+            nums[slow] = nums[fast];
+        }
+    }
+    return slow + 1;
+}
+\`\`\`
+
+### Key Insights:
+- **Sorted Arrays**: Perfect for two pointers
+- **O(n) Time**: Usually optimal for these problems
+- **O(1) Space**: No extra space needed
+- **Edge Cases**: Empty arrays, single elements, all duplicates
+
+### Practice Problems:
+1. Container with most water
+2. 3Sum problem
+3. Remove duplicates from sorted array
+4. Valid palindrome
+
+Master this technique - it's used in 20%+ of array problems!`,
+      difficulty: 'MEDIUM',
+      publishedAt: new Date(),
+    },
+  })
+
+  // Create Machine Coding chapters and lessons
+  const frontendMCChapter = await prisma.chapter.upsert({
+    where: {
+      moduleId_slug: {
+        moduleId: machineCodingModule.id,
+        slug: 'frontend-machine-coding'
+      }
+    },
+    update: {},
+    create: {
+      moduleId: machineCodingModule.id,
+      title: 'Frontend Machine Coding',
+      slug: 'frontend-machine-coding',
+      description: 'Build interactive UI components and applications',
+      orderIndex: 1,
+      difficultyLevel: 'MEDIUM',
+      estimatedHours: 12,
+    },
+  })
+
+  // Todo App (FREE)
+  const todoAppLesson = await prisma.lesson.upsert({
+    where: {
+      chapterId_slug: {
+        chapterId: frontendMCChapter.id,
+        slug: 'todo-application'
+      }
+    },
+    update: {},
+    create: {
+      chapterId: frontendMCChapter.id,
+      title: 'Todo Application',
+      slug: 'todo-application',
+      description: 'Build a complete todo app with CRUD operations',
+      orderIndex: 1,
+      markdownContent: `# Todo Application - Machine Coding
+
+## Requirements
+
+Build a **Todo Application** with the following features:
+
+### Core Features:
+- ✅ Add new todos
+- ✅ Mark todos as complete/incomplete
+- ✅ Delete todos
+- ✅ Edit todo text
+- ✅ Filter todos (All, Active, Completed)
+- ✅ Clear completed todos
+
+### Technical Requirements:
+- Use React with TypeScript
+- Implement proper state management
+- Add local storage persistence
+- Responsive design
+- Clean, modern UI
+
+### Bonus Features:
+- Todo categories/tags
+- Due dates
+- Search functionality
+- Drag & drop reordering
+
+## Implementation Approach
+
+### 1. Component Structure
+\`\`\`jsx
+// App.jsx
+function App() {
+  const [todos, setTodos] = useState([]);
+  const [filter, setFilter] = useState('all');
+
+  // Component logic here
+}
+
+// TodoItem.jsx
+function TodoItem({ todo, onToggle, onDelete, onEdit }) {
+  // Individual todo item
+}
+
+// TodoForm.jsx
+function TodoForm({ onAdd }) {
+  // Add new todo form
+}
+\`\`\`
+
+### 2. State Management
+\`\`\`javascript
+const [todos, setTodos] = useState([
+  {
+    id: 1,
+    text: 'Learn React',
+    completed: false,
+    createdAt: new Date()
+  }
+]);
+\`\`\`
+
+### 3. Local Storage
+\`\`\`javascript
+useEffect(() => {
+  const savedTodos = localStorage.getItem('todos');
+  if (savedTodos) {
+    setTodos(JSON.parse(savedTodos));
+  }
+}, []);
+
+useEffect(() => {
+  localStorage.setItem('todos', JSON.stringify(todos));
+}, [todos]);
+\`\`\`
+
+## Common Mistakes to Avoid
+
+1. **Mutating State Directly**: Always use setState
+2. **No Keys in Lists**: React needs unique keys
+3. **Inefficient Re-renders**: Use useCallback for functions
+4. **No Error Handling**: Handle edge cases
+5. **Poor UX**: Add loading states and feedback
+
+## Evaluation Criteria
+
+- **Functionality**: All features working
+- **Code Quality**: Clean, readable code
+- **UI/UX**: Intuitive and responsive
+- **Performance**: No unnecessary re-renders
+- **Edge Cases**: Handles empty states, errors
+
+Practice building this app - it's a common interview question!`,
+      difficulty: 'MEDIUM',
+      publishedAt: new Date(),
+    },
+  })
+
+  // Shopping Cart (PREMIUM)
+  const shoppingCartLesson = await prisma.lesson.upsert({
+    where: {
+      chapterId_slug: {
+        chapterId: frontendMCChapter.id,
+        slug: 'shopping-cart'
+      }
+    },
+    update: {},
+    create: {
+      chapterId: frontendMCChapter.id,
+      title: 'Shopping Cart',
+      slug: 'shopping-cart',
+      description: 'Build a complete e-commerce shopping cart',
+      orderIndex: 2,
+      premium: true,
+      markdownContent: `# Shopping Cart - Advanced Machine Coding
+
+## Requirements
+
+Build a **Shopping Cart** application with advanced features:
+
+### Core Features:
+- ✅ Product catalog with search/filter
+- ✅ Add/remove items from cart
+- ✅ Quantity management
+- ✅ Price calculations with discounts
+- ✅ Checkout process
+- ✅ Order summary
+
+### Advanced Features:
+- ✅ Wishlist functionality
+- ✅ Product reviews and ratings
+- ✅ Inventory management
+- ✅ Coupon codes and discounts
+- ✅ Shipping calculator
+
+### Technical Stack:
+- React with TypeScript
+- Context API for state management
+- Local storage for persistence
+- Responsive design with Tailwind CSS
+
+## Implementation Strategy
+
+### 1. Data Structure
+\`\`\`javascript
+const products = [
+  {
+    id: 1,
+    name: "Wireless Headphones",
+    price: 199.99,
+    image: "/headphones.jpg",
+    category: "Electronics",
+    stock: 15,
+    rating: 4.5
+  }
+];
+
+const cart = [
+  {
+    productId: 1,
+    quantity: 2,
+    addedAt: new Date()
+  }
+];
+\`\`\`
+
+### 2. State Management
+\`\`\`javascript
+const CartContext = createContext();
+
+function CartProvider({ children }) {
+  const [cart, setCart] = useState([]);
+  const [wishlist, setWishlist] = useState([]);
+
+  // Cart operations
+  const addToCart = (product, quantity = 1) => { ... }
+  const removeFromCart = (productId) => { ... }
+  const updateQuantity = (productId, quantity) => { ... }
+
+  return (
+    <CartContext.Provider value={{ cart, wishlist, addToCart, removeFromCart }}>
+      {children}
+    </CartContext.Provider>
+  );
+}
+\`\`\`
+
+### 3. Key Components
+- **ProductGrid**: Display products with add to cart
+- **CartSidebar**: Slide-out cart with item management
+- **CheckoutForm**: Multi-step checkout process
+- **OrderConfirmation**: Success page with order details
+
+## Performance Considerations
+
+1. **Image Optimization**: Lazy loading, WebP format
+2. **Bundle Splitting**: Code splitting for routes
+3. **Memoization**: React.memo for expensive components
+4. **Debounced Search**: Prevent excessive API calls
+
+## Real Interview Insights
+
+Companies like **Flipkart, Amazon, Swiggy** ask similar problems:
+- Focus on state management
+- Handle complex user interactions
+- Implement proper error boundaries
+- Consider accessibility (a11y)
+- Write clean, maintainable code
+
+## Time Management (45-60 minutes)
+
+1. **Planning (10 min)**: Component structure, data flow
+2. **Core Features (25 min)**: Cart functionality, product display
+3. **Polish (15 min)**: UI improvements, edge cases
+4. **Testing (10 min)**: Verify all features work
+
+Master this pattern - it's essential for e-commerce interviews!`,
+      difficulty: 'HARD',
+      publishedAt: new Date(),
+    },
+  })
+
+  // Create System Design chapters
+  const fundamentalsSDChapter = await prisma.chapter.upsert({
+    where: {
+      moduleId_slug: {
+        moduleId: systemDesignModule.id,
+        slug: 'system-design-fundamentals'
+      }
+    },
+    update: {},
+    create: {
+      moduleId: systemDesignModule.id,
+      title: 'System Design Fundamentals',
+      slug: 'system-design-fundamentals',
+      description: 'Learn the building blocks of scalable systems',
+      orderIndex: 1,
+      difficultyLevel: 'MEDIUM',
+      estimatedHours: 10,
+    },
+  })
+
+  // CAP Theorem (FREE)
+  const capTheoremLesson = await prisma.lesson.upsert({
+    where: {
+      chapterId_slug: {
+        chapterId: fundamentalsSDChapter.id,
+        slug: 'cap-theorem'
+      }
+    },
+    update: {},
+    create: {
+      chapterId: fundamentalsSDChapter.id,
+      title: 'CAP Theorem',
+      slug: 'cap-theorem',
+      description: 'Understanding the fundamental trade-offs in distributed systems',
+      orderIndex: 1,
+      markdownContent: `# CAP Theorem - System Design Fundamentals
+
+## What is CAP Theorem?
+
+**CAP Theorem** states that in a distributed system, you can only guarantee **2 out of 3** properties:
+
+- **Consistency**: All nodes see the same data at the same time
+- **Availability**: System remains operational despite node failures
+- **Partition Tolerance**: System continues to function during network partitions
+
+### The Three Properties
+
+#### 1. Consistency (C)
+- All nodes have the same data at any given time
+- Strong consistency requires synchronous replication
+- Trade-off: May reduce availability during partitions
+
+#### 2. Availability (A)
+- Every request receives a response (success or failure)
+- System stays operational even if some nodes fail
+- Trade-off: May sacrifice consistency
+
+#### 3. Partition Tolerance (P)
+- System continues to operate despite network failures
+- Network partitions are inevitable in distributed systems
+- Must be maintained in real-world systems
+
+## Real-World Examples
+
+### CP Systems (Consistency + Partition Tolerance)
+- **Banking Systems**: Account balances must be consistent
+- **Financial Transactions**: Double-spending prevention
+- **Examples**: MongoDB, Redis, ZooKeeper
+
+### AP Systems (Availability + Partition Tolerance)
+- **Social Media**: Timeline inconsistencies are acceptable
+- **E-commerce**: Shopping cart inconsistencies can be resolved
+- **Examples**: Cassandra, DynamoDB, CouchDB
+
+### CA Systems (Consistency + Availability)
+- **Single Location**: No network partitions possible
+- **Monolithic Applications**: Traditional databases
+- **Examples**: PostgreSQL, MySQL (single instance)
+
+## Choosing CAP Properties
+
+### For Your System, Ask:
+
+1. **How critical is consistency?**
+   - Financial data → Must be consistent
+   - Social posts → Can be eventually consistent
+
+2. **What's the cost of downtime?**
+   - E-commerce → High availability needed
+   - Internal tools → Some downtime acceptable
+
+3. **Network reliability requirements?**
+   - Global system → Must handle partitions
+   - LAN system → Partitions less likely
+
+### Common Choices:
+- **Banking**: CP (consistency over availability)
+- **Social Media**: AP (availability over consistency)
+- **E-commerce**: AP with eventual consistency
+- **Real-time Chat**: AP (availability critical)
+
+## Implementation Strategies
+
+### Achieving Consistency:
+- **Two-Phase Commit**: Strong consistency, slow
+- **Paxos/Raft**: Consensus algorithms
+- **Quorum-based**: Read/write quorums
+
+### Achieving Availability:
+- **Load Balancers**: Distribute requests
+- **Replication**: Multiple copies of data
+- **Circuit Breakers**: Graceful degradation
+
+### Achieving Partition Tolerance:
+- **Asynchronous Replication**: Eventual consistency
+- **Conflict Resolution**: Last-write-wins, CRDTs
+- **Service Meshes**: Istio, Linkerd
+
+## Interview Questions
+
+**"Design a URL Shortener"**
+- AP system: Availability and partition tolerance
+- Eventual consistency acceptable
+- High availability critical
+
+**"Design a Banking System"**
+- CP system: Consistency critical
+- Some downtime acceptable during partitions
+- Strong consistency requirements
+
+Master CAP theorem - it's fundamental to system design interviews!`,
+      difficulty: 'MEDIUM',
+      publishedAt: new Date(),
+    },
+  })
+
+  // URL Shortener Design (PREMIUM)
+  const urlShortenerLesson = await prisma.lesson.upsert({
+    where: {
+      chapterId_slug: {
+        chapterId: fundamentalsSDChapter.id,
+        slug: 'url-shortener-design'
+      }
+    },
+    update: {},
+    create: {
+      chapterId: fundamentalsSDChapter.id,
+      title: 'URL Shortener Design',
+      slug: 'url-shortener-design',
+      description: 'Design a scalable URL shortening service like bit.ly',
+      orderIndex: 2,
+      premium: true,
+      markdownContent: `# URL Shortener Design - System Design Interview
+
+## Problem Statement
+
+Design a **URL Shortener** service (like bit.ly) that can handle millions of requests.
+
+### Requirements:
+- Shorten long URLs to short aliases
+- Redirect short URLs to original URLs
+- Handle high read/write throughput
+- Ensure uniqueness and availability
+- Provide analytics (optional)
+
+### Scale Expectations:
+- **1M+ URLs** created daily
+- **100M+ redirects** daily
+- **99.99% uptime** required
+- **Global user base**
+
+## High-Level Architecture
+
+\`\`\`
+[Client] → [Load Balancer] → [API Gateway] → [Application Servers]
+                                      ↓
+[Database Layer] ← [Cache Layer] ← [Analytics] (optional)
+\`\`\`
+
+## Component Design
+
+### 1. URL Encoding Strategy
+
+#### Base62 Encoding (Most Common)
+- **Characters**: A-Z, a-z, 0-9 (62 total)
+- **Length**: 6-8 characters for uniqueness
+- **Formula**: 62^n possible combinations
+
+\`\`\`javascript
+const BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+function encode(num) {
+  let result = '';
+  while (num > 0) {
+    result = BASE62[num % 62] + result;
+    num = Math.floor(num / 62);
+  }
+  return result.padStart(6, '0');
+}
+\`\`\`
+
+#### Hash-based Approach
+- **MD5/SHA256**: Generate hash, take first 6-8 chars
+- **Collision Handling**: Check database, regenerate if exists
+- **Pros**: No sequential ID needed
+- **Cons**: Potential collisions
+
+### 2. Database Design
+
+#### URLs Table
+\`\`\`sql
+CREATE TABLE urls (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  short_code VARCHAR(10) UNIQUE NOT NULL,
+  original_url TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP NULL,
+  user_id BIGINT NULL,
+  click_count INT DEFAULT 0
+);
+
+CREATE INDEX idx_short_code ON urls(short_code);
+CREATE INDEX idx_user_id ON urls(user_id);
+\`\`\`
+
+#### Analytics Table (Optional)
+\`\`\`sql
+CREATE TABLE url_clicks (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  url_id BIGINT NOT NULL,
+  clicked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  user_agent TEXT,
+  ip_address VARCHAR(45),
+  referrer TEXT
+);
+\`\`\`
+
+### 3. API Design
+
+#### Core Endpoints
+\`\`\`
+POST /api/shorten
+- Body: { "url": "https://example.com/very/long/url" }
+- Response: { "shortUrl": "https://short.ly/AbCdEf" }
+
+GET /:shortCode
+- Redirects to original URL
+- Increments click counter
+\`\`\`
+
+#### Additional Endpoints
+\`\`\`
+GET /api/urls/:id/stats    # Click analytics
+DELETE /api/urls/:id       # Delete URL
+PUT /api/urls/:id          # Update URL
+\`\`\`
+
+### 4. Scaling Strategies
+
+#### Database Scaling
+- **Read Replicas**: Multiple read instances
+- **Sharding**: Split data across multiple databases
+- **Caching**: Redis for frequently accessed URLs
+
+#### Application Scaling
+- **Load Balancers**: Distribute traffic
+- **Microservices**: Separate shortening and redirect services
+- **CDN**: Cache redirects globally
+
+#### Cache Strategy
+\`\`\`javascript
+// Redis cache for redirects
+const CACHE_TTL = 3600; // 1 hour
+
+async function getOriginalUrl(shortCode) {
+  // Check cache first
+  const cached = await redis.get(\`url:\${shortCode}\`);
+  if (cached) return cached;
+
+  // Check database
+  const url = await db.query('SELECT original_url FROM urls WHERE short_code = ?', [shortCode]);
+  if (url) {
+    await redis.setex(\`url:\${shortCode}\`, CACHE_TTL, url);
+    return url;
+  }
+
+  return null;
+}
+\`\`\`
+
+## Performance Optimizations
+
+### 1. Database Optimizations
+- **Indexing**: Short codes and frequently queried fields
+- **Connection Pooling**: Reuse database connections
+- **Query Optimization**: Avoid N+1 queries
+
+### 2. Caching Strategy
+- **Hot URLs**: Cache frequently accessed URLs
+- **CDN**: Global content delivery
+- **In-memory Cache**: Redis for fast lookups
+
+### 3. Rate Limiting
+- **User Limits**: Prevent abuse (100 URLs/day)
+- **IP Limits**: Block malicious IPs
+- **Geographic Limits**: Region-based restrictions
+
+## Failure Scenarios
+
+### 1. Database Failure
+- **Fallback**: Serve cached URLs only
+- **Queue**: Store new URLs for later processing
+- **Monitoring**: Alert when DB is down
+
+### 2. Cache Failure
+- **Direct DB**: Fall back to database queries
+- **Degraded Performance**: Slower but still functional
+- **Auto-recovery**: Rebuild cache from DB
+
+### 3. High Traffic
+- **Auto-scaling**: Add more servers automatically
+- **Circuit Breakers**: Prevent cascade failures
+- **Queue System**: Handle traffic spikes
+
+## Security Considerations
+
+1. **Input Validation**: Sanitize URLs, prevent XSS
+2. **Rate Limiting**: Prevent abuse and DoS attacks
+3. **HTTPS Only**: Secure all communications
+4. **Access Logs**: Monitor for malicious activity
+5. **URL Validation**: Check for malicious destinations
+
+## Interview Follow-ups
+
+**Q: How would you handle custom short codes?**
+- Allow users to specify preferred codes
+- Check availability before assignment
+- Fallback to auto-generated if taken
+
+**Q: How to prevent spam/abuse?**
+- CAPTCHA for anonymous users
+- Rate limiting per IP/user
+- Content filtering for malicious URLs
+
+**Q: Analytics and tracking?**
+- Click tracking with timestamps
+- Geographic data from IP
+- Referrer analysis
+- Device/browser statistics
+
+This is a classic system design problem - master it! 🚀`,
+      difficulty: 'HARD',
+      publishedAt: new Date(),
+    },
+  })
+
+  // Create Behavioral chapters
+  const starMethodChapter = await prisma.chapter.upsert({
+    where: {
+      moduleId_slug: {
+        moduleId: behavioralModule.id,
+        slug: 'star-method'
+      }
+    },
+    update: {},
+    create: {
+      moduleId: behavioralModule.id,
+      title: 'STAR Method & Storytelling',
+      slug: 'star-method',
+      description: 'Master the art of behavioral interview storytelling',
+      orderIndex: 1,
+      difficultyLevel: 'BEGINNER',
+      estimatedHours: 4,
+    },
+  })
+
+  // STAR Method (FREE)
+  const starMethodLesson = await prisma.lesson.upsert({
+    where: {
+      chapterId_slug: {
+        chapterId: starMethodChapter.id,
+        slug: 'star-method-basics'
+      }
+    },
+    update: {},
+    create: {
+      chapterId: starMethodChapter.id,
+      title: 'STAR Method Basics',
+      slug: 'star-method-basics',
+      description: 'Learn to structure your behavioral interview answers',
+      orderIndex: 1,
+      markdownContent: `# STAR Method - Behavioral Interview Success
+
+## What is the STAR Method?
+
+**STAR** is a structured approach to answering behavioral interview questions:
+
+- **S**ituation: Set the context
+- **T**ask: Explain your responsibility
+- **A**ction: Describe what you did
+- **R**esult: Share the outcome
+
+## Why STAR Works
+
+Behavioral questions like "Tell me about a time when..." require stories. STAR ensures your stories are:
+
+- **Structured**: Clear beginning, middle, end
+- **Concise**: No rambling or irrelevant details
+- **Impactful**: Focus on results and learnings
+- **Memorable**: Easy for interviewer to follow
+
+## STAR Framework Breakdown
+
+### Situation (10-20% of answer)
+**Purpose**: Provide context and background
+**What to include**:
+- When and where it happened
+- Your role in the situation
+- Relevant background information
+
+**Example**:
+*"At my previous company, we were launching a new mobile app with a tight deadline of 3 months. As the lead developer, I was responsible for the entire frontend architecture."*
+
+### Task (10-20% of answer)
+**Purpose**: Explain your specific responsibility
+**What to include**:
+- What you were specifically asked to do
+- Any constraints or challenges
+- Your goals and objectives
+
+**Example**:
+*"My task was to design and implement a scalable React architecture that could handle 10,000+ daily active users while maintaining 99% uptime."*
+
+### Action (50-70% of answer)
+**Purpose**: Demonstrate your skills and approach
+**What to include**:
+- Specific steps you took
+- Technologies/tools you used
+- Problems you solved
+- Decisions you made
+
+**Example**:
+*"I started by conducting a thorough requirements analysis and created detailed component specifications. I implemented a modular architecture using React with Redux for state management, and integrated performance monitoring tools. When we encountered memory leaks, I optimized our bundle size by 40% through code splitting and lazy loading."*
+
+### Result (10-20% of answer)
+**Purpose**: Show impact and learning
+**What to include**:
+- Quantifiable outcomes
+- What you learned
+- How it benefited the team/company
+- Future applications
+
+**Example**:
+*"The app launched successfully with 95% uptime in the first month, serving 15,000 daily users. I received recognition from leadership for improving our deployment process, and these optimizations became our standard approach for future projects."*
+
+## Common Behavioral Questions
+
+### Leadership & Teamwork
+- "Tell me about a time you led a team"
+- "Describe a conflict you resolved"
+- "How do you handle team disagreements?"
+
+### Problem Solving
+- "Describe a challenging problem you solved"
+- "Tell me about a time you failed"
+- "How do you approach debugging complex issues?"
+
+### Growth & Learning
+- "Tell me about a time you learned something new"
+- "Describe a project that taught you a lot"
+- "How do you stay current with technology?"
+
+## STAR in Action - Full Example
+
+**Question**: "Tell me about a time when you had to learn a new technology quickly."
+
+**STAR Answer**:
+*"**Situation**: At my previous role, our team decided to migrate from vanilla JavaScript to React for better maintainability, and I was assigned to lead the transition.
+
+**Task**: I needed to learn React fundamentals, migrate 5 existing components, and train 3 junior developers within 2 weeks.
+
+**Action**: I dedicated the first 3 days to intensive learning through official documentation, Udemy courses, and building small projects. I created a migration plan breaking down each component into smaller tasks. For training, I prepared hands-on workshops and code review sessions. When we encountered state management challenges, I implemented Redux and created reusable patterns.
+
+**Result**: We completed the migration ahead of schedule with zero production bugs. The junior developers became confident in React, and our development velocity increased by 35%. This experience taught me the importance of structured learning and knowledge sharing."*
+
+## Tips for STAR Success
+
+### 1. Prepare Stories in Advance
+- Review job description for required skills
+- Prepare 5-7 stories covering different competencies
+- Practice telling them concisely (1-2 minutes each)
+
+### 2. Use Metrics When Possible
+- "Improved performance by 40%"
+- "Reduced bug rate by 60%"
+- "Increased user satisfaction scores by 25%"
+
+### 3. Show, Don't Tell
+- Instead of "I'm a good leader": "I mentored 3 junior developers..."
+- Instead of "I'm detail-oriented": "I created a 15-point checklist..."
+
+### 4. Be Honest and Specific
+- Don't exaggerate achievements
+- Include real challenges and failures
+- Focus on learnings and growth
+
+### 5. Practice Delivery
+- Time your answers (aim for 1-2 minutes)
+- Use confident body language
+- Maintain eye contact
+- Smile and show enthusiasm
+
+## Common Mistakes to Avoid
+
+1. **Too Long**: Rambling stories lose interviewer attention
+2. **Too Short**: Missing context makes story hard to follow
+3. **No Result**: Stories without outcomes seem incomplete
+4. **Generic**: "I worked hard" vs. "I optimized queries reducing load time by 50%"
+5. **Negative Focus**: Don't dwell on failures without learning
+
+Master STAR method - it's the foundation of behavioral interview success! 🎯`,
+      difficulty: 'EASY',
+      publishedAt: new Date(),
+    },
+  })
+
+  console.log('✅ Database seeded with comprehensive content!')
+  console.log('📊 Created:')
+  console.log('   • 4 modules (DSA, Machine Coding, System Design, Behavioral)')
+  console.log('   • 6 chapters across modules')
+  console.log('   • 8 lessons (mix of free and premium)')
+  console.log('   • Practice problems and examples')
 }
 
 main()
