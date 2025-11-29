@@ -8,6 +8,19 @@ import { Input } from "@/components/ui/input";
 import { RichTextEditor, getWordCount, getReadingTime } from "@/components/admin/RichTextEditor";
 import { VideoUpload } from "@/components/admin/VideoUpload";
 
+interface Module {
+  id: string;
+  title: string;
+  emoji: string;
+  chapters: Chapter[];
+}
+
+interface Chapter {
+  id: string;
+  title: string;
+  difficultyLevel: string;
+}
+
 export default function CreateLessonPage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -23,6 +36,19 @@ export default function CreateLessonPage() {
   const [error, setError] = useState("");
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
+
+  // Notes content
+  const [importantPoints, setImportantPoints] = useState<string[]>([]);
+  const [commonMistakes, setCommonMistakes] = useState<string[]>([]);
+  const [quickReference, setQuickReference] = useState("");
+
+  // Content structure state
+  const [modules, setModules] = useState<Module[]>([]);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [selectedModuleId, setSelectedModuleId] = useState("");
+  const [selectedChapterId, setSelectedChapterId] = useState("");
+  const [isLoadingStructure, setIsLoadingStructure] = useState(true);
+
   const router = useRouter();
 
   // Auto-save functionality
@@ -95,14 +121,58 @@ export default function CreateLessonPage() {
     }
   }, []);
 
+  // Fetch modules on mount
+  useEffect(() => {
+    const fetchModules = async () => {
+      try {
+        const response = await fetch("/api/admin/modules");
+        if (!response.ok) throw new Error("Failed to fetch modules");
+        const data = await response.json();
+        setModules(data);
+      } catch (error) {
+        console.error("Failed to fetch modules:", error);
+        setError("Failed to load content structure");
+      } finally {
+        setIsLoadingStructure(false);
+      }
+    };
+
+    fetchModules();
+  }, []);
+
+  // Handle module selection
+  const handleModuleChange = async (moduleId: string) => {
+    setSelectedModuleId(moduleId);
+    setSelectedChapterId(""); // Reset chapter selection
+
+    if (moduleId) {
+      try {
+        const response = await fetch(`/api/admin/chapters?moduleId=${moduleId}`);
+        if (!response.ok) throw new Error("Failed to fetch chapters");
+        const data = await response.json();
+        setChapters(data);
+      } catch (error) {
+        console.error("Failed to fetch chapters:", error);
+        setError("Failed to load chapters");
+      }
+    } else {
+      setChapters([]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
+    // Validate chapter selection
+    if (!selectedChapterId) {
+      setError("Please select a chapter for this lesson");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // For now, we'll create a lesson in the first available chapter
-      // In a real implementation, you'd have chapter selection
       const response = await fetch("/api/admin/lessons", {
         method: "POST",
         headers: {
@@ -113,12 +183,16 @@ export default function CreateLessonPage() {
           description,
           markdownContent,
           difficulty,
-          chapterId: "sample-chapter-id", // This would be selected from a dropdown
+          chapterId: selectedChapterId,
+          importantPoints: importantPoints.length > 0 ? JSON.stringify(importantPoints) : null,
+          commonMistakes: commonMistakes.length > 0 ? JSON.stringify(commonMistakes) : null,
+          quickReference: quickReference.trim() || null,
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create lesson");
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create lesson");
       }
 
       router.push("/admin");
@@ -198,6 +272,60 @@ export default function CreateLessonPage() {
               </select>
             </div>
 
+            {/* Module and Chapter Selection */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="module" className="block text-sm font-medium text-gray-700 mb-2">
+                  Module
+                </label>
+                <select
+                  id="module"
+                  value={selectedModuleId}
+                  onChange={(e) => handleModuleChange(e.target.value)}
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                  required
+                  disabled={isLoadingStructure}
+                >
+                  <option value="">
+                    {isLoadingStructure ? "Loading modules..." : "Select a module"}
+                  </option>
+                  {modules.map((module) => (
+                    <option key={module.id} value={module.id}>
+                      {module.emoji} {module.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="chapter" className="block text-sm font-medium text-gray-700 mb-2">
+                  Chapter
+                </label>
+                <select
+                  id="chapter"
+                  value={selectedChapterId}
+                  onChange={(e) => setSelectedChapterId(e.target.value)}
+                  className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                  required
+                  disabled={!selectedModuleId || chapters.length === 0}
+                >
+                  <option value="">
+                    {!selectedModuleId
+                      ? "Select a module first"
+                      : chapters.length === 0
+                      ? "No chapters available"
+                      : "Select a chapter"
+                    }
+                  </option>
+                  {chapters.map((chapter) => (
+                    <option key={chapter.id} value={chapter.id}>
+                      {chapter.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label htmlFor="content" className="block text-sm font-medium text-gray-700">
@@ -217,6 +345,56 @@ export default function CreateLessonPage() {
                 height={500}
                 preview="live"
               />
+            </div>
+
+            {/* Notes Section */}
+            <div className="space-y-6">
+              <h3 className="text-lg font-semibold text-gray-900">Notes & Resources</h3>
+
+              <div>
+                <label htmlFor="importantPoints" className="block text-sm font-medium text-gray-700 mb-2">
+                  Important Points
+                </label>
+                <textarea
+                  id="importantPoints"
+                  value={importantPoints.join('\n')}
+                  onChange={(e) => setImportantPoints(e.target.value.split('\n').filter(point => point.trim()))}
+                  placeholder="Enter each important point on a new line"
+                  rows={4}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">One point per line</p>
+              </div>
+
+              <div>
+                <label htmlFor="commonMistakes" className="block text-sm font-medium text-gray-700 mb-2">
+                  Common Mistakes
+                </label>
+                <textarea
+                  id="commonMistakes"
+                  value={commonMistakes.join('\n')}
+                  onChange={(e) => setCommonMistakes(e.target.value.split('\n').filter(mistake => mistake.trim()))}
+                  placeholder="Enter each common mistake on a new line"
+                  rows={4}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+                <p className="text-xs text-gray-500 mt-1">One mistake per line</p>
+              </div>
+
+              <div>
+                <label htmlFor="quickReference" className="block text-sm font-medium text-gray-700 mb-2">
+                  Quick Reference
+                </label>
+                <textarea
+                  id="quickReference"
+                  value={quickReference}
+                  onChange={(e) => setQuickReference(e.target.value)}
+                  placeholder="Code examples, formulas, syntax reminders..."
+                  rows={6}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm font-mono"
+                />
+                <p className="text-xs text-gray-500 mt-1">Code snippets, formulas, or key syntax</p>
+              </div>
             </div>
 
             <div>

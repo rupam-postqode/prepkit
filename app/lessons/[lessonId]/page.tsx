@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { requireSubscription, getUserAccessLevel } from "@/lib/subscription-check";
 import { LessonViewer } from "@/components/lesson/LessonViewer";
+import { LessonNavigation } from "@/components/lesson/LessonNavigation";
 
 interface LessonPageProps {
   params: {
@@ -87,40 +88,46 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-1">
-                <span>{lesson.chapter.module.title}</span>
-                <span>/</span>
-                <span>{lesson.chapter.title}</span>
-              </nav>
-              <h1 className="text-2xl font-bold text-gray-900">{lesson.title}</h1>
-              <p className="text-gray-600 mt-1">{lesson.description}</p>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-500">Difficulty</div>
-              <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                lesson.difficulty === 'EASY'
-                  ? 'bg-green-100 text-green-800'
-                  : lesson.difficulty === 'MEDIUM'
-                  ? 'bg-yellow-100 text-yellow-800'
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {lesson.difficulty}
-              </span>
+      <div className="max-w-7xl mx-auto flex">
+        {/* Navigation Sidebar */}
+        <LessonNavigation currentLessonId={params.lessonId} />
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="bg-white border-b border-gray-200 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-1">
+                  <span>{lesson.chapter.module.title}</span>
+                  <span>/</span>
+                  <span>{lesson.chapter.title}</span>
+                </nav>
+                <h1 className="text-2xl font-bold text-gray-900">{lesson.title}</h1>
+                <p className="text-gray-600 mt-1">{lesson.description}</p>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-gray-500">Difficulty</div>
+                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                  lesson.difficulty === 'EASY'
+                    ? 'bg-green-100 text-green-800'
+                    : lesson.difficulty === 'MEDIUM'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  {lesson.difficulty}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Lesson Content */}
-        <LessonViewer
-          lesson={lesson}
-          progress={progress}
-          userId={session.user?.id || ""}
-        />
+          {/* Lesson Content */}
+          <LessonViewer
+            lesson={lesson}
+            progress={progress}
+            userId={session.user?.id || ""}
+          />
+        </div>
       </div>
     </div>
   );

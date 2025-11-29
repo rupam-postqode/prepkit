@@ -106,6 +106,22 @@ export default async function AdminDashboard() {
 
         {/* Quick Actions */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <a href="/admin/modules">
+            <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="text-3xl mb-4">📚</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage Modules</h3>
+              <p className="text-gray-600 text-sm">Organize content structure and chapters</p>
+            </Card>
+          </a>
+
+          <a href="/admin/lessons">
+            <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
+              <div className="text-3xl mb-4">📖</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage Lessons</h3>
+              <p className="text-gray-600 text-sm">View, edit, and organize all lessons</p>
+            </Card>
+          </a>
+
           <a href="/admin/lessons/create">
             <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
               <div className="text-3xl mb-4">📝</div>
@@ -121,18 +137,6 @@ export default async function AdminDashboard() {
               <p className="text-gray-600 text-sm">Post and manage job listings for the community</p>
             </Card>
           </a>
-
-          <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="text-3xl mb-4">👥</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Manage Users</h3>
-            <p className="text-gray-600 text-sm">View and manage user accounts</p>
-          </Card>
-
-          <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="text-3xl mb-4">📊</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">View Analytics</h3>
-            <p className="text-gray-600 text-sm">Monitor platform performance and metrics</p>
-          </Card>
         </div>
       </div>
     </div>

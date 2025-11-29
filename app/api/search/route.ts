@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
@@ -15,147 +15,116 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get("q") || "";
-    const moduleSlug = searchParams.get("module");
-    const difficulty = searchParams.get("difficulty");
-    const status = searchParams.get("status"); // "completed", "in-progress", "not-started"
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const offset = parseInt(searchParams.get("offset") || "0");
+    const query = searchParams.get('q')?.trim();
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const offset = parseInt(searchParams.get('offset') || '0');
 
-    const userId = session.user?.id || "";
-
-    // Build search conditions
-    const whereConditions: Record<string, unknown> = {
-      publishedAt: { not: null }, // Only published lessons
-    };
-
-    // Text search across title, description, and content
-    if (query) {
-      whereConditions.OR = [
-        { title: { contains: query, mode: "insensitive" } },
-        { description: { contains: query, mode: "insensitive" } },
-        { markdownContent: { contains: query, mode: "insensitive" } },
-        { chapter: {
-          OR: [
-            { title: { contains: query, mode: "insensitive" } },
-            { description: { contains: query, mode: "insensitive" } },
-            { module: {
-              OR: [
-                { title: { contains: query, mode: "insensitive" } },
-                { description: { contains: query, mode: "insensitive" } },
-              ]
-            }}
-          ]
-        }}
-      ];
+    if (!query || query.length < 2) {
+      return NextResponse.json({
+        results: [],
+        total: 0,
+        query: query || '',
+      });
     }
 
-    // Module filter
-    if (moduleSlug) {
-      whereConditions.chapter = {
-        ...(whereConditions.chapter as object || {}),
-        module: { slug: moduleSlug }
-      };
-    }
-
-    // Difficulty filter
-    if (difficulty) {
-      whereConditions.difficulty = difficulty;
-    }
-
-    // Status filter based on user's progress
-    if (status) {
-      const progressSubquery = {
-        some: {
-          userId: userId,
-          ...(status === "completed" && { completedAt: { not: null } }),
-          ...(status === "in-progress" && { completedAt: null, timeSpentSeconds: { gt: 0 } }),
-          ...(status === "not-started" && { completedAt: null, timeSpentSeconds: 0 }),
-        }
-      };
-
-      if (status === "not-started") {
-        whereConditions.NOT = {
-          progress: { some: { userId } }
-        };
-      } else {
-        whereConditions.progress = progressSubquery;
-      }
-    }
-
-    // Execute search
-    const [lessons, totalCount] = await Promise.all([
-      prisma.lesson.findMany({
-        where: whereConditions,
-        include: {
-          chapter: {
-            include: {
-              module: true,
-            },
+    // Search across lessons using PostgreSQL full-text search
+    // We'll search in title, description, and markdown content
+    const lessons = await prisma.lesson.findMany({
+      where: {
+        AND: [
+          { publishedAt: { not: null } }, // Only published lessons
+          {
+            OR: [
+              { title: { contains: query, mode: 'insensitive' } },
+              { description: { contains: query, mode: 'insensitive' } },
+              { markdownContent: { contains: query, mode: 'insensitive' } },
+            ],
           },
-          progress: {
-            where: { userId },
-            select: {
-              completedAt: true,
-              timeSpentSeconds: true,
-              videoWatchedPercent: true,
-            },
-          },
-          _count: {
-            select: {
-              practiceLinks: true,
-            },
+        ],
+      },
+      include: {
+        chapter: {
+          include: {
+            module: true,
           },
         },
-        orderBy: [
-          // Prioritize lessons with progress
-          { progress: { _count: "desc" } },
-          // Then by relevance (title matches first)
-          { title: "asc" },
-        ],
-        take: limit,
-        skip: offset,
-      }),
-      prisma.lesson.count({ where: whereConditions }),
-    ]);
+        _count: {
+          select: {
+            practiceLinks: true,
+          },
+        },
+      },
+      orderBy: [
+        // Prioritize exact title matches, then description, then content
+        {
+          title: query.length > 3 ? 'asc' : undefined,
+        },
+        { updatedAt: 'desc' },
+      ],
+      take: Math.min(limit, 50), // Max 50 results
+      skip: offset,
+    });
 
-    // Transform results for frontend
-    const results = lessons.map(lesson => ({
-      id: lesson.id,
-      title: lesson.title,
-      description: lesson.description,
-      difficulty: lesson.difficulty,
-      module: {
-        title: lesson.chapter.module.title,
-        slug: lesson.chapter.module.slug,
-        emoji: lesson.chapter.module.emoji,
+    // Get total count for pagination
+    const total = await prisma.lesson.count({
+      where: {
+        AND: [
+          { publishedAt: { not: null } },
+          {
+            OR: [
+              { title: { contains: query, mode: 'insensitive' } },
+              { description: { contains: query, mode: 'insensitive' } },
+              { markdownContent: { contains: query, mode: 'insensitive' } },
+            ],
+          },
+        ],
       },
-      chapter: {
-        title: lesson.chapter.title,
-        slug: lesson.chapter.slug,
-      },
-      progress: lesson.progress[0] || null,
-      practiceLinksCount: lesson._count.practiceLinks,
-      publishedAt: lesson.publishedAt,
-    }));
+    });
+
+    // Format results with highlights
+    const results = lessons.map((lesson) => {
+      // Create a snippet from the content if the query matches
+      let snippet = lesson.description;
+      if (lesson.markdownContent && lesson.markdownContent.toLowerCase().includes(query.toLowerCase())) {
+        // Find the query in the content and create a snippet around it
+        const content = lesson.markdownContent;
+        const queryIndex = content.toLowerCase().indexOf(query.toLowerCase());
+        const start = Math.max(0, queryIndex - 100);
+        const end = Math.min(content.length, queryIndex + 200);
+        snippet = (start > 0 ? '...' : '') + content.slice(start, end) + (end < content.length ? '...' : '');
+      }
+
+      return {
+        id: lesson.id,
+        title: lesson.title,
+        description: lesson.description,
+        snippet,
+        difficulty: lesson.difficulty,
+        module: {
+          id: lesson.chapter.module.id,
+          title: lesson.chapter.module.title,
+          emoji: lesson.chapter.module.emoji,
+        },
+        chapter: {
+          id: lesson.chapter.id,
+          title: lesson.chapter.title,
+        },
+        hasVideo: !!lesson.videoUrl,
+        practiceCount: lesson._count.practiceLinks,
+        updatedAt: lesson.updatedAt,
+      };
+    });
 
     return NextResponse.json({
       results,
-      pagination: {
-        total: totalCount,
-        limit,
-        offset,
-        hasMore: offset + limit < totalCount,
-      },
-      query: query || null,
-      filters: {
-        module: moduleSlug || null,
-        difficulty: difficulty || null,
-        status: status || null,
-      },
+      total,
+      query,
+      limit,
+      offset,
+      hasMore: offset + limit < total,
     });
   } catch (error) {
-    console.error("Search error:", error);
+    console.error("Search API error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

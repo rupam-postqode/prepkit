@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     // Check admin access
     await requireAdmin();
 
-    const { title, description, markdownContent, difficulty, chapterId } = await request.json();
+    const { title, description, markdownContent, difficulty, chapterId, importantPoints, commonMistakes, quickReference } = await request.json();
 
     // Validate input
     if (!title || !description || !markdownContent || !difficulty || !chapterId) {
@@ -54,6 +54,9 @@ export async function POST(request: NextRequest) {
         chapterId,
         orderIndex,
         publishedAt: new Date(), // Auto-publish for now
+        importantPoints,
+        commonMistakes,
+        quickReference,
       },
     });
 

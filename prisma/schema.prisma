@@ -93,6 +93,11 @@ model Lesson {
   videoDurationSec  Int?
   markdownContent   String  // Stored in DB or reference S3
 
+  // Notes & Resources
+  importantPoints   String? // JSON string of important points array
+  commonMistakes    String? // JSON string of common mistakes array
+  quickReference    String? // Code examples, formulas, syntax reminders
+
   premium           Boolean @default(false) // Whether lesson requires subscription
 
   difficulty        Difficulty
