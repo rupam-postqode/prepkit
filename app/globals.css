@@ -202,3 +202,40 @@
     font-size: 16px !important;
   }
 }
+
+/* Content Protection - Prevent printing of protected content */
+@media print {
+  .content-protected,
+  .content-protected * {
+    display: none !important;
+  }
+
+  /* Show a message instead */
+  .content-protected::after {
+    content: "Content protected - printing disabled";
+    display: block !important;
+    text-align: center;
+    font-size: 18px;
+    color: #666;
+    padding: 50px;
+  }
+}
+
+/* Additional content protection styles */
+.content-protected {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent drag and drop of protected content */
+.content-protected {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}

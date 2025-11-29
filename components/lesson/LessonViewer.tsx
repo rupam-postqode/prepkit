@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Lesson, LessonProgress, PracticeLink } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useSession } from "next-auth/react";
 
 interface LessonViewerProps {
   lesson: Lesson & {
@@ -24,9 +25,72 @@ interface LessonViewerProps {
 
 type TabType = "markdown" | "video" | "notes" | "practice";
 
+function ContentWatermark({ userId }: { userId: string }) {
+  return (
+    <div
+      className="fixed inset-0 pointer-events-none z-0 select-none"
+      style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='300' height='300' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='14' fill='rgba(0,0,0,0.03)' text-anchor='middle' dominant-baseline='middle' transform='rotate(-45 150 150)'%3EPrepKit User: ${userId.slice(-6)}%3C/text%3E%3C/svg%3E")`,
+        backgroundRepeat: 'repeat',
+        backgroundSize: '300px 300px',
+      }}
+    />
+  );
+}
+
 export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
   const [activeTab, setActiveTab] = useState<TabType>("markdown");
   const [isCompleted, setIsCompleted] = useState(!!progress.completedAt);
+  const { data: session } = useSession();
+
+  // Content protection effects
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Prevent PrintScreen
+      if (e.key === 'PrintScreen') {
+        e.preventDefault();
+        alert('Screenshots are disabled for protected content');
+        return false;
+      }
+
+      // Prevent Ctrl+C, Ctrl+X, Ctrl+V on protected content
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'x' || e.key === 'v')) {
+        const target = e.target as HTMLElement;
+        if (target.closest('.content-protected')) {
+          e.preventDefault();
+          alert('Copy/paste is disabled for protected content');
+          return false;
+        }
+      }
+    };
+
+    const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.content-protected')) {
+        e.preventDefault();
+        alert('Right-click is disabled for protected content');
+        return false;
+      }
+    };
+
+    // Detect screen capture attempts (basic detection)
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Page became hidden - could be screenshot or tab switch
+        console.log('Content protection: Page hidden - potential screenshot attempt');
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
 
   const handleMarkComplete = async () => {
     try {
@@ -50,7 +114,10 @@ export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen relative">
+      {/* Content Watermark */}
+      <ContentWatermark userId={session?.user?.id || userId} />
+
       {/* Tab Navigation - Horizontal scroll on mobile */}
       <div className="border-b border-gray-200 bg-white overflow-x-auto">
         <div className="px-4 lg:px-6">
@@ -129,7 +196,17 @@ function MarkdownTab({ content }: { content: string }) {
   return (
     <div className="p-8">
       <div
-        className="prose prose-gray max-w-none"
+        className="prose prose-gray max-w-none content-protected"
+        style={{
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+        }}
+        onContextMenu={(e) => e.preventDefault()}
+        onCopy={(e) => e.preventDefault()}
+        onCut={(e) => e.preventDefault()}
+        onPaste={(e) => e.preventDefault()}
         dangerouslySetInnerHTML={{
           __html: content.replace(/\n/g, '<br>'),
         }}
@@ -150,15 +227,50 @@ function VideoTab({ videoUrl }: { videoUrl: string | null }) {
 
   return (
     <div className="p-8">
-      <div className="aspect-video bg-black rounded-lg overflow-hidden">
+      <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
+        {/* Video Protection Overlay */}
+        <div className="absolute inset-0 pointer-events-none z-10">
+          <div className="absolute top-4 right-4 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+            PrepKit Protected Content
+          </div>
+        </div>
+
         <video
           src={videoUrl}
           controls
+          controlsList="nodownload"
           className="w-full h-full"
           poster="/video-placeholder.jpg"
+          onContextMenu={(e) => {
+            e.preventDefault();
+            alert('Right-click is disabled for protected content');
+          }}
+          onLoadedData={(e) => {
+            // Disable picture-in-picture
+            const video = e.target as HTMLVideoElement;
+            if (video.disablePictureInPicture) {
+              video.disablePictureInPicture = true;
+            }
+          }}
         >
           {"Your browser does not support the video tag."}
         </video>
+      </div>
+
+      {/* Video Protection Notice */}
+      <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start space-x-3">
+          <div className="text-blue-600 text-lg">🔒</div>
+          <div className="flex-1">
+            <h4 className="text-sm font-medium text-blue-900 mb-1">
+              Protected Video Content
+            </h4>
+            <p className="text-xs text-blue-700">
+              This video is protected content. Downloads, screenshots, and sharing are disabled.
+              Right-click functionality is restricted for content security.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

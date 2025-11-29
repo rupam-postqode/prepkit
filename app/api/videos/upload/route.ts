@@ -63,20 +63,50 @@ export async function POST(request: NextRequest) {
     const fileBuffer = Buffer.from(await file.arrayBuffer());
     const base64String = `data:${file.type};base64,${fileBuffer.toString('base64')}`;
 
-    // Upload to Cloudinary
-    const uploadResult = await new Promise<any>((resolve, reject) => {
+    // Generate unique video ID
+    const videoId = `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Upload to Cloudinary with HLS streaming support
+    const uploadResult = await new Promise<{
+      public_id: string;
+      secure_url: string;
+      duration?: number;
+      format: string;
+      bytes: number;
+    }>((resolve, reject) => {
       cloudinary.uploader.upload(
         base64String,
         {
           resource_type: "video",
           folder: "prepkit/videos",
-          public_id: `video_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          public_id: videoId,
           quality: "auto",
-          format: "mp4", // Convert to MP4 for consistency
+          format: "mp4",
+          // Enable HLS streaming
+          eager: [
+            {
+              streaming_profile: "hd",
+              format: "m3u8",
+              quality: "auto",
+            }
+          ],
+          // Add basic watermark overlay
+          overlay: {
+            font_family: "Arial",
+            font_size: 30,
+            font_weight: "bold",
+            text: "PrepKit",
+            gravity: "south_east",
+            opacity: 30,
+            color: "#ffffff"
+          },
+          // Prevent downloads
+          access_mode: "authenticated",
         },
         (error, result) => {
           if (error) reject(error);
-          else resolve(result);
+          else if (result) resolve(result);
+          else reject(new Error("Upload failed - no result returned"));
         }
       );
     });

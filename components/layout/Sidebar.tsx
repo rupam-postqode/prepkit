@@ -27,21 +27,58 @@ interface Module {
   }[];
 }
 
+interface LearningPath {
+  id: string;
+  title: string;
+  emoji: string;
+  durationWeeks: number;
+  currentWeek: number;
+  currentDay: number;
+  progressPercentage: number;
+  lessonsByWeek: Record<string, Array<{
+    id: string;
+    title: string;
+    completed: boolean;
+    dayNumber: number;
+  }>>;
+}
+
 export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
   const [modules, setModules] = useState<Module[]>([]);
+  const [learningPath, setLearningPath] = useState<LearningPath | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [expandedPath, setExpandedPath] = useState(false);
 
   useEffect(() => {
     const fetchNavigation = async () => {
       try {
-        const response = await fetch("/api/navigation");
-        if (response.ok) {
-          const data = await response.json();
-          setModules(data);
+        // Fetch modules
+        const modulesResponse = await fetch("/api/navigation");
+        if (modulesResponse.ok) {
+          const modulesData = await modulesResponse.json();
+          setModules(modulesData);
+        }
+
+        // Fetch learning path progress
+        const pathResponse = await fetch("/api/user/path-progress");
+        if (pathResponse.ok) {
+          const pathData = await pathResponse.json();
+          if (pathData.enrolled) {
+            setLearningPath({
+              id: pathData.path.id,
+              title: pathData.path.title,
+              emoji: pathData.path.emoji,
+              durationWeeks: pathData.path.durationWeeks,
+              currentWeek: pathData.progress.currentWeek,
+              currentDay: pathData.progress.currentDay,
+              progressPercentage: pathData.progress.progressPercentage,
+              lessonsByWeek: pathData.lessonsByWeek,
+            });
+          }
         }
       } catch (error) {
         console.error("Failed to fetch navigation:", error);
@@ -170,6 +207,72 @@ export function Sidebar({ className }: SidebarProps) {
                 <span className="mr-3 text-lg">💼</span>
                 Job Board
               </Link>
+
+              {/* Learning Path Navigation */}
+              {learningPath && (
+                <div className="border-t border-gray-100 pt-2 mt-2">
+                  <button
+                    onClick={() => setExpandedPath(!expandedPath)}
+                    className={cn(
+                      "flex items-center w-full px-3 py-2 text-sm font-medium rounded-md transition-colors text-left",
+                      "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                    )}
+                  >
+                    <span className="mr-3 text-lg">{learningPath.emoji}</span>
+                    <span className="flex-1">{learningPath.title}</span>
+                    <span className="ml-2 text-xs">
+                      {expandedPath ? "▼" : "▶"}
+                    </span>
+                  </button>
+
+                  {/* Path Progress Summary */}
+                  <div className="ml-6 mt-1 mb-2">
+                    <div className="px-3 py-1 text-xs text-gray-600">
+                      Week {learningPath.currentWeek} • {Math.round(learningPath.progressPercentage)}% complete
+                    </div>
+                  </div>
+
+                  {/* Weeks and Lessons */}
+                  {expandedPath && (
+                    <div className="ml-6 mt-1 space-y-1">
+                      {Object.entries(learningPath.lessonsByWeek)
+                        .sort(([a], [b]) => {
+                          const weekA = parseInt(a.split(' ')[1]);
+                          const weekB = parseInt(b.split(' ')[1]);
+                          return weekA - weekB;
+                        })
+                        .map(([weekKey, lessons]) => (
+                          <div key={weekKey}>
+                            <div className="px-3 py-1 text-xs font-medium text-gray-600 uppercase tracking-wide">
+                              {weekKey}
+                            </div>
+                            <div className="ml-3 space-y-1">
+                              {lessons
+                                .sort((a, b) => a.dayNumber - b.dayNumber)
+                                .map((lesson) => (
+                                  <Link
+                                    key={lesson.id}
+                                    href={`/lessons/${lesson.id}`}
+                                    className={cn(
+                                      "flex items-center px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                                      pathname === `/lessons/${lesson.id}`
+                                        ? "bg-indigo-50 text-indigo-700"
+                                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                    )}
+                                  >
+                                    <span className="mr-2 text-xs">
+                                      {lesson.completed ? "✅" : "○"}
+                                    </span>
+                                    <span className="truncate">{lesson.title}</span>
+                                  </Link>
+                                ))}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Dynamic Modules */}
               {loading ? (

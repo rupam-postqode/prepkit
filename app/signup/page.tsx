@@ -4,6 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -60,7 +61,7 @@ export default function SignupPage() {
       if (result?.error) {
         setError("Account created but login failed. Please try logging in.");
       } else {
-        router.push("/dashboard");
+        router.push("/onboarding");
       }
     } catch (error) {
       setError(error instanceof Error ? error.message : "An error occurred. Please try again.");

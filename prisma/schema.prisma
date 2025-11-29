@@ -32,6 +32,8 @@ model User {
   feedback              Feedback[]
   videos                Video[]
   jobs                  Job[]
+  pathProgress          UserPathProgress[]
+  achievements          Achievement[]
 
   // Metadata
   createdAt             DateTime @default(now())
@@ -112,6 +114,7 @@ model Lesson {
   practiceLinks     PracticeLink[]
   feedback          Feedback[]
   videos            Video[]
+  pathLessons       PathLesson[]
 
   @@unique([chapterId, slug])
   @@index([chapterId])
@@ -320,6 +323,90 @@ enum PaymentStatus {
   REFUNDED
 }
 
+// ============ LEARNING PATHS ============
+model LearningPath {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  description String
+  emoji       String   @default("🎯")
+
+  // Path details
+  durationWeeks Int    // 4, 12, 16 weeks
+  difficulty    Difficulty @default(MEDIUM)
+  targetCompanies String[] // ["Google", "Meta", "Amazon", "All"]
+
+  // Content
+  pathLessons  PathLesson[]
+
+  // User progress
+  userProgress UserPathProgress[]
+
+  // Milestones
+  milestones   Milestone[]
+
+  isActive    Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([durationWeeks])
+}
+
+model PathLesson {
+  id            String   @id @default(cuid())
+  learningPathId String
+  learningPath   LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+
+  lessonId      String
+  lesson        Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  // Ordering and metadata
+  weekNumber    Int     // Which week this lesson belongs to
+  dayNumber     Int     // Which day of the week
+  orderIndex    Int     // Order within the day
+
+  isRequired    Boolean @default(true) // Optional vs required lessons
+  estimatedHours Float  @default(1.0)
+
+  createdAt     DateTime @default(now())
+
+  @@unique([learningPathId, lessonId])
+  @@index([learningPathId])
+  @@index([lessonId])
+  @@index([weekNumber, dayNumber])
+}
+
+model UserPathProgress {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  learningPathId String
+  learningPath   LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+
+  // Progress tracking
+  currentWeek   Int     @default(1)
+  currentDay    Int     @default(1)
+  completedLessons Int  @default(0)
+  totalLessons  Int     @default(0)
+
+  startedAt     DateTime @default(now())
+  lastActivityAt DateTime @default(now())
+  completedAt   DateTime?
+
+  // User preferences
+  isActive      Boolean @default(true) // User can pause/unpause paths
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, learningPathId])
+  @@index([userId])
+  @@index([learningPathId])
+  @@index([isActive])
+}
+
 // ============ JOBS BOARD ============
 model Job {
   id          String   @id @default(cuid())
@@ -350,4 +437,57 @@ enum JobType {
   CONTRACT
   INTERNSHIP
   FREELANCE
+}
+
+// ============ MILESTONES & ACHIEVEMENTS ============
+model Milestone {
+  id          String   @id @default(cuid())
+  title       String   // "First Lesson Completed", "Week 1 Finished"
+  description String
+  emoji       String   @default("🎉")
+
+  // Trigger conditions
+  type        MilestoneType
+  threshold   Int      // Number of lessons, days, etc.
+  pathSpecific Boolean @default(false) // Applies to specific paths only
+
+  // Associated paths (if path-specific)
+  learningPaths LearningPath[]
+
+  // User achievements
+  achievements Achievement[]
+
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model Achievement {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  milestoneId String
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+
+  // Achievement details
+  unlockedAt  DateTime @default(now())
+  pathId      String?  // Which path this was achieved in (if applicable)
+
+  @@unique([userId, milestoneId])
+  @@index([userId])
+  @@index([milestoneId])
+  @@index([pathId])
+}
+
+enum MilestoneType {
+  LESSONS_COMPLETED     // Total lessons completed
+  CONSECUTIVE_DAYS      // Consecutive study days
+  WEEK_COMPLETED        // Completed a full week
+  PATH_COMPLETED        // Completed entire learning path
+  STREAK_MAINTAINED     // Maintained study streak
+  FIRST_LESSON          // Completed first lesson
+  SPEED_LEARNER         // Completed multiple lessons in one day
 }
