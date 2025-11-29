@@ -1,0 +1,277 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============ USERS ============
+model User {
+  id                    String   @id @default(cuid())
+  email                 String   @unique
+  passwordHash          String   // Argon2 hash
+  name                  String
+  role                  Role     @default(USER)
+
+  // Profile
+  targetCompanies       String[] // ["Google", "Amazon", "Flipkart"]
+  experienceLevel       Experience @default(FRESHER)
+  preferredLanguage     String   @default("javascript")
+
+  // Subscription
+  subscriptionStatus    SubscriptionStatus @default(FREE)
+  subscriptionPlan      String?  // "monthly", "yearly", "lifetime"
+  subscriptionEndDate   DateTime?
+
+  // Relations
+  lessonProgress        LessonProgress[]
+  subscriptions         Subscription[]
+  feedback              Feedback[]
+
+  // Metadata
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  lastLoginAt           DateTime?
+
+  @@index([email])
+  @@index([subscriptionStatus])
+}
+
+// ============ CONTENT ============
+model Module {
+  id          String  @id @default(cuid())
+  title       String  // "DSA", "Machine Coding", etc.
+  slug        String  @unique
+  description String
+  emoji       String  // 📚, 🎯, 🏗️, 💬, 📋
+  orderIndex  Int
+
+  chapters    Chapter[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Chapter {
+  id                String  @id @default(cuid())
+  moduleId          String
+  module            Module  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  title             String
+  slug              String
+  description       String
+  orderIndex        Int
+  difficultyLevel   Difficulty @default(BEGINNER)
+  estimatedHours    Int
+
+  lessons           Lesson[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([moduleId, slug])
+  @@index([moduleId])
+}
+
+model Lesson {
+  id                String  @id @default(cuid())
+  chapterId         String
+  chapter           Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  title             String
+  slug              String
+  description       String
+  orderIndex        Int
+
+  // Content
+  videoUrl          String?  // S3/CloudFront URL
+  videoDurationSec  Int?
+  markdownContent   String  // Stored in DB or reference S3
+
+  difficulty        Difficulty
+
+  // Metadata
+  publishedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  progress          LessonProgress[]
+  practiceLinks     PracticeLink[]
+  feedback          Feedback[]
+
+  @@unique([chapterId, slug])
+  @@index([chapterId])
+  @@index([publishedAt])
+}
+
+model LessonProgress {
+  id                    String  @id @default(cuid())
+  userId                String
+  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lessonId              String
+  lesson                Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  startedAt             DateTime @default(now())
+  completedAt           DateTime?
+
+  timeSpentSeconds      Int     @default(0)
+  videoWatchedPercent   Int     @default(0) // 0-100
+  markdownRead          Boolean @default(false)
+
+  rating                Int?    // 1-5
+  notes                 String? // User's personal notes
+
+  updatedAt             DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+  @@index([completedAt])
+}
+
+model PracticeLink {
+  id              String   @id @default(cuid())
+  lessonId        String
+  lesson          Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  platform        Platform // LEETCODE, CODESANDBOX, ALGOEXPERT, HACKERRANK
+  problemTitle    String
+  problemUrl      String
+  difficulty      Difficulty
+  orderIndex      Int
+
+  createdAt       DateTime @default(now())
+
+  @@index([lessonId])
+}
+
+model Feedback {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lessonId        String?
+  lesson          Lesson?  @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+
+  rating          Int?     // 1-5
+  comment         String
+  type            FeedbackType // BUG, SUGGESTION, GENERAL
+
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([lessonId])
+  @@index([type])
+}
+
+// ============ SUBSCRIPTIONS & PAYMENTS ============
+model Subscription {
+  id                      String  @id @default(cuid())
+  userId                  String
+  user                    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  plan                    SubscriptionPlan
+  status                  SubscriptionStatus
+
+  razorpaySubscriptionId  String? @unique
+  razorpayCustomerId      String?
+
+  startDate               DateTime @default(now())
+  endDate                 DateTime?
+
+  amount                  Int     // in paise (₹100 = 10000 paise)
+  currency                String  @default("INR")
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  payments                Payment[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([endDate])
+}
+
+model Payment {
+  id                      String  @id @default(cuid())
+  subscriptionId          String?
+  subscription            Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  userId                  String
+
+  razorpayPaymentId       String  @unique
+  razorpayOrderId         String
+
+  amount                  Int     // in paise
+  currency                String  @default("INR")
+
+  status                  PaymentStatus
+  method                  String? // "card", "upi", "netbanking", etc.
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+// ============ ENUMS ============
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Experience {
+  FRESHER
+  JUNIOR
+  MID
+  SENIOR
+}
+
+enum SubscriptionStatus {
+  FREE
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  SUSPENDED
+}
+
+enum SubscriptionPlan {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+  LIFETIME
+}
+
+enum Difficulty {
+  BEGINNER
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum Platform {
+  LEETCODE
+  CODESANDBOX
+  ALGOEXPERT
+  HACKERRANK
+}
+
+enum FeedbackType {
+  BUG
+  SUGGESTION
+  GENERAL
+}
+
+enum PaymentStatus {
+  CREATED
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+}
