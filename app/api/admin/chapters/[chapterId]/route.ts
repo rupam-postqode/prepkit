@@ -4,14 +4,16 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { chapterId: string } }
+  { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
     // Check admin access
     await requireAdmin();
 
+    const { chapterId } = await params;
+
     const chapter = await prisma.chapter.findUnique({
-      where: { id: params.chapterId },
+      where: { id: chapterId },
       include: {
         module: true,
         lessons: {
@@ -52,12 +54,13 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { chapterId: string } }
+  { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
     // Check admin access
     await requireAdmin();
 
+    const { chapterId } = await params;
     const { title, description, moduleId, difficultyLevel, estimatedHours, orderIndex } = await request.json();
 
     // Validate input
@@ -91,7 +94,7 @@ export async function PUT(
       where: {
         moduleId,
         slug,
-        id: { not: params.chapterId },
+        id: { not: chapterId },
       },
     });
 
@@ -104,7 +107,7 @@ export async function PUT(
 
     // Update the chapter
     const chapter = await prisma.chapter.update({
-      where: { id: params.chapterId },
+      where: { id: chapterId },
       data: {
         title,
         slug,
@@ -136,15 +139,17 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { chapterId: string } }
+  { params }: { params: Promise<{ chapterId: string }> }
 ) {
   try {
     // Check admin access
     await requireAdmin();
 
+    const { chapterId } = await params;
+
     // Check if chapter has lessons
     const chapter = await prisma.chapter.findUnique({
-      where: { id: params.chapterId },
+      where: { id: chapterId },
       include: {
         _count: {
           select: {
@@ -170,7 +175,7 @@ export async function DELETE(
 
     // Delete the chapter
     await prisma.chapter.delete({
-      where: { id: params.chapterId },
+      where: { id: chapterId },
     });
 
     return NextResponse.json({ message: "Chapter deleted successfully" });

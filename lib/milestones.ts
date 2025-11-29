@@ -77,7 +77,7 @@ async function checkMilestoneCondition(
   userId: string,
   pathId: string | undefined,
   type: string,
-  data: Record<string, any> | undefined
+  data: Record<string, unknown> | undefined
 ): Promise<boolean> {
   switch (milestone.type) {
     case 'FIRST_LESSON':
@@ -160,7 +160,7 @@ async function checkMilestoneCondition(
       break;
 
     case 'SPEED_LEARNER':
-      if (type === 'lesson_completed' && data?.lessonsToday) {
+      if (type === 'lesson_completed' && data?.lessonsToday && typeof data.lessonsToday === 'number') {
         // Check if user completed multiple lessons in one day
         return data.lessonsToday >= milestone.threshold;
       }
@@ -282,13 +282,14 @@ export async function createDefaultMilestones() {
     },
   ];
 
-  for (const milestoneData of milestones) {
-    await prisma.milestone.upsert({
-      where: {
-        title: milestoneData.title,
-      },
-      update: {},
-      create: milestoneData,
-    });
+  // Check if milestones already exist
+  const existingCount = await prisma.milestone.count();
+  if (existingCount > 0) {
+    return; // Already seeded
   }
+
+  // Create milestones
+  await prisma.milestone.createMany({
+    data: milestones,
+  });
 }

@@ -4,12 +4,13 @@ import { prisma } from "@/lib/db";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { lessonId: string } }
+  { params }: { params: Promise<{ lessonId: string }> }
 ) {
   try {
     // Check admin access
     await requireAdmin();
 
+    const { lessonId } = await params;
     const { published } = await request.json();
 
     if (typeof published !== 'boolean') {
@@ -21,7 +22,7 @@ export async function PATCH(
 
     // Update the lesson
     const lesson = await prisma.lesson.update({
-      where: { id: params.lessonId },
+      where: { id: lessonId },
       data: {
         publishedAt: published ? new Date() : null,
       },
@@ -52,15 +53,17 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { lessonId: string } }
+  { params }: { params: Promise<{ lessonId: string }> }
 ) {
   try {
     // Check admin access
     await requireAdmin();
 
+    const { lessonId } = await params;
+
     // Check if lesson has progress records
     const lesson = await prisma.lesson.findUnique({
-      where: { id: params.lessonId },
+      where: { id: lessonId },
       include: {
         _count: {
           select: {
@@ -87,12 +90,12 @@ export async function DELETE(
 
     // Delete practice links first (cascade delete should handle this, but being explicit)
     await prisma.practiceLink.deleteMany({
-      where: { lessonId: params.lessonId },
+      where: { lessonId },
     });
 
     // Delete the lesson
     await prisma.lesson.delete({
-      where: { id: params.lessonId },
+      where: { id: lessonId },
     });
 
     return NextResponse.json({ message: "Lesson deleted successfully" });

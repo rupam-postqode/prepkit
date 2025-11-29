@@ -6,7 +6,7 @@ import { sendWelcomeEmail } from "@/lib/email";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { pathId: string } }
+  { params }: { params: Promise<{ pathId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,7 +16,7 @@ export async function POST(
     }
 
     const userId = session.user.id;
-    const pathId = params.pathId;
+    const { pathId } = await params;
 
     // Check if path exists and is active
     const path = await prisma.learningPath.findUnique({

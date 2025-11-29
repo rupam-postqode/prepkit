@@ -1,6 +1,18 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time errors
+let resend: Resend | null = null;
+
+function getResendClient() {
+  if (!resend) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY is not configured');
+    }
+    resend = new Resend(apiKey);
+  }
+  return resend;
+}
 
 export interface EmailData {
   to: string;
@@ -13,7 +25,8 @@ export async function sendEmail({ to, subject, html, from }: EmailData) {
   try {
     const fromEmail = from || 'PrepKit <welcome@prepkit.app>';
 
-    const result = await resend.emails.send({
+    const resendClient = getResendClient();
+    const result = await resendClient.emails.send({
       from: fromEmail,
       to: [to],
       subject,

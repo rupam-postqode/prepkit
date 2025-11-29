@@ -4,14 +4,16 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { moduleId: string } }
+  { params }: { params: Promise<{ moduleId: string }> }
 ) {
   try {
     // Check admin access
     await requireAdmin();
 
+    const { moduleId } = await params;
+
     const moduleData = await prisma.module.findUnique({
-      where: { id: params.moduleId },
+      where: { id: moduleId },
       include: {
         chapters: {
           orderBy: { orderIndex: 'asc' },
@@ -50,12 +52,13 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { moduleId: string } }
+  { params }: { params: Promise<{ moduleId: string }> }
 ) {
   try {
     // Check admin access
     await requireAdmin();
 
+    const { moduleId } = await params;
     const { title, description, emoji, orderIndex } = await request.json();
 
     // Validate input
@@ -76,7 +79,7 @@ export async function PUT(
     const existingModule = await prisma.module.findFirst({
       where: {
         slug,
-        id: { not: params.moduleId },
+        id: { not: moduleId },
       },
     });
 
@@ -89,7 +92,7 @@ export async function PUT(
 
     // Update the module
     const moduleData = await prisma.module.update({
-      where: { id: params.moduleId },
+      where: { id: moduleId },
       data: {
         title,
         slug,
@@ -111,15 +114,17 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { moduleId: string } }
+  { params }: { params: Promise<{ moduleId: string }> }
 ) {
   try {
     // Check admin access
     await requireAdmin();
 
+    const { moduleId } = await params;
+
     // Check if module has chapters
     const moduleData = await prisma.module.findUnique({
-      where: { id: params.moduleId },
+      where: { id: moduleId },
       include: {
         _count: {
           select: {
@@ -145,7 +150,7 @@ export async function DELETE(
 
     // Delete the module
     await prisma.module.delete({
-      where: { id: params.moduleId },
+      where: { id: moduleId },
     });
 
     return NextResponse.json({ message: "Module deleted successfully" });
