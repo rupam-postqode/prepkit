@@ -105,46 +105,46 @@ export default async function DashboardPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="text-2xl">📚</div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Lessons Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{completedLessons}</p>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+          <Card className="mobile-card touch-target">
+            <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left">
+              <div className="text-2xl lg:text-2xl mb-2 lg:mb-0 lg:mr-4">📚</div>
+              <div>
+                <p className="text-xs lg:text-sm font-medium text-gray-600">Lessons Completed</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900">{completedLessons}</p>
                 <p className="text-xs text-gray-500">of {totalLessons} total</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="text-2xl">🔥</div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Study Streak</p>
-                <p className="text-2xl font-bold text-gray-900">{studyStreak} days</p>
-                <p className="text-xs text-gray-500">this week</p>
+          <Card className="mobile-card touch-target">
+            <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left">
+              <div className="text-2xl lg:text-2xl mb-2 lg:mb-0 lg:mr-4">🔥</div>
+              <div>
+                <p className="text-xs lg:text-sm font-medium text-gray-600">Study Streak</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900">{studyStreak}</p>
+                <p className="text-xs text-gray-500">days this week</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="text-2xl">⏱️</div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Study Time</p>
-                <p className="text-2xl font-bold text-gray-900">{studyTimeFormatted}</p>
+          <Card className="mobile-card touch-target">
+            <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left">
+              <div className="text-2xl lg:text-2xl mb-2 lg:mb-0 lg:mr-4">⏱️</div>
+              <div>
+                <p className="text-xs lg:text-sm font-medium text-gray-600">Study Time</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900">{studyTimeFormatted}</p>
                 <p className="text-xs text-gray-500">total time</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-6">
-            <div className="flex items-center">
-              <div className="text-2xl">📊</div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Overall Progress</p>
-                <p className="text-2xl font-bold text-gray-900">
+          <Card className="mobile-card touch-target lg:col-span-1 col-span-2">
+            <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left">
+              <div className="text-2xl lg:text-2xl mb-2 lg:mb-0 lg:mr-4">📊</div>
+              <div>
+                <p className="text-xs lg:text-sm font-medium text-gray-600">Overall Progress</p>
+                <p className="text-xl lg:text-2xl font-bold text-gray-900">
                   {totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0}%
                 </p>
                 <p className="text-xs text-gray-500">complete</p>

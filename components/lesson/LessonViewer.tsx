@@ -47,10 +47,10 @@ export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
   };
 
   return (
-    <div className="flex">
-      {/* Sidebar */}
-      <div className="w-80 bg-gray-50 border-r border-gray-200 p-6">
-        <div className="space-y-6">
+    <div className="flex flex-col lg:flex-row min-h-screen">
+      {/* Sidebar - Collapsible on mobile */}
+      <div className="lg:w-80 lg:bg-gray-50 lg:border-r lg:border-gray-200 p-4 lg:p-6 order-2 lg:order-1">
+        <div className="space-y-4 lg:space-y-6">
           {/* Progress */}
           <div>
             <h3 className="text-sm font-medium text-gray-900 mb-2">Progress</h3>
@@ -70,7 +70,7 @@ export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
             <Button
               onClick={handleMarkComplete}
               disabled={isCompleted}
-              className="w-full"
+              className="w-full mobile-btn touch-target"
               variant={isCompleted ? "secondary" : "default"}
             >
               {isCompleted ? "✓ Completed" : "Mark as Complete"}
@@ -88,7 +88,7 @@ export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
                     href={link.problemUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block p-2 bg-white rounded border border-gray-200 hover:border-indigo-300 transition-colors"
+                    className="block p-3 bg-white rounded border border-gray-200 hover:border-indigo-300 transition-colors touch-target"
                   >
                     <div className="text-sm font-medium text-gray-900">{link.problemTitle}</div>
                     <div className="text-xs text-gray-500 capitalize">{link.platform.toLowerCase()}</div>
@@ -101,11 +101,11 @@ export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Tab Navigation */}
-        <div className="border-b border-gray-200 bg-white">
-          <div className="px-6">
-            <nav className="flex space-x-8">
+      <div className="flex-1 flex flex-col order-1 lg:order-2">
+        {/* Tab Navigation - Horizontal scroll on mobile */}
+        <div className="border-b border-gray-200 bg-white overflow-x-auto">
+          <div className="px-4 lg:px-6">
+            <nav className="flex space-x-4 lg:space-x-8 min-w-max">
               <TabButton
                 label="📄 Content"
                 active={activeTab === "markdown"}
@@ -131,7 +131,7 @@ export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
         </div>
 
         {/* Tab Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto ios-scroll">
           {activeTab === "markdown" && (
             <MarkdownTab content={lesson.markdownContent || "No content available."} />
           )}

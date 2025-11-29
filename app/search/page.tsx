@@ -153,29 +153,31 @@ function SearchPageContent() {
         </div>
 
         {/* Search Bar */}
-        <Card className="p-6 mb-6">
-          <div className="flex gap-4 mb-4">
-            <div className="flex-1">
-              <Input
-                type="text"
-                placeholder="Search lessons, topics, or keywords..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                className="text-lg"
-              />
+        <Card className="mobile-card mb-6">
+          <div className="flex flex-col space-y-4 mb-4">
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <Input
+                  type="text"
+                  placeholder="Search lessons, topics, or keywords..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+                  className="text-base lg:text-lg"
+                />
+              </div>
+              <Button onClick={handleSearch} disabled={loading} className="mobile-btn touch-target px-4 lg:px-6">
+                {loading ? "Searching..." : "Search"}
+              </Button>
             </div>
-            <Button onClick={handleSearch} disabled={loading} size="lg">
-              {loading ? "Searching..." : "Search"}
-            </Button>
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-2 lg:gap-4">
             <select
               value={filters.module}
               onChange={(e) => handleFilterChange("module", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm touch-target mobile-focus"
             >
               <option value="">All Modules</option>
               <option value="dsa">Data Structures & Algorithms</option>
@@ -187,7 +189,7 @@ function SearchPageContent() {
             <select
               value={filters.difficulty}
               onChange={(e) => handleFilterChange("difficulty", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm touch-target mobile-focus"
             >
               <option value="">All Difficulties</option>
               <option value="EASY">Easy</option>
@@ -198,7 +200,7 @@ function SearchPageContent() {
             <select
               value={filters.status}
               onChange={(e) => handleFilterChange("status", e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm touch-target mobile-focus"
             >
               <option value="">All Lessons</option>
               <option value="not-started">Not Started</option>
@@ -207,7 +209,7 @@ function SearchPageContent() {
             </select>
 
             {(filters.module || filters.difficulty || filters.status) && (
-              <Button variant="outline" onClick={clearFilters} size="sm">
+              <Button variant="outline" onClick={clearFilters} size="sm" className="touch-target">
                 Clear Filters
               </Button>
             )}
