@@ -65,7 +65,7 @@ export default async function AdminAnalyticsPage() {
 
   // Get popular lessons with details
   const popularLessonDetails = await Promise.all(
-    popularLessons.map(async (item: { lessonId: string; _count: { lessonId: number } }) => {
+    popularLessons.map(async (item) => {
       const lesson = await prisma.lesson.findUnique({
         where: { id: item.lessonId },
         select: {
