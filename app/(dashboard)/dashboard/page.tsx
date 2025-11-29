@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { Card } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 
 interface DashboardPageProps {
@@ -10,7 +11,8 @@ interface DashboardPageProps {
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const session = await getServerSession(authOptions);
-  const showWelcome = searchParams?.welcome === 'true';
+  const params = await searchParams;
+  const showWelcome = params?.welcome === 'true';
 
   // Fetch user's progress data
   const userId = session?.user?.id || "";
@@ -118,7 +120,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-4 px-3 sm:px-4 lg:px-6">
         {/* Welcome Message */}
         {showWelcome && pathData && (
           <Card className="mb-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
@@ -156,13 +158,42 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         )}
 
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Welcome back, {session?.user?.name}! 👋
-          </h1>
-          <p className="mt-2 text-gray-600">
-            Continue your interview preparation journey. You're making great progress!
-          </p>
+        <div className="mb-8 flex items-start justify-between">
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Welcome back, {session?.user?.name}! 👋
+            </h1>
+            <p className="mt-2 text-gray-600">
+              Continue your interview preparation journey. You're making great progress!
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            {/* User Profile */}
+            <div className="flex items-center space-x-3">
+              <Avatar className="w-10 h-10">
+                <AvatarImage src={session?.user?.image || ""} />
+                <AvatarFallback className="text-sm">
+                  {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div className="text-right">
+                <div className="text-sm font-medium text-gray-900">
+                  {session?.user?.name || "User"}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {session?.user?.email || ""}
+                </div>
+              </div>
+            </div>
+
+            {/* Job Board Button */}
+            <Link
+              href="/jobs"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+            >
+              💼 View Job Board
+            </Link>
+          </div>
         </div>
 
         {/* Stats Cards */}

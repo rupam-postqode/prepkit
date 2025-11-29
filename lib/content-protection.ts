@@ -61,6 +61,130 @@ export class ContentProtectionService {
   }
 
   /**
+   * Get lesson content for a user (server-side method)
+   */
+  static async getLessonContentForUser(
+    lessonId: string,
+    userId: string
+  ): Promise<{
+    content: string;
+    accessGranted: boolean;
+    accessReason?: string;
+    accessToken?: string;
+  }> {
+    try {
+      // Fetch the lesson with content
+      const lesson = await prisma.lesson.findUnique({
+        where: { id: lessonId },
+        select: {
+          id: true,
+          premium: true,
+          publishedAt: true,
+          markdownContent: true,
+          encryptedContent: true,
+          encryptionKey: true,
+          encryptionIv: true,
+          encryptionTag: true,
+          keyVersion: true,
+          contentHash: true,
+        },
+      });
+
+      if (!lesson) {
+        return {
+          content: '',
+          accessGranted: false,
+          accessReason: 'Lesson not found',
+        };
+      }
+
+      // Check if lesson is published
+      if (!lesson.publishedAt) {
+        return {
+          content: '',
+          accessGranted: false,
+          accessReason: 'Lesson not published',
+        };
+      }
+
+      // Check premium access
+      if (lesson.premium) {
+        const accessLevel = await getUserAccessLevel();
+        const canAccess = accessLevel === 'admin' || accessLevel === 'premium';
+        if (!canAccess) {
+          return {
+            content: '',
+            accessGranted: false,
+            accessReason: 'Premium subscription required',
+          };
+        }
+      }
+
+      // Get content
+      let content = '';
+      if (lesson.premium && lesson.encryptedContent) {
+        // Decrypt premium content
+        try {
+          const decryptedKey = decryptSensitiveData(lesson.encryptionKey!);
+          content = await decryptFromStorage(
+            lesson.encryptedContent,
+            decryptedKey,
+            lesson.encryptionIv!,
+            lesson.encryptionTag!,
+            lesson.keyVersion!
+          );
+
+          // Validate content integrity
+          const isValid = validateContentIntegrity(content, lesson.contentHash!);
+          if (!isValid) {
+            console.error('Content integrity validation failed for lesson:', lessonId);
+            return {
+              content: '',
+              accessGranted: false,
+              accessReason: 'Content integrity check failed',
+            };
+          }
+        } catch (error) {
+          console.error('Failed to decrypt lesson content:', error);
+          return {
+            content: '',
+            accessGranted: false,
+            accessReason: 'Content decryption failed',
+          };
+        }
+      } else if (lesson.markdownContent) {
+        // Free content
+        content = lesson.markdownContent;
+      } else {
+        return {
+          content: '',
+          accessGranted: false,
+          accessReason: 'No content available',
+        };
+      }
+
+      // Generate access token for client-side validation
+      const accessToken = generateContentAccessToken();
+
+      // Log successful access
+      await this.logContentAccess(lessonId, userId, true, accessToken);
+
+      return {
+        content,
+        accessGranted: true,
+        accessToken,
+      };
+    } catch (error) {
+      console.error('Failed to get lesson content:', error);
+      return {
+        content: '',
+        accessGranted: false,
+        accessReason: 'Internal server error',
+      };
+    }
+  }
+
+  /**
    * Fetch lesson content from API (client-side method)
    */
   static async getLessonContent(

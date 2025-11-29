@@ -22,7 +22,7 @@ export async function GET(
     const { lessonId } = await params;
 
     // Get protected content using the service
-    const result = await ContentProtectionService.getLessonContent(lessonId, session.user.id);
+    const result = await ContentProtectionService.getLessonContentForUser(lessonId, session.user.id);
 
     if (!result.accessGranted) {
       return NextResponse.json({

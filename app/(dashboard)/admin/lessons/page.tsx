@@ -19,7 +19,7 @@ interface Lesson {
       emoji: string;
     };
   };
-  _count: {
+  _count?: {
     progress: number;
     practiceLinks: number;
   };
@@ -40,8 +40,8 @@ export default function LessonsAdminPage() {
       const response = await fetch("/api/admin/lessons");
       if (!response.ok) throw new Error("Failed to fetch lessons");
       const data = await response.json();
-      setLessons(data);
-      setFilteredLessons(data);
+      setLessons(data.data);
+      setFilteredLessons(data.data);
     } catch (error) {
       console.error("Failed to fetch lessons:", error);
     } finally {
@@ -276,8 +276,8 @@ export default function LessonsAdminPage() {
                       {lesson.publishedAt ? 'Published' : 'Draft'}
                     </span>
 
-                    <span>👥 {lesson._count.progress} students</span>
-                    <span>💻 {lesson._count.practiceLinks} practice links</span>
+                    <span>👥 {lesson._count?.progress || 0} students</span>
+                    <span>💻 {lesson._count?.practiceLinks || 0} practice links</span>
                   </div>
                 </div>
 

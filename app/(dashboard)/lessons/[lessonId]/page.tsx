@@ -20,9 +20,12 @@ export default async function LessonPage({ params }: LessonPageProps) {
     redirect("/login");
   }
 
+  // Await params in Next.js 16
+  const { lessonId } = await params;
+
   // Fetch lesson with related data
   const lesson = await prisma.lesson.findUnique({
-    where: { id: params.lessonId },
+    where: { id: lessonId },
     include: {
       chapter: {
         include: {
@@ -73,7 +76,7 @@ export default async function LessonPage({ params }: LessonPageProps) {
     where: {
       userId_lessonId: {
         userId: session.user?.id || "",
-        lessonId: params.lessonId,
+        lessonId: lessonId,
       },
     },
   });
@@ -82,19 +85,21 @@ export default async function LessonPage({ params }: LessonPageProps) {
     progress = await prisma.lessonProgress.create({
       data: {
         userId: session.user?.id || "",
-        lessonId: params.lessonId,
+        lessonId: lessonId,
       },
     });
   }
 
+
+
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto flex">
-        {/* Navigation Sidebar */}
-        <LessonNavigation currentLessonId={params.lessonId} />
+        {/* Navigation Sidebar - Admin Only */}
+        {isAdmin && <LessonNavigation currentLessonId={lessonId} />}
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col">
+        <div className={`flex-1 flex flex-col ${isAdmin ? '' : 'max-w-4xl mx-auto'}`}>
           {/* Header */}
           <div className="bg-white border-b border-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">

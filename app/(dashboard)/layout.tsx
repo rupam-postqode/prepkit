@@ -31,7 +31,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
       <Sidebar className="w-64 flex-shrink-0" />
       <main className="flex-1 overflow-auto">
         {children}

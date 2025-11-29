@@ -30,7 +30,7 @@ interface Module {
   description: string;
   emoji: string;
   orderIndex: number;
-  _count: {
+  _count?: {
     chapters: number;
   };
 }
@@ -300,7 +300,7 @@ export default function ModulesPage() {
                               Order {module.orderIndex}
                             </Badge>
                             <Badge variant="outline" className="text-xs">
-                              {module._count.chapters} chapters
+                              {module._count?.chapters || 0} chapters
                             </Badge>
                           </div>
                         </div>

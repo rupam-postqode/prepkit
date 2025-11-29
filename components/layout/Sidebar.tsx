@@ -22,7 +22,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  type LucideIcon
 } from "lucide-react";
 
 interface SidebarProps {
@@ -34,7 +35,7 @@ interface Module {
   title: string;
   slug: string;
   emoji: string;
-  _count: {
+  _count?: {
     chapters: number;
   };
   chapters: {
@@ -175,20 +176,12 @@ export function Sidebar({ className }: SidebarProps) {
     },
   ];
 
-  const userNavigation = [
-    {
-      name: "Dashboard",
-      href: "/dashboard",
-      icon: Home,
-      description: "Your overview"
-    },
-    {
-      name: "Job Board",
-      href: "/jobs",
-      icon: Briefcase,
-      description: "Find opportunities"
-    },
-  ];
+  const userNavigation: Array<{
+    name: string;
+    href: string;
+    icon: LucideIcon;
+    description: string;
+  }> = [];
 
   return (
     <div className={cn(
@@ -248,37 +241,6 @@ export function Sidebar({ className }: SidebarProps) {
         ) : (
           /* User Navigation */
           <div className="space-y-4">
-            {/* Main Navigation */}
-            <div className="space-y-1">
-              {userNavigation.map((item) => {
-                const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
-                      isActive
-                        ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                    )}
-                  >
-                    <item.icon className={cn(
-                      "w-5 h-5 shrink-0",
-                      isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-                    )} />
-                    <div className="flex-1 min-w-0">
-                      <div className="truncate">{item.name}</div>
-                      <div className="text-xs text-muted-foreground/70 truncate">
-                        {item.description}
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-
-            <Separator />
 
             {/* Learning Path */}
             {learningPath && (
@@ -349,7 +311,7 @@ export function Sidebar({ className }: SidebarProps) {
                                   >
                                     <div className={cn(
                                       "w-2 h-2 rounded-full",
-                                      lesson.completed ? "bg-success" : "bg-muted-foreground/30"
+                                      lesson.completed ? "bg-green-500" : "bg-blue-500"
                                     )} />
                                     <span className="truncate flex-1">{lesson.title}</span>
                                   </Link>
@@ -366,8 +328,8 @@ export function Sidebar({ className }: SidebarProps) {
             <Separator />
 
             {/* Modules */}
-            <div className="space-y-3">
-              <div className="px-3">
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="px-3 pb-2 flex-shrink-0">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Modules
                 </h3>
@@ -382,32 +344,74 @@ export function Sidebar({ className }: SidebarProps) {
                   ))}
                 </div>
               ) : (
-                <div className="space-y-1">
-                  {modules.slice(0, 5).map((module) => ( // Limit to 5 modules for space
-                    <button
-                      key={module.id}
-                      onClick={() => toggleModule(module.id)}
-                      className={cn(
-                        "flex items-center space-x-3 w-full px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
-                        pathname?.includes(`/modules/${module.slug}`)
-                          ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
-                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                      )}
-                    >
-                      <span className="text-lg">{module.emoji}</span>
-                      <div className="flex-1 min-w-0 text-left">
-                        <div className="truncate">{module.title}</div>
-                        <div className="text-xs text-muted-foreground/70">
-                          {module._count.chapters} chapters
+                <div className="flex-1 overflow-y-auto px-1">
+                  <div className="space-y-1">
+                    {modules.map((module) => {
+                      const isModuleActive = module.chapters.some(chapter =>
+                        chapter.lessons.some(lesson => pathname === `/lessons/${lesson.id}`)
+                      );
+
+                      return (
+                        <div key={module.id}>
+                          <button
+                            onClick={() => toggleModule(module.id)}
+                            className={cn(
+                              "flex items-center space-x-3 w-full px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
+                              isModuleActive
+                                ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
+                                : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                            )}
+                          >
+                            <span className="text-lg">{module.emoji}</span>
+                            <div className="flex-1 min-w-0 text-left">
+                              <div className="truncate">{module.title}</div>
+                              <div className="text-xs text-muted-foreground/70">
+                                {module._count?.chapters || module.chapters?.length || 0} chapters
+                              </div>
+                            </div>
+                            {expandedModules.has(module.id) ? (
+                              <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            )}
+                          </button>
+
+                          {/* Expanded Chapters */}
+                          {expandedModules.has(module.id) && (
+                            <div className="ml-6 mt-2 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                              {module.chapters.map((chapter) => (
+                                <div key={chapter.id} className="space-y-1">
+                                  <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                    {chapter.title}
+                                  </div>
+                                  <div className="space-y-1">
+                                    {chapter.lessons.map((lesson) => (
+                                      <Link
+                                        key={lesson.id}
+                                        href={`/lessons/${lesson.id}`}
+                                        className={cn(
+                                          "flex items-center space-x-2 px-3 py-2 text-xs rounded-md transition-colors",
+                                          pathname === `/lessons/${lesson.id}`
+                                            ? "bg-primary/10 text-primary"
+                                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                                        )}
+                                      >
+                                        <div className={cn(
+                                          "w-2 h-2 rounded-full flex-shrink-0",
+                                          lesson.completed ? "bg-green-500" : "bg-blue-500"
+                                        )} />
+                                        <span className="truncate flex-1">{lesson.title}</span>
+                                      </Link>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
-                      </div>
-                      {expandedModules.has(module.id) ? (
-                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                      )}
-                    </button>
-                  ))}
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -415,25 +419,8 @@ export function Sidebar({ className }: SidebarProps) {
         )}
       </nav>
 
-      {/* User Profile & Sign Out */}
+      {/* Sign Out */}
       <div className="p-4 border-t border-border">
-        <div className="flex items-center space-x-3 mb-3">
-          <Avatar className="w-8 h-8">
-            <AvatarImage src={session?.user?.image || ""} />
-            <AvatarFallback className="text-xs">
-              {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium truncate">
-              {session?.user?.name || "User"}
-            </div>
-            <div className="text-xs text-muted-foreground truncate">
-              {session?.user?.email || ""}
-            </div>
-          </div>
-        </div>
-
         <Button
           onClick={handleSignOut}
           variant="outline"

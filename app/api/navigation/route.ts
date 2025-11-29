@@ -17,6 +17,11 @@ export async function GET(request: NextRequest) {
     // Fetch all published modules with chapters and lessons
     const modules = await prisma.module.findMany({
       include: {
+        _count: {
+          select: {
+            chapters: true,
+          },
+        },
         chapters: {
           orderBy: { orderIndex: 'asc' },
           include: {
