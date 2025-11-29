@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { Lesson, LessonProgress, PracticeLink } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -25,6 +26,13 @@ import {
   EyeOff
 } from "lucide-react";
 import { useSession } from "next-auth/react";
+import rehypeHighlight from "rehype-highlight";
+
+// Dynamically import the markdown preview to avoid SSR issues
+const MDEditorPreview = dynamic(() => import("@uiw/react-markdown-preview"), {
+  ssr: false,
+  loading: () => <div className="h-64 bg-gray-100 animate-pulse rounded"></div>
+});
 
 interface LessonViewerProps {
   lesson: Lesson & {
@@ -330,15 +338,7 @@ function MarkdownTab({ content, loading, error }: { content: string; loading: bo
   return (
     <div className="max-w-4xl mx-auto p-6 lg:p-8">
       <div
-        className="prose prose-slate dark:prose-invert max-w-none content-protected
-                   prose-headings:text-foreground prose-headings:font-semibold
-                   prose-p:text-muted-foreground prose-p:leading-relaxed
-                   prose-strong:text-foreground prose-strong:font-semibold
-                   prose-code:text-primary prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
-                   prose-pre:bg-muted prose-pre:border prose-pre:border-border
-                   prose-blockquote:border-l-primary prose-blockquote:text-muted-foreground
-                   prose-ul:text-muted-foreground prose-ol:text-muted-foreground
-                   prose-li:text-muted-foreground prose-li:marker:text-muted-foreground/70"
+        className="content-protected wmde-markdown-color"
         style={{
           userSelect: 'none',
           WebkitUserSelect: 'none',
@@ -349,10 +349,16 @@ function MarkdownTab({ content, loading, error }: { content: string; loading: bo
         onCopy={(e) => e.preventDefault()}
         onCut={(e) => e.preventDefault()}
         onPaste={(e) => e.preventDefault()}
-        dangerouslySetInnerHTML={{
-          __html: content.replace(/\n/g, '<br>'),
-        }}
-      />
+      >
+        <MDEditorPreview
+          source={content}
+          rehypePlugins={[[rehypeHighlight, { ignoreMissing: true }]]}
+          style={{
+            backgroundColor: 'transparent',
+            color: 'inherit',
+          }}
+        />
+      </div>
 
       {/* Content Protection Notice */}
       <Alert className="mt-8">
