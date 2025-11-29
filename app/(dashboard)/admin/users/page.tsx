@@ -1,10 +1,7 @@
-import { requireAdmin } from "@/lib/admin-check";
 import { prisma } from "@/lib/db";
 import { Card } from "@/components/ui/card";
 
 export default async function AdminUsersPage() {
-  // Check admin access
-  await requireAdmin();
 
   // Get users data
   const users = await prisma.user.findMany({

@@ -1,10 +1,7 @@
-import { requireAdmin } from "@/lib/admin-check";
 import { prisma } from "@/lib/db";
 import { Card } from "@/components/ui/card";
 
 export default async function AdminAnalyticsPage() {
-  // Check admin access
-  await requireAdmin();
 
   // Calculate date ranges
   const now = new Date();
