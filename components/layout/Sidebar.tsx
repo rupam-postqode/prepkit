@@ -77,31 +77,36 @@ export function Sidebar({ className }: SidebarProps) {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [expandedPath, setExpandedPath] = useState(false);
 
+  const isAdmin = session?.user?.role === "ADMIN";
+
   useEffect(() => {
     const fetchNavigation = async () => {
       try {
-        // Fetch modules
-        const modulesResponse = await fetch("/api/navigation");
-        if (modulesResponse.ok) {
-          const modulesData = await modulesResponse.json();
-          setModules(modulesData);
-        }
+        // Only fetch learning content for non-admin users
+        if (!isAdmin) {
+          // Fetch modules
+          const modulesResponse = await fetch("/api/navigation");
+          if (modulesResponse.ok) {
+            const modulesData = await modulesResponse.json();
+            setModules(modulesData);
+          }
 
-        // Fetch learning path progress
-        const pathResponse = await fetch("/api/user/path-progress");
-        if (pathResponse.ok) {
-          const pathData = await pathResponse.json();
-          if (pathData.enrolled) {
-            setLearningPath({
-              id: pathData.path.id,
-              title: pathData.path.title,
-              emoji: pathData.path.emoji,
-              durationWeeks: pathData.path.durationWeeks,
-              currentWeek: pathData.progress.currentWeek,
-              currentDay: pathData.progress.currentDay,
-              progressPercentage: pathData.progress.progressPercentage,
-              lessonsByWeek: pathData.lessonsByWeek,
-            });
+          // Fetch learning path progress
+          const pathResponse = await fetch("/api/user/path-progress");
+          if (pathResponse.ok) {
+            const pathData = await pathResponse.json();
+            if (pathData.enrolled) {
+              setLearningPath({
+                id: pathData.path.id,
+                title: pathData.path.title,
+                emoji: pathData.path.emoji,
+                durationWeeks: pathData.path.durationWeeks,
+                currentWeek: pathData.progress.currentWeek,
+                currentDay: pathData.progress.currentDay,
+                progressPercentage: pathData.progress.progressPercentage,
+                lessonsByWeek: pathData.lessonsByWeek,
+              });
+            }
           }
         }
       } catch (error) {
@@ -114,7 +119,7 @@ export function Sidebar({ className }: SidebarProps) {
     if (session) {
       fetchNavigation();
     }
-  }, [session]);
+  }, [session, isAdmin]);
 
   const toggleModule = (moduleId: string) => {
     const newExpanded = new Set(expandedModules);
@@ -129,8 +134,6 @@ export function Sidebar({ className }: SidebarProps) {
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
   };
-
-  const isAdmin = session?.user?.role === "ADMIN";
 
   const adminNavigation = [
     {

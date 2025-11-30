@@ -147,7 +147,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   </span>
                 </div>
                 <Link
-                  href="/api/user/path-progress"
+                  href={`/dashboard/learning-paths/${pathData.id}`}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
                 >
                   Start Learning →
@@ -197,7 +197,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8">
           <Card className="mobile-card touch-target">
             <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left">
               <div className="text-2xl lg:text-2xl mb-2 lg:mb-0 lg:mr-4">📚</div>
@@ -363,7 +363,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             {pathData ? (
               <>
                 {/* Continue Path */}
-                <Link href="/api/user/path-progress">
+                <Link href={`/dashboard/learning-paths/${pathData.id}`}>
                   <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
                     <div className="text-3xl mb-4">{pathData.emoji}</div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Continue Your Path</h3>
@@ -372,7 +372,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 </Link>
 
                 {/* View Progress */}
-                <Link href="/api/user/path-progress">
+                <Link href={`/dashboard/learning-paths/${pathData.id}`}>
                   <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
                     <div className="text-3xl mb-4">📊</div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">View Progress</h3>

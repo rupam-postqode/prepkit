@@ -11,6 +11,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Get user's current path progress to check enrollment status
+    const userProgress = await prisma.userPathProgress.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      select: {
+        learningPathId: true,
+        isActive: true,
+      },
+    });
+
+    const enrolledPathIds = userProgress
+      .filter(progress => progress.isActive)
+      .map(progress => progress.learningPathId);
+
     const paths = await prisma.learningPath.findMany({
       where: {
         isActive: true,
@@ -28,7 +43,13 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(paths);
+    // Add enrollment status to each path
+    const pathsWithEnrollment = paths.map(path => ({
+      ...path,
+      enrolled: enrolledPathIds.includes(path.id),
+    }));
+
+    return NextResponse.json(pathsWithEnrollment);
   } catch (error) {
     console.error("Error fetching learning paths:", error);
     return NextResponse.json(

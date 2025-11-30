@@ -18,6 +18,8 @@ interface LearningPath {
     pathLessons: number;
     userProgress: number;
   };
+  enrolled?: boolean;
+  progressId?: string;
 }
 
 export default function PathsPage() {
@@ -62,7 +64,7 @@ export default function PathsPage() {
 
       if (response.ok) {
         alert(`Successfully enrolled in ${pathTitle}!`);
-        router.push("/dashboard");
+        router.push(`/dashboard/learning-paths/${pathId}?welcome=true`);
       } else {
         alert(data.error || "Failed to enroll in path");
       }
@@ -72,6 +74,10 @@ export default function PathsPage() {
     } finally {
       setEnrolling(null);
     }
+  };
+
+  const handleContinue = async (pathId: string) => {
+    router.push(`/dashboard/learning-paths/${pathId}`);
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -182,14 +188,23 @@ export default function PathsPage() {
                 </div>
               )}
 
-              {/* Enroll Button */}
-              <Button
-                onClick={() => handleEnroll(path.id, path.title)}
-                disabled={enrolling === path.id}
-                className="w-full bg-indigo-600 hover:bg-indigo-700"
-              >
-                {enrolling === path.id ? "Enrolling..." : "Start This Path"}
-              </Button>
+              {/* Enroll/Continue Button */}
+              {path.enrolled ? (
+                <Button
+                  onClick={() => handleContinue(path.id)}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                >
+                  Continue Learning →
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => handleEnroll(path.id, path.title)}
+                  disabled={enrolling === path.id}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {enrolling === path.id ? "Enrolling..." : "Start This Path"}
+                </Button>
+              )}
             </Card>
           ))}
         </div>

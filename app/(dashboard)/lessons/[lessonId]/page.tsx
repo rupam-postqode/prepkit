@@ -5,7 +5,6 @@ import { prisma } from "@/lib/db";
 import { requireSubscription, getUserAccessLevel } from "@/lib/subscription-check";
 import { ContentProtectionService } from "@/lib/content-protection";
 import { LessonViewer } from "@/components/lesson/LessonViewer";
-import { LessonNavigation } from "@/components/lesson/LessonNavigation";
 
 interface LessonPageProps {
   params: {
@@ -66,6 +65,17 @@ export default async function LessonPage({ params }: LessonPageProps) {
   const isAdmin = userAccessLevel === "admin";
   const hasSubscription = userAccessLevel === "premium";
 
+  const getDifficultyClasses = (difficulty: string) => {
+    switch (difficulty) {
+      case 'EASY':
+        return 'bg-green-100 text-green-800';
+      case 'MEDIUM':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-red-100 text-red-800';
+    }
+  };
+
   // If lesson is premium and user doesn't have access, redirect to pricing
   if (lesson.premium && !isAdmin && !hasSubscription) {
     redirect("/pricing?message=This premium lesson requires a subscription");
@@ -94,46 +104,34 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto flex">
-        {/* Navigation Sidebar - Admin Only */}
-        {isAdmin && <LessonNavigation currentLessonId={lessonId} />}
-
-        {/* Main Content */}
-        <div className={`flex-1 flex flex-col ${isAdmin ? '' : 'max-w-4xl mx-auto'}`}>
-          {/* Header */}
-          <div className="bg-white border-b border-gray-200 px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-1">
-                  <span>{lesson.chapter.module.title}</span>
-                  <span>/</span>
-                  <span>{lesson.chapter.title}</span>
-                </nav>
-                <h1 className="text-2xl font-bold text-gray-900">{lesson.title}</h1>
-                <p className="text-gray-600 mt-1">{lesson.description}</p>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-gray-500">Difficulty</div>
-                <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                  lesson.difficulty === 'EASY'
-                    ? 'bg-green-100 text-green-800'
-                    : lesson.difficulty === 'MEDIUM'
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-red-100 text-red-800'
-                }`}>
-                  {lesson.difficulty}
-                </span>
-              </div>
+      <div className={`flex-1 flex flex-col ${isAdmin ? 'max-w-7xl mx-auto' : 'max-w-4xl mx-auto'}`}>
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-1">
+                <span>{lesson.chapter.module.title}</span>
+                <span>/</span>
+                <span>{lesson.chapter.title}</span>
+              </nav>
+              <h1 className="text-2xl font-bold text-gray-900">{lesson.title}</h1>
+              <p className="text-gray-600 mt-1">{lesson.description}</p>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-gray-500">Difficulty</div>
+                <span className={"inline-flex px-2 py-1 text-xs font-medium rounded-full " + getDifficultyClasses(lesson.difficulty)}>
+                {lesson.difficulty}
+              </span>
             </div>
           </div>
-
-          {/* Lesson Content */}
-          <LessonViewer
-            lesson={lesson}
-            progress={progress}
-            userId={session.user?.id || ""}
-          />
         </div>
+
+        {/* Lesson Content */}
+        <LessonViewer
+          lesson={lesson}
+          progress={progress}
+          userId={session.user?.id || ""}
+        />
       </div>
     </div>
   );
