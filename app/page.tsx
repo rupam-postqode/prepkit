@@ -27,7 +27,7 @@ export default function Home() {
                   Start Learning Free
                 </Button>
               </Link>
-              <Link href="#modules">
+              <Link href="/paths">
                 <Button variant="outline" size="lg" className="text-lg px-8 py-3">
                   Explore Modules
                 </Button>
@@ -120,8 +120,8 @@ export default function Home() {
             Ready to Crack Your Dream Job?
           </h2>
             <p className="text-xl text-gray-600 mb-8">
-            Join our community of successful developers. Start with our free tier and upgrade when you're ready.
-          </p>
+              Join our community of successful developers. Start with our free tier and upgrade when you're ready.
+            </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup">
               <Button size="lg" className="text-lg px-8 py-3">

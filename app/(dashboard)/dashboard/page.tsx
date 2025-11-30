@@ -147,7 +147,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   </span>
                 </div>
                 <Link
-                  href={`/dashboard/learning-paths/${pathData.id}`}
+                  href={`/learning-paths/${pathData.id}`}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
                 >
                   Start Learning →
@@ -363,7 +363,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             {pathData ? (
               <>
                 {/* Continue Path */}
-                <Link href={`/dashboard/learning-paths/${pathData.id}`}>
+                <Link href={`/learning-paths/${pathData.id}`}>
                   <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
                     <div className="text-3xl mb-4">{pathData.emoji}</div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Continue Your Path</h3>
@@ -372,7 +372,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 </Link>
 
                 {/* View Progress */}
-                <Link href={`/dashboard/learning-paths/${pathData.id}`}>
+                <Link href={`/learning-paths/${pathData.id}`}>
                   <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
                     <div className="text-3xl mb-4">📊</div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">View Progress</h3>
@@ -401,7 +401,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 </Link>
 
                 {/* Explore Modules */}
-                <Link href="/modules">
+                <Link href="/paths">
                   <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
                     <div className="text-3xl mb-4">📚</div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Explore Modules</h3>

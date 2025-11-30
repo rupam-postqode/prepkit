@@ -75,13 +75,13 @@ export function Header() {
               </Link>
             )}
             <Link
-              href="#modules"
+              href="/paths"
               className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors"
             >
               Modules
             </Link>
             <Link
-              href="#pricing"
+              href="/pricing"
               className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors"
             >
               Pricing
@@ -193,7 +193,7 @@ export function Header() {
               )}
 
               <Link
-                href="#modules"
+                href="/paths"
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors touch-target"
                 onClick={closeMobileMenu}
               >
@@ -201,7 +201,7 @@ export function Header() {
               </Link>
 
               <Link
-                href="#pricing"
+                href="/pricing"
                 className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors touch-target"
                 onClick={closeMobileMenu}
               >

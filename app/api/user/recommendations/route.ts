@@ -29,14 +29,14 @@ interface UserProgress {
           };
         };
         progress: Array<unknown>;
-      }>;
+      };
     }>;
   };
   currentWeek: number;
   currentDay: number;
 }
 
-  interface CompletedLesson {
+interface CompletedLesson {
   lesson: {
     difficulty: string;
     chapter: {

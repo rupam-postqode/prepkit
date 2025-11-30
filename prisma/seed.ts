@@ -1468,7 +1468,10 @@ Master STAR method - it's the foundation of behavioral interview success! 🎯`,
   // Create path templates
   for (const templateData of pathTemplates) {
     await prisma.pathTemplate.create({
-      data: templateData,
+      data: {
+        ...templateData,
+        rules: templateData.rules as any, // Handle JSON field properly
+      },
     });
   }
 
