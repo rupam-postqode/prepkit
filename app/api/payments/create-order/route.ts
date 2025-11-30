@@ -16,8 +16,8 @@ const getRazorpay = () => {
 // Single pricing plan (in rupees)
 const PRICING_PLAN = {
   amount: 99900, // ₹999 in paise
-  name: "Lifetime Access",
-  duration: null, // lifetime - no expiration
+  name: "1 Year Access",
+  duration: 365, // 1 year in days
 };
 
 export async function POST(request: NextRequest) {
@@ -42,29 +42,32 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user?.id || "";
 
-    // Check if user already has lifetime access
+    // Check if user already has an active subscription
     const existingSubscription = await prisma.subscription.findFirst({
       where: {
         userId,
         status: "ACTIVE",
+        endDate: {
+          gt: new Date(), // Only check for non-expired subscriptions
+        },
       },
     });
 
     if (existingSubscription) {
       return NextResponse.json(
-        { error: "You already have lifetime access" },
+        { error: "You already have an active subscription" },
         { status: 400 }
       );
     }
 
-    // Create Razorpay order for ₹999 lifetime access
+    // Create Razorpay order for ₹999 yearly access
     const options = {
       amount: PRICING_PLAN.amount,
       currency: "INR",
       receipt: `rcpt_${userId}_${Date.now()}`,
       notes: {
         userId,
-        plan: "LIFETIME",
+        plan: "YEARLY",
         planName: PRICING_PLAN.name,
       },
     };

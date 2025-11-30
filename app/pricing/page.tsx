@@ -59,7 +59,7 @@ export default function PricingPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ plan: "LIFETIME" }),
+        body: JSON.stringify({ plan: "YEARLY" }),
       });
 
       const orderData = await response.json();
@@ -76,7 +76,7 @@ export default function PricingPage() {
         amount: orderData.amount,
         currency: orderData.currency,
         name: "PrepKit",
-        description: "Lifetime Access to Interview Preparation",
+        description: "1 Year Access to Interview Preparation",
         order_id: orderData.orderId,
         handler: async function (response: RazorpayResponse) {
           // Verify payment on server
@@ -95,7 +95,7 @@ export default function PricingPage() {
           const verifyData = await verifyResponse.json();
 
           if (verifyResponse.ok) {
-            alert("Payment successful! You now have lifetime access to PrepKit.");
+            alert("Payment successful! You now have 1 year access to PrepKit.");
             router.push("/dashboard");
           } else {
             alert("Payment verification failed. Please contact support.");
@@ -130,10 +130,10 @@ export default function PricingPage() {
             Unlock Your Dream Job
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Get lifetime access to comprehensive interview preparation
+            Get 1 year access to comprehensive interview preparation
           </p>
           <div className="inline-flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-            🎉 Limited Time: ₹999 Lifetime Access
+            🎉 Limited Time: ₹999 1 Year Access
           </div>
         </div>
 
@@ -148,7 +148,7 @@ export default function PricingPage() {
                 One-time payment
               </div>
               <div className="text-sm text-green-600 font-medium">
-                ✅ Lifetime access - No recurring fees
+                ✅ 1 year access - No recurring fees
               </div>
             </div>
 
@@ -184,7 +184,7 @@ export default function PricingPage() {
               </div>
               <div className="flex items-center">
                 <span className="text-green-500 mr-3">✓</span>
-                <span className="text-gray-700">Lifetime updates</span>
+                <span className="text-gray-700">1 year of updates</span>
               </div>
             </div>
 
@@ -197,7 +197,7 @@ export default function PricingPage() {
             >
               {isLoading ? "Processing..." :
                !session ? "Sign In to Purchase" :
-               "Get Lifetime Access"}
+               "Get 1 Year Access"}
             </Button>
 
             {!session && status !== "loading" && (
@@ -213,7 +213,7 @@ export default function PricingPage() {
             )}
 
             <div className="mt-6 text-xs text-gray-500">
-              Secure payment powered by Razorpay • 30-day money-back guarantee
+              Secure payment powered by Razorpay • 14-day money-back guarantee
             </div>
           </Card>
         </div>
@@ -248,7 +248,7 @@ export default function PricingPage() {
                 Lifetime Access
               </h3>
               <p className="text-gray-600">
-                Pay once, access forever. No subscriptions, no hidden fees
+                Pay once, access for 1 full year. No recurring charges
               </p>
             </div>
           </div>
@@ -265,7 +265,7 @@ export default function PricingPage() {
                 Is this a subscription?
               </h3>
               <p className="text-gray-600">
-                No! This is a one-time payment of ₹999 for lifetime access. No recurring charges ever.
+                No! This is a one-time payment of ₹999 for 1 year access. No recurring charges.
               </p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow">
@@ -281,7 +281,7 @@ export default function PricingPage() {
                 Do you offer refunds?
               </h3>
               <p className="text-gray-600">
-                Yes, we offer a 30-day money-back guarantee. If you're not satisfied, we'll refund your payment.
+                Yes, we offer a 14-day money-back guarantee. If you're not satisfied, we'll refund your payment.
               </p>
             </div>
           </div>

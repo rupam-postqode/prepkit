@@ -20,6 +20,11 @@ interface Payment {
   method: string | null;
   createdAt: string;
   refunds: Refund[];
+  subscription?: {
+    plan: string;
+    status: string;
+    endDate?: string | null;
+  } | null;
 }
 
 interface Refund {
@@ -82,6 +87,15 @@ export default function PaymentHistoryPage() {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+    });
+  };
+
+  const formatDateWithExpiry = (dateString: string | null) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -221,6 +235,20 @@ export default function PaymentHistoryPage() {
                   <span>Method: {payment.method || "N/A"}</span>
                   <span>Currency: {payment.currency}</span>
                 </div>
+                
+                {/* Subscription Info */}
+                {payment.subscription && (
+                  <div className="flex items-center justify-between text-sm text-gray-600 mb-4 bg-blue-50 p-3 rounded">
+                    <div>
+                      <span className="font-medium">Plan: </span>
+                      <span>{payment.subscription.plan}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Expires: </span>
+                      <span>{formatDateWithExpiry(payment.subscription.endDate || null)}</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Refunds Section */}
                 {payment.refunds && payment.refunds.length > 0 && (

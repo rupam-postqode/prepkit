@@ -7,6 +7,7 @@ export interface UserWithSubscription {
   id: string;
   subscriptionStatus: string;
   role: string;
+  subscriptionEndDate?: Date | null;
 }
 
 /**
@@ -25,6 +26,7 @@ export async function getUserWithSubscription(): Promise<UserWithSubscription | 
       id: true,
       subscriptionStatus: true,
       role: true,
+      subscriptionEndDate: true,
     },
   });
 
@@ -36,7 +38,24 @@ export async function getUserWithSubscription(): Promise<UserWithSubscription | 
  */
 export async function hasActiveSubscription(): Promise<boolean> {
   const user = await getUserWithSubscription();
-  return user?.subscriptionStatus === "ACTIVE" || user?.role === "ADMIN";
+  
+  // Admin always has access
+  if (user?.role === "ADMIN") {
+    return true;
+  }
+  
+  // Check if subscription is active and not expired
+  if (user?.subscriptionStatus === "ACTIVE") {
+    // If no end date, it's a legacy lifetime subscription
+    if (!user.subscriptionEndDate) {
+      return true;
+    }
+    
+    // Check if subscription is still valid
+    return user.subscriptionEndDate > new Date();
+  }
+  
+  return false;
 }
 
 /**
@@ -60,8 +79,9 @@ export async function requireSubscription(redirectTo: string = "/pricing") {
     return user;
   }
 
-  // Check subscription status
-  if (user.subscriptionStatus !== "ACTIVE") {
+  // Check subscription status and expiration
+  if (user.subscriptionStatus !== "ACTIVE" ||
+      (user.subscriptionEndDate && user.subscriptionEndDate <= new Date())) {
     redirect(redirectTo);
   }
 
@@ -73,7 +93,24 @@ export async function requireSubscription(redirectTo: string = "/pricing") {
  */
 export async function canAccessPremiumContent(): Promise<boolean> {
   const user = await getUserWithSubscription();
-  return user?.role === "ADMIN" || user?.subscriptionStatus === "ACTIVE";
+  
+  // Admin always has access
+  if (user?.role === "ADMIN") {
+    return true;
+  }
+  
+  // Check if subscription is active and not expired
+  if (user?.subscriptionStatus === "ACTIVE") {
+    // If no end date, it's a legacy lifetime subscription
+    if (!user.subscriptionEndDate) {
+      return true;
+    }
+    
+    // Check if subscription is still valid
+    return user.subscriptionEndDate > new Date();
+  }
+  
+  return false;
 }
 
 /**
@@ -87,7 +124,13 @@ export async function getUserAccessLevel(): Promise<"admin" | "premium" | "free"
   }
 
   if (user?.subscriptionStatus === "ACTIVE") {
-    return "premium";
+    // If no end date, it's a legacy lifetime subscription
+    if (!user.subscriptionEndDate) {
+      return "premium";
+    }
+    
+    // Check if subscription is still valid
+    return user.subscriptionEndDate > new Date() ? "premium" : "free";
   }
 
   return "free";

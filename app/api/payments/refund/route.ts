@@ -132,8 +132,8 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Handle subscription cancellation for lifetime subscriptions
-    if (payment.subscription && payment.subscription.plan === "LIFETIME") {
+    // Handle subscription cancellation for any subscription type
+    if (payment.subscription) {
       await prisma.subscription.update({
         where: { id: payment.subscription.id },
         data: {
@@ -152,6 +152,8 @@ export async function POST(request: NextRequest) {
           updatedAt: new Date(),
         },
       });
+
+      console.log("Subscription cancelled due to refund for user:", session.user.id, "Plan was:", payment.subscription.plan);
     }
 
     // Log refund activity
@@ -215,7 +217,7 @@ async function checkRefundEligibility(payment: PaymentWithSubscription) {
   const paymentDate = payment.createdAt;
   const daysSincePayment = Math.floor((now.getTime() - paymentDate.getTime()) / (1000 * 60 * 60 * 24));
 
-  // For lifetime subscriptions
+  // For lifetime subscriptions (legacy)
   if (payment.subscription?.plan === "LIFETIME") {
     if (daysSincePayment <= 30) {
       return {

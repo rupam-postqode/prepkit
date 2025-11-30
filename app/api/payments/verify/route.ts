@@ -118,9 +118,9 @@ export async function POST(request: NextRequest) {
         success: true,
         message: "Payment already verified successfully",
         subscription: {
-          plan: payment.subscription?.plan || "LIFETIME",
+          plan: payment.subscription?.plan || "YEARLY",
           status: payment.subscription?.status || "ACTIVE",
-          access: "lifetime",
+          access: "yearly",
         },
       });
     }
@@ -151,6 +151,10 @@ export async function POST(request: NextRequest) {
       razorpayPaymentId: razorpay_payment_id
     });
 
+    // Calculate subscription end date (1 year from now)
+    const subscriptionEndDate = new Date();
+    subscriptionEndDate.setFullYear(subscriptionEndDate.getFullYear() + 1);
+
     // Handle subscription creation/update with better error handling
     try {
       // Check if subscription already exists and is active
@@ -159,45 +163,58 @@ export async function POST(request: NextRequest) {
       });
 
       if (existingSubscription) {
-        // If subscription is already active and lifetime, no need to update
-        if (existingSubscription.status === "ACTIVE" && existingSubscription.plan === "LIFETIME") {
-          console.log("Lifetime subscription already active", {
-            subscriptionId: existingSubscription.id,
-            userId
-          });
-        } else {
-          // Update existing subscription to lifetime
+        // If subscription is already active and yearly, extend it
+        if (existingSubscription.status === "ACTIVE" && existingSubscription.plan === "YEARLY") {
+          // Extend existing subscription by 1 year
+          const newEndDate = new Date(existingSubscription.endDate || new Date());
+          newEndDate.setFullYear(newEndDate.getFullYear() + 1);
+          
           await prisma.subscription.update({
             where: { id: existingSubscription.id },
             data: {
-              plan: "LIFETIME",
+              endDate: newEndDate,
+            },
+          });
+          console.log("Yearly subscription extended", {
+            subscriptionId: existingSubscription.id,
+            userId,
+            newEndDate
+          });
+        } else {
+          // Update existing subscription to yearly
+          await prisma.subscription.update({
+            where: { id: existingSubscription.id },
+            data: {
+              plan: "YEARLY",
               status: "ACTIVE",
-              endDate: null, // No expiration for lifetime
+              endDate: subscriptionEndDate, // 1 year expiration
               amount: 99900, // ₹999 in paise
             },
           });
-          console.log("Subscription updated to lifetime", {
+          console.log("Subscription updated to yearly", {
             subscriptionId: existingSubscription.id,
-            userId
+            userId,
+            endDate: subscriptionEndDate
           });
         }
       } else {
-        // Create new lifetime subscription
+        // Create new yearly subscription
         const newSubscription = await prisma.subscription.create({
           data: {
             userId,
-            plan: "LIFETIME",
+            plan: "YEARLY",
             status: "ACTIVE",
-            endDate: null, // No expiration for lifetime
+            endDate: subscriptionEndDate, // 1 year expiration
             amount: 99900, // ₹999 in paise
             payments: {
               connect: { id: payment.id },
             },
           },
         });
-        console.log("New lifetime subscription created", {
+        console.log("New yearly subscription created", {
           subscriptionId: newSubscription.id,
-          userId
+          userId,
+          endDate: subscriptionEndDate
         });
       }
 
@@ -206,8 +223,8 @@ export async function POST(request: NextRequest) {
         where: { id: userId },
         data: {
           subscriptionStatus: "ACTIVE",
-          subscriptionPlan: "LIFETIME",
-          subscriptionEndDate: null, // No expiration
+          subscriptionPlan: "YEARLY",
+          subscriptionEndDate: subscriptionEndDate, // 1 year expiration
         },
       });
 
@@ -226,9 +243,9 @@ export async function POST(request: NextRequest) {
       // Return partial success with warning
       return NextResponse.json({
         success: true,
-        message: "Payment verified successfully, but subscription activation may be delayed. Please contact support if you don't see lifetime access.",
+        message: "Payment verified successfully, but subscription activation may be delayed. Please contact support if you don't see yearly access.",
         subscription: {
-          plan: "LIFETIME",
+          plan: "YEARLY",
           status: "PENDING", // Indicate potential issue
           access: "pending",
         },
@@ -238,11 +255,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Payment verified successfully. Lifetime access granted!",
+      message: "Payment verified successfully. 1 year access granted!",
       subscription: {
-        plan: "LIFETIME",
+        plan: "YEARLY",
         status: "ACTIVE",
-        access: "lifetime",
+        access: "yearly",
+        endDate: subscriptionEndDate.toISOString(),
       },
     });
 

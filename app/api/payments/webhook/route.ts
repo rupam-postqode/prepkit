@@ -126,11 +126,19 @@ async function handlePaymentCaptured(payment: RazorpayPayment) {
 
     // Update subscription status if not already active
     if (existingPayment.subscription && existingPayment.subscription.status !== "ACTIVE") {
+      // For yearly subscriptions, ensure we have an end date
+      let subscriptionEndDate = existingPayment.subscription.endDate;
+      if (existingPayment.subscription.plan === "YEARLY" && !subscriptionEndDate) {
+        subscriptionEndDate = new Date();
+        subscriptionEndDate.setFullYear(subscriptionEndDate.getFullYear() + 1);
+      }
+
       await prisma.subscription.update({
         where: { id: existingPayment.subscription.id },
         data: {
           status: "ACTIVE",
           razorpaySubscriptionId: payment.subscription_id || null,
+          endDate: subscriptionEndDate,
           updatedAt: new Date(),
         },
       });
@@ -141,12 +149,12 @@ async function handlePaymentCaptured(payment: RazorpayPayment) {
         data: {
           subscriptionStatus: "ACTIVE",
           subscriptionPlan: existingPayment.subscription.plan,
-          subscriptionEndDate: existingPayment.subscription.endDate,
+          subscriptionEndDate: subscriptionEndDate,
           updatedAt: new Date(),
         },
       });
 
-      console.log("Subscription activated for user:", existingPayment.userId);
+      console.log("Subscription activated for user:", existingPayment.userId, "Plan:", existingPayment.subscription.plan);
     }
 
   } catch (error) {
@@ -214,10 +222,18 @@ async function handleOrderPaid(order: RazorpayOrder) {
 
     // Ensure subscription is active
     if (existingPayment.subscription && existingPayment.subscription.status !== "ACTIVE") {
+      // For yearly subscriptions, ensure we have an end date
+      let subscriptionEndDate = existingPayment.subscription.endDate;
+      if (existingPayment.subscription.plan === "YEARLY" && !subscriptionEndDate) {
+        subscriptionEndDate = new Date();
+        subscriptionEndDate.setFullYear(subscriptionEndDate.getFullYear() + 1);
+      }
+
       await prisma.subscription.update({
         where: { id: existingPayment.subscription.id },
         data: {
           status: "ACTIVE",
+          endDate: subscriptionEndDate,
           updatedAt: new Date(),
         },
       });
@@ -228,12 +244,12 @@ async function handleOrderPaid(order: RazorpayOrder) {
         data: {
           subscriptionStatus: "ACTIVE",
           subscriptionPlan: existingPayment.subscription.plan,
-          subscriptionEndDate: existingPayment.subscription.endDate,
+          subscriptionEndDate: subscriptionEndDate,
           updatedAt: new Date(),
         },
       });
 
-      console.log("Subscription activated via order paid for user:", existingPayment.userId);
+      console.log("Subscription activated via order paid for user:", existingPayment.userId, "Plan:", existingPayment.subscription.plan);
     }
 
   } catch (error) {
@@ -265,8 +281,7 @@ async function handleRefundCreated(refund: RazorpayRefund) {
       },
     });
 
-    // If this was a lifetime subscription, we might need to revoke access
-    // For now, we'll keep the subscription active but mark it as refunded
+    // Cancel subscription for any refunded payment
     if (payment.subscription) {
       await prisma.subscription.update({
         where: { id: payment.subscription.id },
@@ -287,7 +302,7 @@ async function handleRefundCreated(refund: RazorpayRefund) {
         },
       });
 
-      console.log("Subscription cancelled due to refund for user:", payment.userId);
+      console.log("Subscription cancelled due to refund for user:", payment.userId, "Plan was:", payment.subscription.plan);
     }
 
   } catch (error) {
