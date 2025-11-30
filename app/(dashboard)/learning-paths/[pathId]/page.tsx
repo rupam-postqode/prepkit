@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Clock, Target, Award, BookOpen, Users, TrendingUp, Pause, Play, RotateCcw, Settings, RotateCcw as ResetIcon } from "lucide-react";
 import { ResetDialog } from "@/components/ui/reset-dialog";
+import { useNavigation } from "@/components/providers/navigation-provider";
+import { ProgressAnimation, ProgressBarAnimation } from "@/components/ui/progress-animation";
 
 interface LearningPath {
   id: string;
@@ -79,6 +81,7 @@ interface StudySession {
 export default function LearningPathPage() {
   const params = useParams();
   const router = useRouter();
+  const { setBreadcrumbs, setCurrentPage } = useNavigation();
   const [loading, setLoading] = useState(true);
   const [pathData, setPathData] = useState<LearningPath | null>(null);
   const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
@@ -94,6 +97,18 @@ export default function LearningPathPage() {
       fetchPathData();
     }
   }, [params.pathId]);
+
+  // Update breadcrumbs when path data loads
+  useEffect(() => {
+    if (pathData) {
+      setBreadcrumbs([
+        { label: "Dashboard", href: "/dashboard" },
+        { label: "Learning Paths", href: "/learning-paths" },
+        { label: pathData.title, isActive: true }
+      ]);
+      setCurrentPage(`Learning Path: ${pathData.title}`);
+    }
+  }, [pathData, setBreadcrumbs, setCurrentPage]);
 
   // Check for welcome parameter and show success message
   useEffect(() => {
@@ -366,12 +381,20 @@ export default function LearningPathPage() {
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <Card className="p-4">
-              <div className="flex items-center">
-                <Target className="w-5 h-5 text-indigo-600 mr-2" />
-                <div>
-                  <p className="text-sm text-gray-600">Progress</p>
-                  <p className="text-lg font-semibold">{userProgress?.progressPercentage || 0}%</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Target className="w-5 h-5 text-indigo-600 mr-2" />
+                  <div>
+                    <p className="text-sm text-gray-600">Progress</p>
+                    <p className="text-lg font-semibold">{userProgress?.progressPercentage || 0}%</p>
+                  </div>
                 </div>
+                <ProgressAnimation
+                  progress={userProgress?.progressPercentage || 0}
+                  size="sm"
+                  showPercentage={false}
+                  color="primary"
+                />
               </div>
             </Card>
             <Card className="p-4">
@@ -412,7 +435,12 @@ export default function LearningPathPage() {
                   {userProgress.completedLessons} of {userProgress.totalLessons} lessons completed
                 </span>
               </div>
-              <Progress value={userProgress.progressPercentage} className="h-3" />
+              <ProgressBarAnimation
+                progress={userProgress.progressPercentage}
+                height="md"
+                showPercentage={false}
+                color="primary"
+              />
               <div className="flex justify-between items-center mt-3">
                 <span className="text-sm text-gray-500">
                   Started {new Date(userProgress.startedAt).toLocaleDateString()}
@@ -482,10 +510,12 @@ export default function LearningPathPage() {
                   <div>
                     <div className="mb-4">
                       <h4 className="font-medium text-gray-900 mb-2">Week {userProgress.currentWeek} Progress</h4>
-                      <Progress value={getWeekProgress(userProgress.currentWeek)} className="h-2" />
-                      <p className="text-sm text-gray-600 mt-1">
-                        {Math.round(getWeekProgress(userProgress.currentWeek))}% complete
-                      </p>
+                      <ProgressBarAnimation
+                        progress={getWeekProgress(userProgress.currentWeek)}
+                        height="sm"
+                        showPercentage={true}
+                        color="success"
+                      />
                     </div>
 
                     {/* Current Lessons */}
@@ -566,7 +596,12 @@ export default function LearningPathPage() {
                         )}
                       </div>
                       
-                      <Progress value={weekProgress} className="h-2 mb-3" />
+                      <ProgressBarAnimation
+                        progress={weekProgress}
+                        height="sm"
+                        showPercentage={false}
+                        color={weekProgress === 100 ? "success" : isCurrentWeek ? "primary" : "warning"}
+                      />
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                         {weekLessons

@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Filter, Clock, Users, BookOpen, Star, TrendingUp } from "lucide-react";
+import { useNavigation } from "@/components/providers/navigation-provider";
+import { useToast } from "@/components/ui/toast";
+import { useLoading } from "@/components/providers/loading-provider";
 
 interface LearningPath {
   id: string;
@@ -32,7 +35,7 @@ interface LearningPath {
 export default function PathsPage() {
   const [paths, setPaths] = useState<LearningPath[]>([]);
   const [filteredPaths, setFilteredPaths] = useState<LearningPath[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLocalLoading] = useState(true);
   const [enrolling, setEnrolling] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,6 +45,9 @@ export default function PathsPage() {
   const [showFilters, setShowFilters] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { setBreadcrumbs, setCurrentPage } = useNavigation();
+  const { setLoading: setGlobalLoading } = useLoading();
+  const { toast } = useToast();
   const isChangingPath = searchParams?.get('change') === 'true';
 
   const DIFFICULTY_OPTIONS = ["all", "BEGINNER", "EASY", "MEDIUM", "HARD"];
@@ -64,6 +70,16 @@ export default function PathsPage() {
   useEffect(() => {
     filterPaths();
   }, [paths, searchTerm, selectedDifficulty, selectedDuration, selectedCompanies]);
+
+  // Update breadcrumbs when component mounts
+  useEffect(() => {
+    const pageTitle = isChangingPath ? 'Switch Learning Path' : 'Learning Paths';
+    setBreadcrumbs([
+      { label: "Dashboard", href: "/dashboard" },
+      { label: pageTitle, isActive: true }
+    ]);
+    setCurrentPage(pageTitle);
+  }, [isChangingPath, setBreadcrumbs, setCurrentPage]);
 
   const filterPaths = () => {
     let filtered = [...paths];
@@ -111,6 +127,8 @@ export default function PathsPage() {
   };
 
   const fetchPaths = async () => {
+    setGlobalLoading(true, "Loading learning paths...");
+    
     try {
       const response = await fetch("/api/paths");
       if (response.ok) {
@@ -129,12 +147,14 @@ export default function PathsPage() {
       console.error("Error fetching paths:", error);
       setError("Failed to load learning paths");
     } finally {
-      setLoading(false);
+      setLocalLoading(false);
     }
   };
 
   const handleEnroll = async (pathId: string, pathTitle: string) => {
     setEnrolling(pathId);
+    setGlobalLoading(true, `Enrolling in ${pathTitle}...`);
+    
     try {
       const response = await fetch(`/api/paths/${pathId}/enroll`, {
         method: "POST",
@@ -147,26 +167,54 @@ export default function PathsPage() {
 
       if (response.ok) {
         const action = isChangingPath ? 'switched to' : 'enrolled in';
-        alert(`Successfully ${action} ${pathTitle}!`);
+        toast({
+          title: "Success!",
+          description: `Successfully ${action} ${pathTitle}!`,
+          variant: "success",
+        });
         router.push(`/dashboard/learning-paths/${pathId}?welcome=true`);
       } else {
+        setGlobalLoading(false);
+        
         if (data.error.includes("User not found")) {
-          alert("Please sign up first before enrolling in a learning path.");
+          toast({
+            title: "Authentication Required",
+            description: "Please sign up first before enrolling in a learning path.",
+            variant: "error",
+          });
         } else if (data.error.includes("Already enrolled")) {
           if (isChangingPath) {
-            alert("You're already enrolled in this path. Choose a different path to switch to.");
+            toast({
+              title: "Already Enrolled",
+              description: "You're already enrolled in this path. Choose a different path to switch to.",
+              variant: "warning",
+            });
           } else {
-            alert("You're already enrolled in this path. Check your dashboard to continue.");
+            toast({
+              title: "Already Enrolled",
+              description: "You're already enrolled in this path. Check your dashboard to continue.",
+              variant: "info",
+            });
           }
         } else {
-          alert(data.error || "Failed to enroll in path");
+          toast({
+            title: "Enrollment Failed",
+            description: data.error || "Failed to enroll in path",
+            variant: "error",
+          });
         }
       }
     } catch (error) {
       console.error("Error enrolling:", error);
-      alert("Failed to enroll in path");
+      setLocalLoading(false);
+      toast({
+        title: "Error",
+        description: "Failed to enroll in path. Please try again.",
+        variant: "error",
+      });
     } finally {
       setEnrolling(null);
+      setLocalLoading(false);
     }
   };
 

@@ -1,13 +1,16 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { transition, hover } from "@/lib/transitions"
 
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+        `bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm
+         ${transition.default} ${hover.lift} ${hover.shadow}
+         hover:border-border/80 cursor-pointer group`,
         className
       )}
       {...props}
@@ -32,7 +35,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
-      className={cn("leading-none font-semibold", className)}
+      className={cn(`leading-none font-semibold ${transition.colors} group-hover:text-primary`, className)}
       {...props}
     />
   )
@@ -53,7 +56,8 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card-action"
       className={cn(
-        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
+        `col-start-2 row-span-2 row-start-1 self-start justify-self-end
+         ${transition.transform} ${hover.scale}`,
         className
       )}
       {...props}
