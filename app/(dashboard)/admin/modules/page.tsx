@@ -64,10 +64,6 @@ export default function ModulesPage() {
     }
   };
 
-  useEffect(() => {
-    fetchModules();
-  }, []);
-
   // Create module
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,6 +173,10 @@ export default function ModulesPage() {
     }
   };
 
+  useEffect(() => {
+    fetchModules();
+  }, []);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -193,18 +193,7 @@ export default function ModulesPage() {
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div className="space-y-1">
-            <div className="flex items-center space-x-3">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push("/admin")}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ChevronLeft className="w-4 h-4 mr-2" />
-                Back to Admin
-              </Button>
-            </div>
+          <div>
             <h1 className="text-3xl font-bold tracking-tight">Course Modules</h1>
             <p className="text-muted-foreground">
               Organize and manage your learning content structure
@@ -255,6 +244,7 @@ export default function ModulesPage() {
                     rows={3}
                     required
                   />
+                </div>
                 </div>
                 <div className="flex justify-end space-x-3">
                   <Button

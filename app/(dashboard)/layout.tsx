@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Link from "next/link";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { useNavigation } from "@/components/providers/navigation-provider";
@@ -38,7 +39,7 @@ export default function DashboardLayout({
       <Sidebar className="w-64 flex-shrink-0" />
       <main className="flex-1 overflow-auto">
         <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3">
-          <Breadcrumb items={breadcrumbs} />
+          <Breadcrumb />
         </div>
         <div className="p-6">
           {children}

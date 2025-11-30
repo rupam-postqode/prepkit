@@ -37,6 +37,7 @@ export default function PathsPage() {
   const [filteredPaths, setFilteredPaths] = useState<LearningPath[]>([]);
   const [loading, setLocalLoading] = useState(true);
   const [enrolling, setEnrolling] = useState<string | null>(null);
+  const [switching, setSwitching] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
@@ -66,6 +67,20 @@ export default function PathsPage() {
   useEffect(() => {
     fetchPaths();
   }, []);
+
+  // Refetch paths when component gains focus (user returns from changing paths)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !loading) {
+        fetchPaths();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [loading]);
 
   useEffect(() => {
     filterPaths();
@@ -151,6 +166,10 @@ export default function PathsPage() {
     }
   };
 
+  const refetchPaths = async () => {
+    await fetchPaths();
+  };
+
   const handleEnroll = async (pathId: string, pathTitle: string) => {
     setEnrolling(pathId);
     setGlobalLoading(true, `Enrolling in ${pathTitle}...`);
@@ -172,7 +191,9 @@ export default function PathsPage() {
           description: `Successfully ${action} ${pathTitle}!`,
           variant: "success",
         });
-        router.push(`/dashboard/learning-paths/${pathId}?welcome=true`);
+        router.push(`/learning-paths/${pathId}?welcome=true`);
+        // Refetch paths to update enrollment states
+        await fetchPaths();
       } else {
         setGlobalLoading(false);
         
@@ -219,7 +240,57 @@ export default function PathsPage() {
   };
 
   const handleContinue = async (pathId: string) => {
-    router.push(`/dashboard/learning-paths/${pathId}`);
+    router.push(`/learning-paths/${pathId}`);
+  };
+
+  const handleSwitchPath = async (oldPathId: string, newPathId: string) => {
+    setSwitching(oldPathId);
+    setGlobalLoading(true, "Switching learning paths...");
+    
+    try {
+      const response = await fetch('/api/user/switch-path', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          oldPathId,
+          newPathId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Success!",
+          description: `Successfully switched to new learning path!`,
+          variant: "success",
+        });
+        // Refetch paths to update enrollment states
+        await fetchPaths();
+        // Redirect to the new path
+        router.push(`/learning-paths/${newPathId}`);
+      } else {
+        setGlobalLoading(false);
+        toast({
+          title: "Error",
+          description: data.error || "Failed to switch learning path",
+          variant: "error",
+        });
+      }
+    } catch (error) {
+      setGlobalLoading(false);
+      setSwitching(null);
+      toast({
+        title: "Error",
+        description: "Failed to switch learning path",
+        variant: "error",
+      });
+    } finally {
+      setSwitching(null);
+      setGlobalLoading(false);
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -484,7 +555,7 @@ export default function PathsPage() {
                 </div>
               )}
 
-              {/* Enroll/Continue Button */}
+              {/* Enroll/Continue/Switch Button */}
               {path.enrolled ? (
                 <Button
                   onClick={() => handleContinue(path.id)}
@@ -495,7 +566,7 @@ export default function PathsPage() {
               ) : (
                 <Button
                   onClick={() => handleEnroll(path.id, path.title)}
-                  disabled={enrolling === path.id}
+                  disabled={enrolling === path.id || switching === path.id}
                   className="w-full bg-indigo-600 hover:bg-indigo-700"
                 >
                   {enrolling === path.id ? "Switching..." : isChangingPath ? "Switch to This Path" : "Start This Path"}

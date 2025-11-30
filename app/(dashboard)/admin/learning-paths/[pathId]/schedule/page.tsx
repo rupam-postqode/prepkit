@@ -191,24 +191,16 @@ export default function SchedulePathPage() {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <Link href="/admin/learning-paths">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                <span className="mr-3">{pathData.emoji}</span>
-                {pathData.title}
-              </h1>
-              <p className="text-gray-600">Schedule lessons across {pathData.durationWeeks} weeks</p>
-            </div>
+        <div className="mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+              <span className="mr-3">{pathData.emoji}</span>
+              {pathData.title}
+            </h1>
+            <p className="text-gray-600">Schedule lessons across {pathData.durationWeeks} weeks</p>
           </div>
           <div className="flex space-x-3">
-            <Link href={`/dashboard/learning-paths/${pathData.id}`}>
+            <Link href={`/learning-paths/${pathData.id}`}>
               <Button variant="outline">
                 <Eye className="w-4 h-4 mr-2" />
                 Preview

@@ -109,11 +109,6 @@ export default async function LessonPage({ params }: LessonPageProps) {
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <nav className="flex items-center space-x-2 text-sm text-gray-500 mb-1">
-                <span>{lesson.chapter.module.title}</span>
-                <span>/</span>
-                <span>{lesson.chapter.title}</span>
-              </nav>
               <h1 className="text-2xl font-bold text-gray-900">{lesson.title}</h1>
               <p className="text-gray-600 mt-1">{lesson.description}</p>
             </div>

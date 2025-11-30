@@ -167,33 +167,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               Continue your interview preparation journey. You're making great progress!
             </p>
           </div>
-          <div className="flex items-center space-x-4">
-            {/* User Profile */}
-            <div className="flex items-center space-x-3">
-              <Avatar className="w-10 h-10">
-                <AvatarImage src={session?.user?.image || ""} />
-                <AvatarFallback className="text-sm">
-                  {session?.user?.name?.charAt(0)?.toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-right">
-                <div className="text-sm font-medium text-gray-900">
-                  {session?.user?.name || "User"}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {session?.user?.email || ""}
-                </div>
-              </div>
-            </div>
-
-            {/* Job Board Button */}
-            <Link
-              href="/jobs"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
-            >
-              💼 View Job Board
-            </Link>
-          </div>
         </div>
 
         {/* Stats Cards */}

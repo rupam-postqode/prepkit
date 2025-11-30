@@ -5,33 +5,40 @@ import Link from "next/link";
 import { ChevronRight, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigation } from "@/components/providers/navigation-provider";
-
-interface BreadcrumbItem {
-  label: string;
-  href?: string;
-  isActive?: boolean;
-}
+import { Spinner } from "@/components/ui/spinner";
 
 interface BreadcrumbProps {
-  items: BreadcrumbItem[];
   className?: string;
 }
 
-export function Breadcrumb({ items, className }: BreadcrumbProps) {
-  const { setBreadcrumbs } = useNavigation();
+export function Breadcrumb({ className }: BreadcrumbProps) {
+  const { breadcrumbs, isLoading, error } = useNavigation();
 
-  React.useEffect(() => {
-    setBreadcrumbs(items);
-  }, [items]);
+  if (error) {
+    return (
+      <div className={cn("flex items-center text-sm text-red-600", className)}>
+        <span>Navigation error</span>
+      </div>
+    );
+  }
 
-  if (!items || items.length === 0) {
+  if (isLoading) {
+    return (
+      <div className={cn("flex items-center space-x-2 text-sm", className)}>
+        <Spinner size="sm" />
+        <span className="text-gray-500">Loading navigation...</span>
+      </div>
+    );
+  }
+
+  if (!breadcrumbs || breadcrumbs.length === 0) {
     return null;
   }
 
   return (
     <nav aria-label="Breadcrumb" className={cn("flex items-center space-x-1 text-sm", className)}>
       <ol className="flex items-center space-x-1">
-        {items.map((item, index) => (
+        {breadcrumbs.map((item, index) => (
           <li key={index} className="flex items-center">
             {index > 0 && (
               <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />

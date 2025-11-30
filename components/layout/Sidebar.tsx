@@ -80,7 +80,7 @@ export function Sidebar({ className }: SidebarProps) {
   const isAdmin = session?.user?.role === "ADMIN";
 
   useEffect(() => {
-    const fetchNavigation = async () => {
+    const fetchNavigationData = async () => {
       try {
         // Only fetch learning content for non-admin users
         if (!isAdmin) {
@@ -117,8 +117,22 @@ export function Sidebar({ className }: SidebarProps) {
     };
 
     if (session) {
-      fetchNavigation();
+      fetchNavigationData();
     }
+  }, [session, isAdmin]);
+
+  // Refetch navigation data when window gains focus (user returns from path changes)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && session && !isAdmin) {
+        fetchNavigationData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [session, isAdmin]);
 
   const toggleModule = (moduleId: string) => {
