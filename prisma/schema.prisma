@@ -1,5 +1,3 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,121 +6,93 @@ datasource db {
   provider = "postgresql"
 }
 
-// ============ USERS ============
 model User {
-  id                    String   @id @default(cuid())
-  email                 String   @unique
-  passwordHash          String   // Argon2 hash
-  name                  String
-  role                  Role     @default(USER)
-
-  // Profile
-  targetCompanies       String[] // ["Google", "Amazon", "Flipkart"]
-  experienceLevel       Experience @default(FRESHER)
-  preferredLanguage     String   @default("javascript")
-
-  // Subscription
-  subscriptionStatus    SubscriptionStatus @default(FREE)
-  subscriptionPlan      String?  // "monthly", "yearly", "lifetime"
-  subscriptionEndDate   DateTime?
-
-  // Relations
-  lessonProgress        LessonProgress[]
-  subscriptions         Subscription[]
-  feedback              Feedback[]
-  videos                Video[]
-  jobs                  Job[]
-  pathProgress          UserPathProgress[]
-  achievements          Achievement[]
-
-  // Metadata
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  lastLoginAt           DateTime?
+  id                  String             @id @default(cuid())
+  email               String             @unique
+  passwordHash        String
+  name                String
+  role                Role               @default(USER)
+  targetCompanies     String[]
+  experienceLevel     Experience         @default(FRESHER)
+  preferredLanguage   String             @default("javascript")
+  subscriptionStatus  SubscriptionStatus @default(FREE)
+  subscriptionPlan    String?
+  subscriptionEndDate DateTime?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  lastLoginAt         DateTime?
+  achievements        Achievement[]
+  feedback            Feedback[]
+  jobs                Job[]
+  lessonProgress      LessonProgress[]
+  subscriptions       Subscription[]
+  pathProgress        UserPathProgress[]
+  videos              Video[]
 
   @@index([email])
   @@index([subscriptionStatus])
 }
 
-// ============ CONTENT ============
 model Module {
-  id          String  @id @default(cuid())
-  title       String  // "DSA", "Machine Coding", etc.
-  slug        String  @unique
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
   description String
-  emoji       String  // 📚, 🎯, 🏗️, 💬, 📋
+  emoji       String
   orderIndex  Int
-
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   chapters    Chapter[]
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }
 
 model Chapter {
-  id                String  @id @default(cuid())
-  moduleId          String
-  module            Module  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-
-  title             String
-  slug              String
-  description       String
-  orderIndex        Int
-  difficultyLevel   Difficulty @default(BEGINNER)
-  estimatedHours    Int
-
-  lessons           Lesson[]
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id              String     @id @default(cuid())
+  moduleId        String
+  title           String
+  slug            String
+  description     String
+  orderIndex      Int
+  difficultyLevel Difficulty @default(BEGINNER)
+  estimatedHours  Int
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  module          Module     @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  lessons         Lesson[]
 
   @@unique([moduleId, slug])
   @@index([moduleId])
 }
 
 model Lesson {
-  id                String  @id @default(cuid())
-  chapterId         String
-  chapter           Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
-
-  title             String
-  slug              String
-  description       String
-  orderIndex        Int
-
-  // Content
-  videoUrl          String?  // S3/CloudFront URL
-  videoDurationSec  Int?
-  markdownContent   String  // Plain text for backward compatibility
-
-  // Encrypted Content (Enterprise Protection)
-  encryptedContent     String?  // AES-256-GCM encrypted content
-  encryptionKey        String?  // Encryption key (encrypted)
-  encryptionIv         String?  // Initialization vector
-  encryptionTag        String?  // Authentication tag
-  keyVersion          String?  // Key version for rotation
-  contentHash         String?  // SHA-256 hash for integrity
-
-  // Notes & Resources (also encrypted for premium content)
-  importantPoints   String? // JSON string of important points array
-  commonMistakes    String? // JSON string of common mistakes array
-  quickReference    String? // Code examples, formulas, syntax reminders
-
-  premium           Boolean @default(false) // Whether lesson requires subscription
-
-  difficulty        Difficulty
-
-  // Metadata
-  publishedAt       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  // Relations
-  progress          LessonProgress[]
-  practiceLinks     PracticeLink[]
-  feedback          Feedback[]
-  videos            Video[]
-  pathLessons       PathLesson[]
+  id               String           @id @default(cuid())
+  chapterId        String
+  title            String
+  slug             String
+  description      String
+  orderIndex       Int
+  videoUrl         String?
+  videoDurationSec Int?
+  markdownContent  String
+  difficulty       Difficulty
+  publishedAt      DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  premium          Boolean          @default(false)
+  commonMistakes   String?
+  importantPoints  String?
+  quickReference   String?
+  contentHash      String?
+  encryptedContent String?
+  encryptionIv     String?
+  encryptionKey    String?
+  encryptionTag    String?
+  keyVersion       String?
+  feedback         Feedback[]
+  chapter          Chapter          @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  progress         LessonProgress[]
+  pathLessons      PathLesson[]
+  practiceLinks    PracticeLink[]
+  videos           Video[]
 
   @@unique([chapterId, slug])
   @@index([chapterId])
@@ -130,24 +100,19 @@ model Lesson {
 }
 
 model LessonProgress {
-  id                    String  @id @default(cuid())
-  userId                String
-  user                  User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  lessonId              String
-  lesson                Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-
-  startedAt             DateTime @default(now())
-  completedAt           DateTime?
-
-  timeSpentSeconds      Int     @default(0)
-  videoWatchedPercent   Int     @default(0) // 0-100
-  markdownRead          Boolean @default(false)
-
-  rating                Int?    // 1-5
-  notes                 String? // User's personal notes
-
-  updatedAt             DateTime @updatedAt
+  id                  String    @id @default(cuid())
+  userId              String
+  lessonId            String
+  startedAt           DateTime  @default(now())
+  completedAt         DateTime?
+  timeSpentSeconds    Int       @default(0)
+  videoWatchedPercent Int       @default(0)
+  markdownRead        Boolean   @default(false)
+  rating              Int?
+  notes               String?
+  updatedAt           DateTime  @updatedAt
+  lesson              Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
   @@index([userId])
@@ -156,89 +121,72 @@ model LessonProgress {
 }
 
 model PracticeLink {
-  id              String   @id @default(cuid())
-  lessonId        String
-  lesson          Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-
-  platform        Platform // LEETCODE, CODESANDBOX, ALGOEXPERT, HACKERRANK
-  problemTitle    String
-  problemUrl      String
-  difficulty      Difficulty
-  orderIndex      Int
-
-  createdAt       DateTime @default(now())
+  id           String     @id @default(cuid())
+  lessonId     String
+  platform     Platform
+  problemTitle String
+  problemUrl   String
+  difficulty   Difficulty
+  orderIndex   Int
+  createdAt    DateTime   @default(now())
+  lesson       Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@index([lessonId])
 }
 
 model Feedback {
-  id              String   @id @default(cuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  lessonId        String?
-  lesson          Lesson?  @relation(fields: [lessonId], references: [id], onDelete: SetNull)
-
-  rating          Int?     // 1-5
-  comment         String
-  type            FeedbackType // BUG, SUGGESTION, GENERAL
-
-  createdAt       DateTime @default(now())
+  id        String       @id @default(cuid())
+  userId    String
+  lessonId  String?
+  rating    Int?
+  comment   String
+  type      FeedbackType
+  createdAt DateTime     @default(now())
+  lesson    Lesson?      @relation(fields: [lessonId], references: [id])
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([lessonId])
   @@index([type])
 }
 
-// ============ VIDEOS ============
 model Video {
-  id              String   @id @default(cuid())
-  fileName        String   // Original filename with extension
-  originalName    String   // User-uploaded filename
-  fileSize        Int      // File size in bytes
-  mimeType        String   // MIME type (video/mp4, etc.)
-  duration        Int?     // Duration in seconds
-  s3Key           String   // S3 object key
-  s3Bucket        String   // S3 bucket name
-  status          VideoStatus @default(UPLOADED)
-
-  uploadedBy      String   // User ID who uploaded
-  user            User     @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
-
-  // Optional lesson association
-  lessonId        String?
-  lesson          Lesson?  @relation(fields: [lessonId], references: [id], onDelete: SetNull)
-
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id           String      @id @default(cuid())
+  fileName     String
+  originalName String
+  fileSize     Int
+  mimeType     String
+  duration     Int?
+  s3Key        String
+  s3Bucket     String
+  status       VideoStatus @default(UPLOADED)
+  uploadedBy   String
+  lessonId     String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  lesson       Lesson?     @relation(fields: [lessonId], references: [id])
+  user         User        @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
 
   @@index([uploadedBy])
   @@index([lessonId])
   @@index([status])
 }
 
-// ============ SUBSCRIPTIONS & PAYMENTS ============
 model Subscription {
-  id                      String  @id @default(cuid())
-  userId                  String
-  user                    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  plan                    SubscriptionPlan
-  status                  SubscriptionStatus
-
-  razorpaySubscriptionId  String? @unique
-  razorpayCustomerId      String?
-
-  startDate               DateTime @default(now())
-  endDate                 DateTime?
-
-  amount                  Int     // in paise (₹100 = 10000 paise)
-  currency                String  @default("INR")
-
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
-
-  payments                Payment[]
+  id                     String             @id @default(cuid())
+  userId                 String
+  plan                   SubscriptionPlan
+  status                 SubscriptionStatus
+  razorpaySubscriptionId String?            @unique
+  razorpayCustomerId     String?
+  startDate              DateTime           @default(now())
+  endDate                DateTime?
+  amount                 Int
+  currency               String             @default("INR")
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  payments               Payment[]
+  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
@@ -246,53 +194,212 @@ model Subscription {
 }
 
 model Payment {
-  id                      String  @id @default(cuid())
-  subscriptionId          String?
-  subscription            Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-
-  userId                  String
-
-  razorpayPaymentId       String? @unique
-  razorpayOrderId         String
-
-  amount                  Int     // in paise
-  currency                String  @default("INR")
-
-  status                  PaymentStatus
-  method                  String? // "card", "upi", "netbanking", etc.
-
-  refunds                 Refund[]
-
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  id                String        @id @default(cuid())
+  subscriptionId    String?
+  userId            String
+  razorpayPaymentId String?       @unique
+  razorpayOrderId   String
+  amount            Int
+  currency          String        @default("INR")
+  status            PaymentStatus
+  method            String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  subscription      Subscription? @relation(fields: [subscriptionId], references: [id])
+  refunds           Refund[]
 
   @@index([userId])
   @@index([status])
 }
 
 model Refund {
-  id                      String  @id @default(cuid())
-  paymentId               String
-  payment                 Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-
-  razorpayRefundId        String  @unique
-  amount                  Int     // in paise
-  currency                String  @default("INR")
-
-  status                  RefundStatus @default(PROCESSED)
-  reason                  String?
-
-  processedBy             String  // User ID who processed the refund
-  processedAt             DateTime @default(now())
-
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  id               String       @id @default(cuid())
+  paymentId        String
+  razorpayRefundId String       @unique
+  amount           Int
+  currency         String       @default("INR")
+  status           RefundStatus @default(PROCESSED)
+  reason           String?
+  processedBy      String
+  processedAt      DateTime     @default(now())
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  payment          Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
   @@index([paymentId])
   @@index([status])
 }
 
-// ============ ENUMS ============
+model LearningPath {
+  id                String             @id @default(cuid())
+  title             String
+  slug              String             @unique
+  description       String
+  emoji             String             @default("🎯")
+  durationWeeks     Int
+  difficulty        Difficulty         @default(MEDIUM)
+  targetCompanies   String[]
+  isActive          Boolean            @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  generatedFromJson String?
+  isDynamic         Boolean            @default(false)
+  lastGeneratedAt   DateTime?
+  templateId        String?
+  template          PathTemplate?      @relation(fields: [templateId], references: [id])
+  pathLessons       PathLesson[]
+  userProgress      UserPathProgress[]
+  milestones        Milestone[]        @relation("LearningPathToMilestone")
+
+  @@index([isActive])
+  @@index([durationWeeks])
+  @@index([isDynamic])
+}
+
+model PathTemplate {
+  id                   String         @id @default(cuid())
+  name                 String
+  description          String
+  emoji                String         @default("🎯")
+  durationWeeks        Int
+  difficulty           Difficulty     @default(MEDIUM)
+  targetAudience       String
+  rules                Json
+  includeModules       String[]
+  excludeModules       String[]
+  minDifficulty        Difficulty?
+  maxDifficulty        Difficulty?
+  lessonsPerDay        Int            @default(2)
+  daysPerWeek          Int            @default(5)
+  estimatedHoursPerDay Float          @default(2.0)
+  isActive             Boolean        @default(true)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  generatedPaths       LearningPath[]
+
+  @@index([isActive])
+  @@index([durationWeeks])
+}
+
+model ContentMetadata {
+  lessonId         String   @id
+  difficultyScore  Float    @default(1.0)
+  complexityScore  Float    @default(1.0)
+  estimatedMinutes Int      @default(60)
+  readingMinutes   Int      @default(30)
+  practiceMinutes  Int      @default(30)
+  topics           Json
+  skills           Json
+  prerequisites    Json
+  companyRelevance Json
+  objectives       Json
+  contentType      String
+  interactiveLevel String
+  lastAnalyzedAt   DateTime @default(now())
+  analysisVersion  String   @default("1.0")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([difficultyScore])
+  @@index([complexityScore])
+  @@index([contentType])
+}
+
+model PathLesson {
+  id             String       @id @default(cuid())
+  learningPathId String
+  lessonId       String
+  weekNumber     Int
+  dayNumber      Int
+  orderIndex     Int
+  isRequired     Boolean      @default(true)
+  estimatedHours Float        @default(1.0)
+  createdAt      DateTime     @default(now())
+  learningPath   LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+  lesson         Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([learningPathId, lessonId])
+  @@index([learningPathId])
+  @@index([lessonId])
+  @@index([weekNumber, dayNumber])
+}
+
+model UserPathProgress {
+  id               String       @id @default(cuid())
+  userId           String
+  learningPathId   String
+  currentWeek      Int          @default(1)
+  currentDay       Int          @default(1)
+  completedLessons Int          @default(0)
+  totalLessons     Int          @default(0)
+  startedAt        DateTime     @default(now())
+  lastActivityAt   DateTime     @default(now())
+  completedAt      DateTime?
+  isActive         Boolean      @default(true)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  learningPath     LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, learningPathId])
+  @@index([userId])
+  @@index([learningPathId])
+  @@index([isActive])
+}
+
+model Job {
+  id           String   @id @default(cuid())
+  title        String
+  company      String
+  location     String?
+  type         JobType
+  experience   String
+  salary       String?
+  description  String
+  requirements String?
+  externalUrl  String
+  isActive     Boolean  @default(true)
+  postedBy     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  postedByUser User     @relation(fields: [postedBy], references: [id])
+
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+model Milestone {
+  id            String         @id @default(cuid())
+  title         String
+  description   String
+  emoji         String         @default("🎉")
+  type          MilestoneType
+  threshold     Int
+  pathSpecific  Boolean        @default(false)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  achievements  Achievement[]
+  learningPaths LearningPath[] @relation("LearningPathToMilestone")
+
+  @@index([type])
+  @@index([isActive])
+}
+
+model Achievement {
+  id          String    @id @default(cuid())
+  userId      String
+  milestoneId String
+  unlockedAt  DateTime  @default(now())
+  pathId      String?
+  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, milestoneId])
+  @@index([userId])
+  @@index([milestoneId])
+  @@index([pathId])
+}
+
 enum Role {
   USER
   ADMIN
@@ -361,114 +468,6 @@ enum RefundStatus {
   FAILED
 }
 
-// ============ LEARNING PATHS ============
-model LearningPath {
-  id          String   @id @default(cuid())
-  title       String
-  slug        String   @unique
-  description String
-  emoji       String   @default("🎯")
-
-  // Path details
-  durationWeeks Int    // 4, 12, 16 weeks
-  difficulty    Difficulty @default(MEDIUM)
-  targetCompanies String[] // ["Google", "Meta", "Amazon", "All"]
-
-  // Content
-  pathLessons  PathLesson[]
-
-  // User progress
-  userProgress UserPathProgress[]
-
-  // Milestones
-  milestones   Milestone[]
-
-  isActive    Boolean @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([isActive])
-  @@index([durationWeeks])
-}
-
-model PathLesson {
-  id            String   @id @default(cuid())
-  learningPathId String
-  learningPath   LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
-
-  lessonId      String
-  lesson        Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-
-  // Ordering and metadata
-  weekNumber    Int     // Which week this lesson belongs to
-  dayNumber     Int     // Which day of the week
-  orderIndex    Int     // Order within the day
-
-  isRequired    Boolean @default(true) // Optional vs required lessons
-  estimatedHours Float  @default(1.0)
-
-  createdAt     DateTime @default(now())
-
-  @@unique([learningPathId, lessonId])
-  @@index([learningPathId])
-  @@index([lessonId])
-  @@index([weekNumber, dayNumber])
-}
-
-model UserPathProgress {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  learningPathId String
-  learningPath   LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
-
-  // Progress tracking
-  currentWeek   Int     @default(1)
-  currentDay    Int     @default(1)
-  completedLessons Int  @default(0)
-  totalLessons  Int     @default(0)
-
-  startedAt     DateTime @default(now())
-  lastActivityAt DateTime @default(now())
-  completedAt   DateTime?
-
-  // User preferences
-  isActive      Boolean @default(true) // User can pause/unpause paths
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@unique([userId, learningPathId])
-  @@index([userId])
-  @@index([learningPathId])
-  @@index([isActive])
-}
-
-// ============ JOBS BOARD ============
-model Job {
-  id          String   @id @default(cuid())
-  title       String
-  company     String
-  location    String?
-  type        JobType
-  experience  String   // "0-2 years", "2-5 years", etc.
-  salary      String?  // "₹5-10 LPA", "$50-80K", etc.
-  description String
-  requirements String?
-  externalUrl String   // Link to actual job posting
-  isActive    Boolean  @default(true)
-
-  postedBy    String   // Admin user ID
-  postedByUser User    @relation(fields: [postedBy], references: [id])
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([isActive])
-  @@index([createdAt])
-}
-
 enum JobType {
   FULL_TIME
   PART_TIME
@@ -477,55 +476,12 @@ enum JobType {
   FREELANCE
 }
 
-// ============ MILESTONES & ACHIEVEMENTS ============
-model Milestone {
-  id          String   @id @default(cuid())
-  title       String   // "First Lesson Completed", "Week 1 Finished"
-  description String
-  emoji       String   @default("🎉")
-
-  // Trigger conditions
-  type        MilestoneType
-  threshold   Int      // Number of lessons, days, etc.
-  pathSpecific Boolean @default(false) // Applies to specific paths only
-
-  // Associated paths (if path-specific)
-  learningPaths LearningPath[]
-
-  // User achievements
-  achievements Achievement[]
-
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-
-  @@index([type])
-  @@index([isActive])
-}
-
-model Achievement {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  milestoneId String
-  milestone   Milestone @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
-
-  // Achievement details
-  unlockedAt  DateTime @default(now())
-  pathId      String?  // Which path this was achieved in (if applicable)
-
-  @@unique([userId, milestoneId])
-  @@index([userId])
-  @@index([milestoneId])
-  @@index([pathId])
-}
-
 enum MilestoneType {
-  LESSONS_COMPLETED     // Total lessons completed
-  CONSECUTIVE_DAYS      // Consecutive study days
-  WEEK_COMPLETED        // Completed a full week
-  PATH_COMPLETED        // Completed entire learning path
-  STREAK_MAINTAINED     // Maintained study streak
-  FIRST_LESSON          // Completed first lesson
-  SPEED_LEARNER         // Completed multiple lessons in one day
+  LESSONS_COMPLETED
+  CONSECUTIVE_DAYS
+  WEEK_COMPLETED
+  PATH_COMPLETED
+  STREAK_MAINTAINED
+  FIRST_LESSON
+  SPEED_LEARNER
 }

@@ -12,11 +12,23 @@ export async function POST(
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized - Please login first" }, { status: 401 });
     }
 
     const userId = session.user.id;
     const { pathId } = await params;
+
+    // Verify user exists in database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true }
+    });
+
+    if (!user) {
+      return NextResponse.json({ 
+        error: "User not found - Please sign up first" 
+      }, { status: 404 });
+    }
 
     // Check if path exists and is active
     const path = await prisma.learningPath.findUnique({

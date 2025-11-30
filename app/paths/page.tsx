@@ -66,7 +66,13 @@ export default function PathsPage() {
         alert(`Successfully enrolled in ${pathTitle}!`);
         router.push(`/dashboard/learning-paths/${pathId}?welcome=true`);
       } else {
-        alert(data.error || "Failed to enroll in path");
+        if (data.error.includes("User not found")) {
+          alert("Please sign up first before enrolling in a learning path.");
+        } else if (data.error.includes("Already enrolled")) {
+          alert("You're already enrolled in this path. Check your dashboard to continue.");
+        } else {
+          alert(data.error || "Failed to enroll in path");
+        }
       }
     } catch (error) {
       console.error("Error enrolling:", error);

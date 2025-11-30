@@ -8,6 +8,7 @@ import { machineCodingLessons } from './content-data/machine-coding'
 import { systemDesignLessons } from './content-data/system-design'
 import { behavioralLessons } from './content-data/behavioral'
 import { learningPaths } from './content-data/learning-paths'
+import { pathTemplates } from './content-data/path-templates'
 
 const connectionString = process.env.DATABASE_URL
 
@@ -1464,6 +1465,13 @@ Master STAR method - it's the foundation of behavioral interview success! 🎯`,
     });
   }
 
+  // Create path templates
+  for (const templateData of pathTemplates) {
+    await prisma.pathTemplate.create({
+      data: templateData,
+    });
+  }
+
   console.log('✅ Database seeded with comprehensive content!')
   console.log('📊 Created:')
   console.log('   • 4 modules (DSA, Machine Coding, System Design, Behavioral)')
@@ -1472,6 +1480,7 @@ Master STAR method - it's the foundation of behavioral interview success! 🎯`,
   console.log('   • Practice problems and examples')
   console.log('   • 2 learning paths (4-week and 12-week)')
   console.log('   • Path lesson assignments and sequencing')
+  console.log('   • 8 path templates for dynamic generation')
 }
 
 main()
