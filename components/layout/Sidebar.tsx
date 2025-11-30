@@ -143,6 +143,18 @@ export function Sidebar({ className }: SidebarProps) {
       description: "Admin overview"
     },
     {
+      name: "Learning Paths",
+      href: "/admin/learning-paths",
+      icon: BookOpen,
+      description: "Manage learning paths"
+    },
+    {
+      name: "Path Templates",
+      href: "/admin/path-templates",
+      icon: BookOpen,
+      description: "Manage path templates"
+    },
+    {
       name: "Modules",
       href: "/admin/modules",
       icon: BookOpen,
