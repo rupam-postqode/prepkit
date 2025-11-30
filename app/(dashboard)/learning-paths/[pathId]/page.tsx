@@ -91,6 +91,22 @@ export default function LearningPathPage() {
     }
   }, [params.pathId]);
 
+  // Check for welcome parameter and show success message
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const welcome = urlParams.get('welcome');
+      if (welcome === 'true' && pathData) {
+        // Show success message (you could use a toast notification here)
+        setTimeout(() => {
+          const message = `🎉 Successfully enrolled in ${pathData.title}! Get started with your first lesson below.`;
+          // You could replace this with a proper toast notification
+          console.log(message);
+        }, 100);
+      }
+    }
+  }, [pathData]);
+
   const fetchPathData = async () => {
     try {
       const [pathResponse, progressResponse, achievementsResponse, sessionsResponse] = await Promise.all([
@@ -188,9 +204,14 @@ export default function LearningPathPage() {
           <div className="text-6xl mb-4">⚠️</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Path</h1>
           <p className="text-gray-600 mb-6">{error || "Learning path not found"}</p>
-          <Button onClick={() => router.back()} className="bg-indigo-600 hover:bg-indigo-700">
-            Go Back
-          </Button>
+          <div className="space-x-4">
+            <Button onClick={() => router.push('/paths')} className="bg-indigo-600 hover:bg-indigo-700 mr-4">
+              Browse All Paths
+            </Button>
+            <Button onClick={() => router.back()} variant="outline">
+              Go Back
+            </Button>
+          </div>
         </div>
       </div>
     );
