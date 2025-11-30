@@ -2,7 +2,12 @@ import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
-import { javascriptFundamentalsLessons } from './content-data/javascript-fundamentals'
+import { javascriptLessons } from './content-data/javascript-fundamentals'
+import { dsaFundamentalsLessons } from './content-data/dsa-fundamentals'
+import { machineCodingLessons } from './content-data/machine-coding'
+import { systemDesignLessons } from './content-data/system-design'
+import { behavioralLessons } from './content-data/behavioral'
+import { learningPaths } from './content-data/learning-paths'
 
 const connectionString = process.env.DATABASE_URL
 
@@ -347,8 +352,8 @@ async function main() {
   let lessonIndex = 0;
 
   // Basics chapter (first 4 lessons)
-  for (let i = 0; i < 4 && lessonIndex < javascriptFundamentalsLessons.length; i++) {
-    const lessonData = javascriptFundamentalsLessons[lessonIndex];
+  for (let i = 0; i < 4 && lessonIndex < javascriptLessons.length; i++) {
+    const lessonData = javascriptLessons[lessonIndex];
     const lesson = await prisma.lesson.upsert({
       where: {
         chapterId_slug: {
@@ -378,8 +383,8 @@ async function main() {
   }
 
   // ES6 chapter (next 5 lessons)
-  for (let i = 0; i < 5 && lessonIndex < javascriptFundamentalsLessons.length; i++) {
-    const lessonData = javascriptFundamentalsLessons[lessonIndex];
+  for (let i = 0; i < 5 && lessonIndex < javascriptLessons.length; i++) {
+    const lessonData = javascriptLessons[lessonIndex];
     const lesson = await prisma.lesson.upsert({
       where: {
         chapterId_slug: {
@@ -409,8 +414,8 @@ async function main() {
   }
 
   // Closures chapter (next 4 lessons)
-  for (let i = 0; i < 4 && lessonIndex < javascriptFundamentalsLessons.length; i++) {
-    const lessonData = javascriptFundamentalsLessons[lessonIndex];
+  for (let i = 0; i < 4 && lessonIndex < javascriptLessons.length; i++) {
+    const lessonData = javascriptLessons[lessonIndex];
     const lesson = await prisma.lesson.upsert({
       where: {
         chapterId_slug: {
@@ -440,8 +445,8 @@ async function main() {
   }
 
   // Async chapter (remaining lessons)
-  for (let i = 0; lessonIndex < javascriptFundamentalsLessons.length; i++) {
-    const lessonData = javascriptFundamentalsLessons[lessonIndex];
+  for (let i = 0; lessonIndex < javascriptLessons.length; i++) {
+    const lessonData = javascriptLessons[lessonIndex];
     const lesson = await prisma.lesson.upsert({
       where: {
         chapterId_slug: {
@@ -470,54 +475,44 @@ async function main() {
     lessonIndex++;
   }
 
-  // Create sample DSA lessons (keeping existing for now)
-  const arrayIntroLesson = await prisma.lesson.upsert({
-    where: {
-      chapterId_slug: {
+  // Create DSA Fundamentals lessons from data
+  const createdDSALessons = [];
+  let dsaLessonIndex = 0;
+
+  // DSA Fundamentals chapter (all 6 lessons)
+  for (let i = 0; i < 6 && dsaLessonIndex < dsaFundamentalsLessons.length; i++) {
+    const lessonData = dsaFundamentalsLessons[dsaLessonIndex];
+    const lesson = await prisma.lesson.upsert({
+      where: {
+        chapterId_slug: {
+          chapterId: arraysChapter.id,
+          slug: lessonData.slug,
+        },
+      },
+      update: {},
+      create: {
         chapterId: arraysChapter.id,
-        slug: 'array-introduction'
-      }
-    },
-    update: {},
-    create: {
-      chapterId: arraysChapter.id,
-      title: 'Array Introduction',
-      slug: 'array-introduction',
-      description: 'Learn the basics of arrays and common operations',
-      orderIndex: 1,
-      markdownContent: `# Arrays - Introduction
+        title: lessonData.title,
+        slug: lessonData.slug,
+        description: lessonData.description,
+        markdownContent: lessonData.markdownContent,
+        difficulty: lessonData.difficulty === 'BEGINNER' ? 'BEGINNER' :
+                   lessonData.difficulty === 'INTERMEDIATE' ? 'MEDIUM' :
+                   lessonData.difficulty as 'BEGINNER' | 'EASY' | 'MEDIUM' | 'HARD',
+        premium: lessonData.premium,
+        importantPoints: JSON.stringify(lessonData.keyTakeaways),
+        commonMistakes: JSON.stringify(lessonData.commonMistakes),
+        orderIndex: i + 1,
+        publishedAt: new Date(),
+      },
+    });
+    createdDSALessons.push(lesson);
+    dsaLessonIndex++;
+  }
 
-## What is an Array?
 
-An array is a **contiguous memory location** that stores a collection of elements of the **same data type**. Arrays provide **O(1) access time** to any element using its index.
-
-### Key Characteristics:
-- **Fixed Size**: Once created, the size cannot be changed
-- **Homogeneous**: All elements must be of the same type
-- **Contiguous Memory**: Elements are stored in adjacent memory locations
-- **Zero-based Indexing**: First element is at index 0
-
-### Basic Operations:
-- **Access**: \`arr[index]\` - O(1) time
-- **Update**: \`arr[index] = value\` - O(1) time
-- **Insert/Delete**: Can be O(n) in worst case
-
-### Common Array Patterns:
-1. **Two Pointers**: Use two indices to traverse from both ends
-2. **Sliding Window**: Maintain a window of elements for subarray problems
-3. **Prefix Sum**: Precompute sums for range queries
-
-### Time Complexities:
-- Access: O(1)
-- Search (unsorted): O(n)
-- Search (sorted): O(log n)
-- Insert/Delete: O(n)
-
-Practice these concepts with the LeetCode problems linked below.`,
-      difficulty: 'BEGINNER',
-      publishedAt: new Date(),
-    },
-  })
+  // Use the first DSA lesson for arrayIntroLesson reference
+  const arrayIntroLesson = createdDSALessons[0];
 
   // Add practice links for JS lessons
   for (const lesson of createdJSLessons) {

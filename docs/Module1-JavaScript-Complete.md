@@ -1,94 +1,111 @@
-// prisma/content-data/javascript-fundamentals.ts
+# PrepKit Module 1: JavaScript Fundamentals & Output Problems
+## Complete Course Content
 
-export const javascriptLessons = [
-  // Section 1: Hoisting & Variable Scope (5 lessons)
-  {
-    title: "var, let, const Differences",
-    slug: "var-let-const-differences",
-    description: "Master the differences between var, let, and const declarations and their scoping rules",
-    markdownContent: `# var, let, const Differences
+**Module Weight:** 20% of interview preparation  
+**Total Duration:** 15-20 hours  
+**Total Lessons:** 22  
+**Practice Problems:** 100+  
+**Difficulty:** Easy → Medium  
 
-## Understanding Variable Declarations
+---
 
-JavaScript has three ways to declare variables: \`var\`, \`let\`, and \`const\`. Each has different scoping rules and behaviors that are crucial for interviews.
+## 📚 MODULE OVERVIEW
 
-### var - Function-Scoped
+This module is **critical** because:
+- 60% of all first-round interviews start here
+- Quick disqualifier if you fail
+- Easy to master = competitive advantage
+- Foundation for async JavaScript
 
-**Characteristics:**
+**Target Companies:** All (Amazon, Google, Meta, Salesforce, ServiceNow, etc.)
+
+---
+
+## SECTION 1: HOISTING & VARIABLE SCOPE
+
+### Lesson 1.1: var, let, const Differences ⭐⭐⭐
+
+**Learning Objectives:**
+- Understand scope differences (function vs block)
+- Master hoisting behavior
+- Know temporal dead zone
+- Identify when to use each
+
+**Content:**
+
+#### Part 1: Understanding Variable Declarations
+
+**var:**
 - Function-scoped (not block-scoped)
-- Hoisted to top of function (initialized as \`undefined\`)
-- Can be re-declared in same scope
-- Creates property on global object in browser
+- Hoisted to top (initialized as undefined)
+- Can be re-declared
+- Creates property on global object (in browser)
 
-\`\`\`javascript
+```javascript
 function example() {
     if (true) {
         var x = 10;
     }
     console.log(x); // 10 (accessible outside block)
 }
-\`\`\`
+```
 
-### let - Block-Scoped
-
-**Characteristics:**
-- Block-scoped (within \`{}\` only)
+**let:**
+- Block-scoped (within {} only)
 - Hoisted but not initialized (Temporal Dead Zone)
 - Cannot be re-declared in same scope
 - Doesn't create global property
 
-\`\`\`javascript
+```javascript
 function example() {
     if (true) {
         let y = 20;
     }
     console.log(y); // ReferenceError
 }
-\`\`\`
+```
 
-### const - Block-Scoped & Immutable
-
-**Characteristics:**
-- Block-scoped (like \`let\`)
+**const:**
+- Block-scoped (like let)
 - Hoisted but not initialized (TDZ)
 - Cannot be re-declared
-- Cannot be reassigned (but object properties CAN be modified)
+- Cannot be reassigned (but object properties CAN be)
 
-\`\`\`javascript
+```javascript
 const obj = { a: 1 };
-obj.a = 2; // OK - modifying object property
+obj.a = 2; // OK - modifying object
 obj = {}; // Error - reassigning const
-\`\`\`
+```
 
-## Scope Chain
+#### Part 2: Scope Chain
 
 When looking for a variable, JavaScript searches:
 1. Local scope
 2. Outer function scope(s)
 3. Global scope
-4. Throws \`ReferenceError\` if not found
+4. Throws ReferenceError if not found
 
-\`\`\`javascript
+```javascript
 let global = 'global';
 
 function outer() {
     let outerVar = 'outer';
-
+    
     function inner() {
         let innerVar = 'inner';
         console.log(innerVar);   // 'inner' (local)
         console.log(outerVar);   // 'outer' (outer scope)
         console.log(global);     // 'global' (global scope)
     }
-
+    
     inner();
 }
-\`\`\`
+```
 
-## Practice Problems
+**Practice Problems:**
 
-### Problem 1: Predict Output
-\`\`\`javascript
+1. **Predict the output:**
+```javascript
 function test() {
     console.log(x); // ?
     if (true) {
@@ -100,10 +117,10 @@ function test() {
 }
 test();
 // Output: undefined, 10, ReferenceError
-\`\`\`
+```
 
-### Problem 2: Scope Identification
-\`\`\`javascript
+2. **Identify the scope:**
+```javascript
 var a = 1;
 let b = 2;
 const c = 3;
@@ -118,10 +135,10 @@ function scope1() {
 scope1();
 console.log(a, b, c); // ?
 // Output: 10, 20, 30 then 1, 2, 3
-\`\`\`
+```
 
-### Problem 3: Loop Scope Issue
-\`\`\`javascript
+3. **Loop scope issue:**
+```javascript
 for (var i = 0; i < 3; i++) {
     // var is function-scoped, not block-scoped
 }
@@ -133,113 +150,94 @@ for (let j = 0; j < 3; j++) {
 }
 console.log(j); // ?
 // ReferenceError
-\`\`\`
+```
 
-## Interview Tips
-
+**Interview Tips:**
 - Mention "function scope" when talking about var
 - Say "block scope" for let/const
 - Explain why var can cause issues in loops
 - Demonstrate scope chain with nested functions
 
-## Follow-up Questions
-
+**Follow-up Questions:**
 1. Why would you use const by default?
 2. What's the advantage of block scope?
 3. Can you re-assign a const object?
 
-## Company Focus
-- **All companies** test this fundamental concept
-- **ServiceNow, Flipkart**: Common in first round
-- **Google, Meta**: Expect deep understanding`,
-    keyTakeaways: [
-      "var is function-scoped and hoisted, let/const are block-scoped",
-      "let/const have Temporal Dead Zone (TDZ) preventing access before declaration",
-      "const prevents reassignment but allows object property modification",
-      "Use const by default, let when reassignment needed, avoid var in modern code"
-    ],
-    commonMistakes: [
-      "Thinking var is block-scoped like let/const",
-      "Accessing let/const variables before declaration (TDZ error)",
-      "Trying to reassign const variables",
-      "Not understanding scope chain resolution"
-    ],
-    difficulty: "BEGINNER",
-    premium: false,
-    estimatedMinutes: 12
-  },
+---
 
-  {
-    title: "Hoisting Explained",
-    slug: "hoisting-explained",
-    description: "Understand how JavaScript moves variable and function declarations during compilation",
-    markdownContent: `# Hoisting Explained
+### Lesson 1.2: Hoisting Explained ⭐⭐
 
-## What is Hoisting?
+**Learning Objectives:**
+- Understand variable hoisting
+- Know function hoisting
+- Understand priority of hoisting
+- Explain Temporal Dead Zone (TDZ)
 
-JavaScript **moves variable and function declarations to the top** of their scope during compilation. This is called "hoisting".
+**Content:**
 
-### Variable Hoisting
+#### Part 1: Variable Hoisting
+
+JavaScript moves variable and function declarations to the top during compilation.
 
 **var hoisting:**
-\`\`\`javascript
+```javascript
 console.log(x); // undefined (not ReferenceError)
 var x = 5;
 console.log(x); // 5
 
 // Interpreted as:
-// var x;                    // Declaration hoisted
-// console.log(x);          // undefined
-// x = 5;                   // Assignment stays
-// console.log(x);          // 5
-\`\`\`
+// var x;
+// console.log(x); // undefined
+// x = 5;
+// console.log(x); // 5
+```
 
-**let/const hoisting (Temporal Dead Zone):**
-\`\`\`javascript
-console.log(y); // ReferenceError: Cannot access 'y' before initialization
+**let/const hoisting (TDZ):**
+```javascript
+console.log(y); // ReferenceError
 let y = 5;
 
 // They ARE hoisted but in "Temporal Dead Zone"
 // From start of scope until declaration line
-\`\`\`
+```
 
-### Function Hoisting
+#### Part 2: Function Hoisting
 
-Functions are **fully hoisted** (both declaration AND assignment).
+Functions are fully hoisted (both declaration AND assignment).
 
 **Function Declaration:**
-\`\`\`javascript
+```javascript
 console.log(func()); // "Hello" - fully hoisted
 
 function func() {
     return "Hello";
 }
-\`\`\`
+```
 
 **Function Expression:**
-\`\`\`javascript
-console.log(func); // undefined (var hoisted, not function)
+```javascript
+console.log(func); // undefined (var is hoisted, not function)
 var func = function() {
     return "Hello";
 };
 
 console.log(func()); // Error: func is not a function
-\`\`\`
+```
 
-## Hoisting Priority
+#### Part 3: Hoisting Priority
 
 When hoisting, the order is:
-1. **Function declarations** (highest priority)
-2. **Variable declarations**
-3. **Variable assignments** (NOT hoisted)
+1. Function declarations (highest priority)
+2. Variable declarations
+3. Variable assignments (NOT hoisted)
 
-\`\`\`javascript
+```javascript
 function test() {
     console.log(name); // ?
     console.log(greet()); // ?
-
+    
     var name = "John";
-
+    
     function greet() {
         return "Hello";
     }
@@ -247,41 +245,41 @@ function test() {
 
 test();
 // Output: undefined, "Hello"
-// function greet hoisted first, then var name
-\`\`\`
+// function greet is hoisted first, then var name
+```
 
-## Practice Problems
+**Practice Problems:**
 
-### Problem 1: Variable Hoisting
-\`\`\`javascript
+1. **Output prediction:**
+```javascript
 var x = 1;
 function func() {
     console.log(x); // ?
     var x = 2;
 }
 func();
-// Output: undefined (var x hoisted in function scope)
-\`\`\`
+// Output: undefined (var x is hoisted in function scope)
+```
 
-### Problem 2: Function Hoisting
-\`\`\`javascript
+2. **Function hoisting:**
+```javascript
 console.log(add(2, 3)); // ?
 
 function add(a, b) {
     return a + b;
 }
 // Output: 5 (function fully hoisted)
-\`\`\`
+```
 
-### Problem 3: Mixed Hoisting
-\`\`\`javascript
+3. **Mixed hoisting:**
+```javascript
 var a = 1;
 var b = 2;
 
 function test() {
     console.log(a); // ?
     console.log(b); // ?
-
+    
     if (true) {
         var a = 10;
         let b = 20;
@@ -290,74 +288,59 @@ function test() {
 
 test();
 // Output: undefined, 2
-\`\`\`
+```
 
-## Interview Tips
-
-- Explain hoisting as "moving declarations to top during compilation"
+**Interview Tips:**
+- Explain the hoisting process clearly
 - Mention "Temporal Dead Zone" for let/const
-- Show difference between function declaration vs expression
-- Explain why hoisting matters in production code
+- Show difference between function declaration and expression
+- Explain why this matters in production code
 
-## Company Focus
-- **Google, Meta**: Deep hoisting understanding required
-- **ServiceNow, Amazon**: Common in JavaScript rounds`,
-    keyTakeaways: [
-      "Hoisting moves declarations to top of scope during compilation",
-      "var variables are hoisted as undefined, let/const create Temporal Dead Zone",
-      "Function declarations are fully hoisted, expressions are not",
-      "Hoisting priority: functions > variables > assignments"
-    ],
-    commonMistakes: [
-      "Thinking let/const aren't hoisted (they are, but in TDZ)",
-      "Confusing function declaration vs expression hoisting",
-      "Not understanding hoisting priority order",
-      "Expecting assignments to be hoisted"
-    ],
-    difficulty: "BEGINNER",
-    premium: false,
-    estimatedMinutes: 10
-  },
+---
 
-  {
-    title: "Scope Chain & Closures",
-    slug: "scope-chain-closures",
-    description: "Master lexical scope, closures, and how JavaScript resolves variable access",
-    markdownContent: `# Scope Chain & Closures
+### Lesson 1.3: Scope Chain & Closures ⭐⭐⭐
 
-## Lexical Scope
+**Learning Objectives:**
+- Understand lexical scope
+- Define and create closures
+- Know closure use cases
+- Understand scope chain resolution
+
+**Content:**
+
+#### Part 1: Lexical Scope
 
 JavaScript uses **lexical (static) scope**: inner functions can access outer function variables, not based on CALL location but DEFINITION location.
 
-\`\`\`javascript
+```javascript
 var globalVar = "global";
 
 function outer() {
     var outerVar = "outer";
-
+    
     function inner() {
         var innerVar = "inner";
-        console.log(innerVar);   // 'inner' (local)
-        console.log(outerVar);   // 'outer' (outer scope)
-        console.log(globalVar);  // 'global' (global scope)
+        console.log(innerVar);   // inner
+        console.log(outerVar);   // outer
+        console.log(globalVar);  // global
     }
-
+    
     inner();
 }
 
 outer();
-\`\`\`
+```
 
 **Key: inner function accesses variables based on WHERE IT'S DEFINED, not where it's called**
 
-## What is a Closure?
+#### Part 2: What is a Closure?
 
 A **closure** is a function that has access to variables from its outer (enclosing) scope, even after that outer function returns.
 
-\`\`\`javascript
+```javascript
 function makeCounter() {
     let count = 0;
-
+    
     return function() {
         count++;
         return count;
@@ -371,15 +354,15 @@ console.log(counter()); // 3
 
 // The returned function "remembers" count variable
 // This is a closure
-\`\`\`
+```
 
-## Closure Applications
+#### Part 3: Closure Applications
 
-### Use Case 1: Data Privacy
-\`\`\`javascript
+**Use Case 1: Data Privacy**
+```javascript
 function createBankAccount(initialBalance) {
     let balance = initialBalance; // Private variable
-
+    
     return {
         deposit(amount) {
             balance += amount;
@@ -399,10 +382,10 @@ const account = createBankAccount(1000);
 account.deposit(500);   // 1500
 account.withdraw(200);  // 1300
 // balance cannot be accessed directly
-\`\`\`
+```
 
-### Use Case 2: Function Factory
-\`\`\`javascript
+**Use Case 2: Function Factory**
+```javascript
 function multiplyBy(factor) {
     return function(number) {
         return number * factor;
@@ -414,29 +397,29 @@ const triple = multiplyBy(3);
 
 console.log(double(5));  // 10
 console.log(triple(5));  // 15
-\`\`\`
+```
 
-### Use Case 3: Callbacks
-\`\`\`javascript
+**Use Case 3: Callbacks**
+```javascript
 function setupButtons() {
     for (var i = 0; i < 3; i++) {
         const button = document.createElement('button');
-        button.textContent = \`Button \${i}\`;
-
+        button.textContent = `Button ${i}`;
+        
         button.addEventListener('click', function() {
-            console.log(\`Clicked button \${i}\`);
+            console.log(`Clicked button ${i}`);
         });
-
+        
         document.body.appendChild(button);
     }
 }
 // Each click handler has closure over 'i'
-\`\`\`
+```
 
-## Practice Problems
+**Practice Problems:**
 
-### Problem 1: Closure Detection
-\`\`\`javascript
+1. **Closure detection:**
+```javascript
 function counter() {
     let count = 0;
     return () => ++count;
@@ -446,10 +429,10 @@ const c = counter();
 console.log(c()); // 1
 console.log(c()); // 2
 // Does this have a closure? YES - over 'count'
-\`\`\`
+```
 
-### Problem 2: Closure with Loop
-\`\`\`javascript
+2. **Closure with loop:**
+```javascript
 var functions = [];
 for (var i = 0; i < 3; i++) {
     functions.push(function() {
@@ -461,10 +444,10 @@ console.log(functions[0]()); // 3 (closure over 'i')
 console.log(functions[1]()); // 3
 console.log(functions[2]()); // 3
 // All reference same 'i', which is now 3
-\`\`\`
+```
 
-### Problem 3: Fix with Closure
-\`\`\`javascript
+3. **Fix with closure:**
+```javascript
 var functions = [];
 for (var i = 0; i < 3; i++) {
     functions.push((function(num) {
@@ -478,51 +461,34 @@ console.log(functions[0]()); // 0 (closure over num)
 console.log(functions[1]()); // 1
 console.log(functions[2]()); // 2
 // Each function has closure over different num value
-\`\`\`
+```
 
-## Interview Tips
-
-- Define closure clearly: "function + lexical environment"
+**Interview Tips:**
+- Define closure clearly
 - Give practical examples (module pattern, data privacy)
 - Explain lexical vs dynamic scope
-- Show closure issues with loops and solutions
+- Show closure issues with loops
 
-## Follow-up Questions
-
+**Follow-up Questions:**
 1. Why is closure useful?
 2. What's the memory implication of closures?
 3. How would you fix the loop problem?
 
-## Company Focus
-- **Google, Meta**: Complex closure scenarios
-- **Amazon, Microsoft**: Practical closure usage
-- **All companies**: Fundamental concept`,
-    keyTakeaways: [
-      "Closures capture variables from their lexical scope",
-      "Inner functions remember outer scope variables even after outer function returns",
-      "Common uses: data privacy, function factories, callbacks",
-      "var in loops creates closure issues, fix with let or IIFE"
-    ],
-    commonMistakes: [
-      "Thinking closures are only for callbacks",
-      "Not understanding lexical scope vs dynamic scope",
-      "Forgetting memory implications of closures",
-      "Misunderstanding var vs let in loop closures"
-    ],
-    difficulty: "INTERMEDIATE",
-    premium: false,
-    estimatedMinutes: 15
-  },
+---
 
-  {
-    title: "var in Loops",
-    slug: "var-in-loops",
-    description: "Understand the classic var scoping issue in loops and how to fix it",
-    markdownContent: `# var in Loops
+### Lesson 1.4: var in Loops ⭐⭐⭐
 
-## The Classic Problem
+**Learning Objectives:**
+- Understand loop scope issues with var
+- Master IIFE solution
+- Know let solution
+- Understand closure in loops
 
-\`\`\`javascript
+**Content:**
+
+#### Part 1: The Classic Problem
+
+```javascript
 for (var i = 0; i < 3; i++) {
     setTimeout(function() {
         console.log(i);
@@ -535,11 +501,11 @@ for (var i = 0; i < 3; i++) {
 // Why? var is function-scoped
 // Loop completes, i = 3
 // Then timeouts execute, all see i = 3
-\`\`\`
+```
 
-## Solution 1 - IIFE (Immediately Invoked Function Expression)
+#### Part 2: Solution 1 - IIFE (Immediately Invoked Function Expression)
 
-\`\`\`javascript
+```javascript
 for (var i = 0; i < 3; i++) {
     (function(num) {
         setTimeout(function() {
@@ -551,11 +517,11 @@ for (var i = 0; i < 3; i++) {
 // Output: 0, 1, 2
 // Why? Each IIFE creates new scope with num = i
 // Each timeout closes over different num
-\`\`\`
+```
 
-## Solution 2 - let (Modern Solution)
+#### Part 3: Solution 2 - let (Modern Solution)
 
-\`\`\`javascript
+```javascript
 for (let i = 0; i < 3; i++) {
     setTimeout(function() {
         console.log(i);
@@ -566,13 +532,13 @@ for (let i = 0; i < 3; i++) {
 // Why? let is block-scoped
 // Each iteration creates NEW i variable
 // Each timeout closes over different i
-\`\`\`
+```
 
-## Why let Works
+#### Part 4: Why let Works
 
-JavaScript creates a NEW lexical environment for each loop iteration when using \`let\`:
+JavaScript creates a NEW lexical environment for each loop iteration when using let:
 
-\`\`\`javascript
+```javascript
 // Conceptually:
 {
     let i = 0;
@@ -586,30 +552,30 @@ JavaScript creates a NEW lexical environment for each loop iteration when using 
     let i = 2;
     // iteration 3
 }
-\`\`\`
+```
 
-## Practice Problems
+**Practice Problems:**
 
-### Problem 1: Predict Output
-\`\`\`javascript
+1. **Predict output:**
+```javascript
 for (var i = 0; i < 3; i++) {
     console.log(i);
 }
 console.log(i); // ?
 // Output: 0, 1, 2, then 3
-\`\`\`
+```
 
-### Problem 2: With let
-\`\`\`javascript
+2. **With let:**
+```javascript
 for (let i = 0; i < 3; i++) {
     console.log(i);
 }
 console.log(i); // ?
 // Output: 0, 1, 2, then ReferenceError
-\`\`\`
+```
 
-### Problem 3: Closure Issue
-\`\`\`javascript
+3. **Closure issue:**
+```javascript
 var arr = [];
 for (var i = 0; i < 3; i++) {
     arr.push(function() {
@@ -620,10 +586,10 @@ console.log(arr[0]()); // 3
 console.log(arr[1]()); // 3
 console.log(arr[2]()); // 3
 // All return 3 (closure over same i)
-\`\`\`
+```
 
-### Problem 4: Fix with let
-\`\`\`javascript
+4. **Fix with let:**
+```javascript
 var arr = [];
 for (let i = 0; i < 3; i++) {
     arr.push(function() {
@@ -634,68 +600,50 @@ console.log(arr[0]()); // 0
 console.log(arr[1]()); // 1
 console.log(arr[2]()); // 2
 // Each returns different i (closure over different i)
-\`\`\`
+```
 
-## Interview Tips
-
+**Interview Tips:**
 - Explain var is function-scoped, not block-scoped
 - Demonstrate why loop problem occurs
 - Show IIFE solution step-by-step
 - Mention let as modern solution
 - Explain why let works (new binding per iteration)
 
-## Company Asked At
-- ServiceNow, Flipkart, Amazon, Publicis Sapient
+**Company Asked At:** ServiceNow, Flipkart, Amazon, Publicis Sapient
 
-## Follow-up Questions
+---
 
-1. Why does var cause this issue?
-2. What's the performance impact of IIFE vs let?
-3. Are there other solutions besides IIFE and let?`,
-    keyTakeaways: [
-      "var in loops creates closure over same variable, causing unexpected behavior",
-      "IIFE creates new scope for each iteration, preserving correct values",
-      "let creates new binding per iteration, solving the problem naturally",
-      "Modern code should use let/const to avoid these scoping issues"
-    ],
-    commonMistakes: [
-      "Not understanding why var behaves this way in loops",
-      "Thinking IIFE is the only solution (let is better)",
-      "Forgetting that let creates new scope per iteration",
-      "Using var in modern JavaScript code"
-    ],
-    difficulty: "INTERMEDIATE",
-    premium: false,
-    estimatedMinutes: 8
-  },
+### Lesson 1.5: Temporal Dead Zone (TDZ) ⭐⭐
 
-  {
-    title: "Temporal Dead Zone (TDZ)",
-    slug: "temporal-dead-zone",
-    description: "Understand Temporal Dead Zone and how it affects let/const variables",
-    markdownContent: `# Temporal Dead Zone (TDZ)
+**Learning Objectives:**
+- Understand TDZ concept
+- Know which variables are affected
+- Recognize TDZ errors
+- Use properly in code
 
-## What is TDZ?
+**Content:**
 
-The **Temporal Dead Zone** is the period from when a \`let\`/\`const\` variable is hoisted until its declaration is reached.
+#### Part 1: What is TDZ?
 
-\`\`\`javascript
+The **Temporal Dead Zone** is the period from when a let/const variable is hoisted until its declaration is reached.
+
+```javascript
 console.log(x); // ReferenceError: Cannot access 'x' before initialization
 
 let x = 5;
 
 // x enters TDZ at start of scope
 // x leaves TDZ when declaration line is reached
-\`\`\`
+```
 
-## Why TDZ Exists
+#### Part 2: Why TDZ Exists
 
 TDZ enforces good practices:
-- **Catch bugs earlier** - prevents undefined values
-- **Make code more predictable** - no accidental hoisting
-- **Prevent access before initialization**
+- Catch bugs earlier
+- Make code more predictable
+- Prevent accidental undefined values
 
-\`\`\`javascript
+```javascript
 // WITHOUT TDZ (with var):
 console.log(y); // undefined (confusing!)
 var y = 5;
@@ -703,13 +651,13 @@ var y = 5;
 // WITH TDZ (with let/const):
 console.log(z); // ReferenceError (clear error!)
 let z = 5;
-\`\`\`
+```
 
-## TDZ Scope
+#### Part 3: TDZ Scope
 
 TDZ extends to entire block, not just top of scope:
 
-\`\`\`javascript
+```javascript
 function test() {
     // x is in TDZ here
     if (true) {
@@ -719,78 +667,62 @@ function test() {
         console.log(x); // 5
     }
 }
-\`\`\`
+```
 
-## Practice Problems
+**Practice Problems:**
 
-### Problem 1: TDZ Identification
-\`\`\`javascript
+1. **Identify TDZ:**
+```javascript
 console.log(a); // ? (TDZ - ReferenceError)
 let a = 1;
-\`\`\`
+```
 
-### Problem 2: const also has TDZ
-\`\`\`javascript
+2. **const also has TDZ:**
+```javascript
 console.log(b); // ? (TDZ - ReferenceError)
 const b = 2;
-\`\`\`
+```
 
-### Problem 3: var doesn't have TDZ
-\`\`\`javascript
+3. **var doesn't have TDZ:**
+```javascript
 console.log(c); // ? (undefined - no TDZ)
 var c = 3;
-\`\`\`
+```
 
-### Problem 4: TDZ in blocks
-\`\`\`javascript
+4. **TDZ in blocks:**
+```javascript
 let x = 'outer';
 {
     console.log(x); // ? (ReferenceError - TDZ)
     let x = 'inner';
 }
 // TDZ shadows outer x
-\`\`\`
+```
 
-## Interview Tips
-
-- Mention TDZ is specific to \`let\`/\`const\`
-- Explain it helps catch bugs early
+**Interview Tips:**
+- Mention TDZ is specific to let/const
+- Explain it helps catch bugs
 - Show ReferenceError happens, not undefined
 - Compare with var behavior
 
-## Company Focus
-- **Google, Meta**: TDZ understanding required
-- **All modern JS interviews**: ES6+ knowledge`,
-    keyTakeaways: [
-      "TDZ prevents access to let/const variables before declaration",
-      "TDZ exists to catch bugs and make code more predictable",
-      "TDZ applies to entire block scope",
-      "var has no TDZ, leading to undefined values"
-    ],
-    commonMistakes: [
-      "Thinking let/const aren't hoisted (they are, but in TDZ)",
-      "Accessing variables in TDZ expecting undefined",
-      "Not understanding TDZ block scope",
-      "Confusing TDZ with regular ReferenceError"
-    ],
-    difficulty: "BEGINNER",
-    premium: false,
-    estimatedMinutes: 6
-  },
+---
 
-  // Section 2: This Binding & Arrow Functions (4 lessons)
-  {
-    title: "Understanding 'this'",
-    slug: "understanding-this",
-    description: "Master the four rules of 'this' binding in JavaScript",
-    markdownContent: `# Understanding 'this'
+## SECTION 2: THIS BINDING & ARROW FUNCTIONS
 
-## Four Binding Rules
+### Lesson 2.1: Understanding 'this' ⭐⭐⭐
 
-JavaScript's \`this\` binding follows four rules, applied in priority order.
+**Learning Objectives:**
+- Know four binding rules
+- Understand global, method, function contexts
+- Know new binding
+- Understand call-site determination
 
-### Rule 1: Default Binding (Global Context)
-\`\`\`javascript
+**Content:**
+
+#### Part 1: Four Binding Rules
+
+**Rule 1: Default Binding (Global Context)**
+```javascript
 function sayName() {
     console.log(this.name);
 }
@@ -799,10 +731,10 @@ var name = "Global";
 sayName(); // "Global"
 // 'this' defaults to global object (non-strict)
 // Or undefined (strict mode)
-\`\`\`
+```
 
-### Rule 2: Implicit Binding (Method)
-\`\`\`javascript
+**Rule 2: Implicit Binding (Method)**
+```javascript
 var obj = {
     name: "John",
     greet: function() {
@@ -812,10 +744,10 @@ var obj = {
 
 obj.greet(); // "John"
 // 'this' is object to left of dot
-\`\`\`
+```
 
-### Rule 3: Explicit Binding (call, apply, bind)
-\`\`\`javascript
+**Rule 3: Explicit Binding (call, apply, bind)**
+```javascript
 function greet() {
     console.log(this.name);
 }
@@ -824,10 +756,10 @@ var person = { name: "Alice" };
 
 greet.call(person); // "Alice"
 // Explicitly set 'this' to person
-\`\`\`
+```
 
-### Rule 4: new Binding
-\`\`\`javascript
+**Rule 4: new Binding**
+```javascript
 function Person(name) {
     this.name = name;
 }
@@ -835,17 +767,17 @@ function Person(name) {
 var p = new Person("Bob");
 console.log(p.name); // "Bob"
 // 'this' refers to newly created object
-\`\`\`
+```
 
-## Priority (Precedence)
+#### Part 2: Priority (Precedence)
 
-\`\`\`
+```
 new binding > explicit binding > implicit binding > default binding
-\`\`\`
+```
 
-## Common Mistakes
+#### Part 3: Common Mistakes
 
-\`\`\`javascript
+```javascript
 var obj = {
     name: "Object",
     greet: function() {
@@ -860,12 +792,12 @@ fn(); // undefined (default binding)
 // Correct:
 var fn = obj.greet.bind(obj);
 fn(); // "Object"
-\`\`\`
+```
 
-## Practice Problems
+**Practice Problems:**
 
-### Problem 1: Identify binding
-\`\`\`javascript
+1. **Identify binding:**
+```javascript
 var person = {
     name: "John",
     sayName: function() {
@@ -876,12 +808,12 @@ var person = {
 person.sayName(); // "John" (implicit)
 var fn = person.sayName;
 fn(); // undefined (default)
-\`\`\`
+```
 
-### Problem 2: Explicit binding
-\`\`\`javascript
+2. **Explicit binding:**
+```javascript
 function introduce() {
-    console.log(\`I am \${this.name}\`);
+    console.log(`I am ${this.name}`);
 }
 
 var john = { name: "John" };
@@ -889,54 +821,39 @@ var jane = { name: "Jane" };
 
 introduce.call(john);  // "I am John"
 introduce.call(jane);  // "I am Jane"
-\`\`\`
+```
 
-### Problem 3: new binding
-\`\`\`javascript
+3. **new binding:**
+```javascript
 function User(name) {
     this.name = name;
 }
 
 var user = new User("Alice");
 console.log(user.name); // "Alice"
-\`\`\`
+```
 
-## Interview Tips
-
-- Mention the four binding rules clearly
-- Give priority order: new > explicit > implicit > default
-- Show common mistakes with lost context
+**Interview Tips:**
+- Mention the four binding rules
+- Give priority order
+- Show common mistakes
 - Explain call-site vs definition-site
 
-## Company Focus
-- **All companies** test this fundamental concept
-- **Meta, Google**: Complex binding scenarios`,
-    keyTakeaways: [
-      "Four rules: default, implicit, explicit, new (in priority order)",
-      "new binding has highest priority, default has lowest",
-      "Lost context is common mistake with callbacks",
-      "Use bind() to preserve context"
-    ],
-    commonMistakes: [
-      "Forgetting priority order of binding rules",
-      "Not understanding lost context in callbacks",
-      "Confusing implicit vs explicit binding",
-      "Thinking 'this' is always the object containing the function"
-    ],
-    difficulty: "INTERMEDIATE",
-    premium: false,
-    estimatedMinutes: 12
-  },
+---
 
-  {
-    title: "Arrow Functions vs Regular Functions",
-    slug: "arrow-functions-vs-regular",
-    description: "Understand the key differences between arrow and regular functions, especially 'this' binding",
-    markdownContent: `# Arrow Functions vs Regular Functions
+### Lesson 2.2: Arrow Functions vs Regular Functions ⭐⭐⭐
 
-## Syntax Differences
+**Learning Objectives:**
+- Know arrow function syntax
+- Understand lexical 'this'
+- Know when NOT to use arrow functions
+- Compare with regular functions
 
-\`\`\`javascript
+**Content:**
+
+#### Part 1: Syntax Differences
+
+```javascript
 // Regular function
 function add(a, b) {
     return a + b;
@@ -952,12 +869,12 @@ const add = (a, b) => a + b;
 
 // Arrow with one param (parens optional)
 const double = x => x * 2;
-\`\`\`
+```
 
-## The Key Difference - 'this' Binding
+#### Part 2: The Key Difference - 'this' Binding
 
-### Regular function - Dynamic 'this'
-\`\`\`javascript
+**Regular function - Dynamic 'this':**
+```javascript
 var obj = {
     name: "Object",
     greet: function() {
@@ -968,10 +885,10 @@ var obj = {
 obj.greet(); // "Object" (this = obj)
 var fn = obj.greet;
 fn(); // undefined (this = global)
-\`\`\`
+```
 
-### Arrow function - Lexical 'this'
-\`\`\`javascript
+**Arrow function - Lexical 'this':**
+```javascript
 var obj = {
     name: "Object",
     greet: () => {
@@ -981,32 +898,32 @@ var obj = {
 
 obj.greet(); // undefined (this = global/outer scope)
 // Arrow captures 'this' from outer scope
-\`\`\`
+```
 
-## When to Use Each
+#### Part 3: When to Use Each
 
-### Use Regular Functions for:
-- Object methods (need dynamic \`this\`)
+**Use Regular Functions for:**
+- Object methods (need dynamic this)
 - Constructors (new binding)
-- When you need \`this\` context
+- When you need 'this' context
 
-\`\`\`javascript
+```javascript
 const person = {
     name: "John",
     introduce: function() {
-        console.log(\`I'm \${this.name}\`);
+        console.log(`I'm ${this.name}`);
     }
 };
 
 person.introduce(); // "I'm John"
-\`\`\`
+```
 
-### Use Arrow Functions for:
-- Callbacks (need preserved \`this\`)
+**Use Arrow Functions for:**
+- Callbacks (need preserved this)
 - Array methods
-- When you don't need \`this\`
+- When you don't need 'this'
 
-\`\`\`javascript
+```javascript
 const numbers = [1, 2, 3];
 
 // Arrow preserves 'this'
@@ -1014,17 +931,17 @@ const obj = {
     name: "counter",
     count: function() {
         numbers.forEach(num => {
-            console.log(\`\${this.name}: \${num}\`);
+            console.log(`${this.name}: ${num}`);
         });
     }
 };
 
 obj.count(); // Works - 'this' is preserved
-\`\`\`
+```
 
-## Common Pitfalls
+#### Part 4: Common Pitfalls
 
-\`\`\`javascript
+```javascript
 // ❌ DON'T: Arrow as object method
 const obj = {
     value: 42,
@@ -1044,12 +961,12 @@ const obj = {
 };
 
 obj.getValue(); // 42
-\`\`\`
+```
 
-## Practice Problems
+**Practice Problems:**
 
-### Problem 1: Predict output
-\`\`\`javascript
+1. **Predict output:**
+```javascript
 var obj = {
     x: 10,
     print: () => {
@@ -1058,10 +975,10 @@ var obj = {
 };
 
 obj.print(); // undefined (arrow captures global this)
-\`\`\`
+```
 
-### Problem 2: Regular function
-\`\`\`javascript
+2. **Regular function:**
+```javascript
 var obj = {
     x: 10,
     print: function() {
@@ -1070,10 +987,10 @@ var obj = {
 };
 
 obj.print(); // 10 (this = obj)
-\`\`\`
+```
 
-### Problem 3: Nested scenario
-\`\`\`javascript
+3. **Nested scenario:**
+```javascript
 var obj = {
     name: "John",
     greet: function() {
@@ -1085,130 +1002,112 @@ var obj = {
 };
 
 obj.greet(); // "John" (arrow captured function's this)
-\`\`\`
+```
 
-## Interview Tips
-
-- Explain "lexical this" vs "dynamic this"
-- Show when to use each type
-- Mention arrow functions don't have their own \`this\`
+**Interview Tips:**
+- Explain "lexical this"
+- Show when to use each
+- Mention arrow functions don't have their own 'this'
 - Give setTimeout example (arrow preserves this)
 
-## Company Asked At
-- Every company (ES6+ knowledge required)
+**Company Asked At:** Every company
 
-## Follow-up Questions
+---
 
-1. Can arrow functions be used as constructors?
-2. Do arrow functions have arguments object?
-3. What's the difference in hoisting?`,
-    keyTakeaways: [
-      "Arrow functions have lexical 'this', regular functions have dynamic 'this'",
-      "Use arrow functions for callbacks, regular functions for methods",
-      "Arrow functions don't have their own 'this', 'arguments', or 'super'",
-      "Arrow functions cannot be used as constructors"
-    ],
-    commonMistakes: [
-      "Using arrow functions as object methods",
-      "Expecting 'this' to work differently in arrow vs regular functions",
-      "Not understanding lexical scoping of 'this'",
-      "Trying to use arrow functions as constructors"
-    ],
-    difficulty: "INTERMEDIATE",
-    premium: false,
-    estimatedMinutes: 10
-  },
+### Lesson 2.3: call, apply, bind Polyfills ⭐⭐⭐
 
-  {
-    title: "call, apply, bind Polyfills",
-    slug: "call-apply-bind-polyfills",
-    description: "Implement and understand JavaScript's call, apply, and bind methods",
-    markdownContent: `# call, apply, bind Polyfills
+**Learning Objectives:**
+- Understand call, apply, bind
+- Implement each as polyfill
+- Know differences
+- Use in real scenarios
 
-## call vs apply vs bind
+**Content:**
 
-### call(context, arg1, arg2, ...)
-\`\`\`javascript
+#### Part 1: call vs apply vs bind
+
+**call(context, arg1, arg2, ...)**
+```javascript
 function greet(greeting, name) {
-    console.log(\`\${greeting}, \${this.title} \${name}\`);
+    console.log(`${greeting}, ${this.title} ${name}`);
 }
 
 const user = { title: "Mr." };
 
 greet.call(user, "Hello", "John");
 // "Hello, Mr. John"
-\`\`\`
+```
 
-### apply(context, [arg1, arg2, ...])
-\`\`\`javascript
+**apply(context, [arg1, arg2, ...])**
+```javascript
 greet.apply(user, ["Hi", "Jane"]);
 // "Hi, Mr. Jane"
 // Same as call, but args as array
-\`\`\`
+```
 
-### bind(context, arg1, arg2, ...)
-\`\`\`javascript
+**bind(context, arg1, arg2, ...)**
+```javascript
 const boundGreet = greet.bind(user, "Hey");
 boundGreet("Bob"); // "Hey, Mr. Bob"
 // Returns NEW function, doesn't invoke immediately
-\`\`\`
+```
 
-## Implement call
+#### Part 2: Implement call
 
-\`\`\`javascript
+```javascript
 Function.prototype.myCall = function(context, ...args) {
     // 'this' is the function being called
     if (typeof this !== 'function') {
         throw new TypeError('Not a function');
     }
-
+    
     // Set context to global if null/undefined
     context = context || globalThis;
-
+    
     // Create unique property to avoid conflicts
     const symbol = Symbol();
     context[symbol] = this;
-
+    
     // Call function with specified context
     const result = context[symbol](...args);
-
+    
     // Clean up
     delete context[symbol];
-
+    
     return result;
 };
 
 // Test
 function introduce(greeting) {
-    console.log(\`\${greeting}, I'm \${this.name}\`);
+    console.log(`${greeting}, I'm ${this.name}`);
 }
 
 const person = { name: "Alice" };
 introduce.myCall(person, "Hello");
 // "Hello, I'm Alice"
-\`\`\`
+```
 
-## Implement apply
+#### Part 3: Implement apply
 
-\`\`\`javascript
+```javascript
 Function.prototype.myApply = function(context, args = []) {
     if (typeof this !== 'function') {
         throw new TypeError('Not a function');
     }
-
+    
     context = context || globalThis;
-
+    
     if (!Array.isArray(args)) {
         throw new TypeError('Args must be array');
     }
-
+    
     const symbol = Symbol();
     context[symbol] = this;
-
+    
     const result = context[symbol](...args);
-
+    
     delete context[symbol];
-
+    
     return result;
 };
 
@@ -1220,19 +1119,19 @@ function sum(a, b) {
 const context = { tax: 10 };
 const result = sum.myApply(context, [5, 3]);
 // 18
-\`\`\`
+```
 
-## Implement bind
+#### Part 4: Implement bind
 
-\`\`\`javascript
+```javascript
 Function.prototype.myBind = function(context, ...boundArgs) {
     if (typeof this !== 'function') {
         throw new TypeError('Not a function');
     }
-
+    
     const fn = this;
     context = context || globalThis;
-
+    
     return function(...callArgs) {
         return fn.call(context, ...boundArgs, ...callArgs);
     };
@@ -1240,34 +1139,34 @@ Function.prototype.myBind = function(context, ...boundArgs) {
 
 // Test
 function greet(greeting, name) {
-    console.log(\`\${greeting} \${this.title} \${name}\`);
+    console.log(`${greeting} ${this.title} ${name}`);
 }
 
 const user = { title: "Dr." };
 const boundGreet = greet.myBind(user, "Welcome");
 boundGreet("Alice"); // "Welcome Dr. Alice"
-\`\`\`
+```
 
-## Practice Problems
+**Practice Problems:**
 
-### Problem 1: call usage
-\`\`\`javascript
+1. **call usage:**
+```javascript
 const obj = { value: 42 };
 function getValue() {
     return this.value;
 }
 console.log(getValue.call(obj)); // 42
-\`\`\`
+```
 
-### Problem 2: apply usage
-\`\`\`javascript
+2. **apply usage:**
+```javascript
 const numbers = [5, 6, 2, 8, 1];
 const max = Math.max.apply(null, numbers);
 console.log(max); // 8
-\`\`\`
+```
 
-### Problem 3: bind usage
-\`\`\`javascript
+3. **bind usage:**
+```javascript
 const person = {
     name: "John",
     getName: function() {
@@ -1277,53 +1176,35 @@ const person = {
 
 const getName = person.getName.bind(person);
 console.log(getName()); // "John"
-\`\`\`
+```
 
-## Interview Tips
-
+**Interview Tips:**
 - Implement at least one polyfill in interview
 - Explain use of Symbol for uniqueness
 - Show difference between call and apply clearly
 - Mention bind returns function vs call/apply execute
 
-## Company Asked At
-- Jio, Expedia, ServiceNow
+**Company Asked At:** Jio, Expedia, ServiceNow
 
-## Follow-up Questions
+---
 
-1. What's the difference between call and apply?
-2. When would you use bind?
-3. How does bind handle partial application?`,
-    keyTakeaways: [
-      "call/apply execute function immediately with specified 'this'",
-      "bind returns new function with bound 'this' and partial args",
-      "Use Symbol to avoid property conflicts in polyfills",
-      "call takes individual args, apply takes array of args"
-    ],
-    commonMistakes: [
-      "Confusing call vs apply argument passing",
-      "Forgetting bind returns function (doesn't execute)",
-      "Not handling edge cases in polyfills",
-      "Using bind when call/apply would be simpler"
-    ],
-    difficulty: "HARD",
-    premium: true,
-    estimatedMinutes: 15
-  },
+### Lesson 2.4: IIFE & Execution Context ⭐⭐
 
-  {
-    title: "IIFE & Execution Context",
-    slug: "iife-execution-context",
-    description: "Understand Immediately Invoked Function Expressions and execution context",
-    markdownContent: `# IIFE & Execution Context
+**Learning Objectives:**
+- Understand IIFE pattern
+- Know when to use IIFE
+- Understand execution context
+- Use in real-world scenarios
 
-## What is IIFE?
+**Content:**
+
+#### Part 1: What is IIFE?
 
 IIFE = **Immediately Invoked Function Expression**
 
 It's a function that runs immediately after being defined.
 
-\`\`\`javascript
+```javascript
 // IIFE
 (function() {
     console.log("Runs immediately");
@@ -1338,12 +1219,12 @@ It's a function that runs immediately after being defined.
 (() => {
     console.log("Arrow IIFE");
 })();
-\`\`\`
+```
 
-## Why Use IIFE?
+#### Part 2: Why Use IIFE?
 
-### Reason 1: Create Private Scope
-\`\`\`javascript
+**Reason 1: Create Private Scope**
+```javascript
 // Without IIFE - pollutes global scope
 var counter = 0;
 function increment() {
@@ -1353,7 +1234,7 @@ function increment() {
 // With IIFE - counter is private
 var myModule = (function() {
     var counter = 0;
-
+    
     return {
         increment: function() {
             counter++;
@@ -1362,9 +1243,6 @@ var myModule = (function() {
         decrement: function() {
             counter--;
             return counter;
-        },
-        getCounter: function() {
-            return counter;
         }
     };
 })();
@@ -1372,23 +1250,23 @@ var myModule = (function() {
 console.log(myModule.increment()); // 1
 console.log(myModule.increment()); // 2
 console.log(counter); // undefined (private)
-\`\`\`
+```
 
-### Reason 2: Avoid Variable Conflicts
-\`\`\`javascript
+**Reason 2: Avoid Variable Conflicts**
+```javascript
 // In jQuery plugins
 (function($) {
     // $ is local to this IIFE
     // Doesn't conflict with other libraries
     $('div').hide();
 })(jQuery);
-\`\`\`
+```
 
-### Reason 3: Module Pattern
-\`\`\`javascript
+**Reason 3: Module Pattern**
+```javascript
 const Calculator = (function() {
     let result = 0;
-
+    
     return {
         add(num) {
             result += num;
@@ -1405,16 +1283,16 @@ const Calculator = (function() {
 })();
 
 console.log(Calculator.add(5).multiply(3).add(2).getResult()); // 17
-\`\`\`
+```
 
-## Execution Context
+#### Part 3: Execution Context
 
 Every function has an execution context with:
 - **this** - what the function is being called on
 - **arguments** - parameters passed to function
 - **variables** - local variables
 
-\`\`\`javascript
+```javascript
 function example(a, b) {
     var x = 10;
     console.log(this); // execution context
@@ -1429,28 +1307,28 @@ function example(a, b) {
 (function() {
     console.log(this.name); // controlled 'this'
 }).call({ name: "John" });
-\`\`\`
+```
 
-## Practice Problems
+**Practice Problems:**
 
-### Problem 1: Basic IIFE
-\`\`\`javascript
+1. **Basic IIFE:**
+```javascript
 (function() {
     console.log("Immediately invoked");
 })();
 // Output: "Immediately invoked"
-\`\`\`
+```
 
-### Problem 2: With parameters
-\`\`\`javascript
+2. **With parameters:**
+```javascript
 (function(x, y) {
     console.log(x + y);
 })(3, 4);
 // Output: 7
-\`\`\`
+```
 
-### Problem 3: Module pattern
-\`\`\`javascript
+3. **Module pattern:**
+```javascript
 const counter = (function() {
     let count = 0;
     return {
@@ -1463,47 +1341,33 @@ const counter = (function() {
 console.log(counter.inc()); // 1
 console.log(counter.inc()); // 2
 console.log(counter.dec()); // 1
-\`\`\`
+```
 
-## Interview Tips
-
+**Interview Tips:**
 - Explain what IIFE stands for
 - Show practical use (module pattern)
 - Mention scope creation
 - Show how to pass parameters
 
-## Company Focus
-- **All companies** - Module pattern knowledge
-- **Meta, Google** - Advanced closure patterns`,
-    keyTakeaways: [
-      "IIFE runs immediately after definition, creating private scope",
-      "Used for module pattern, avoiding global pollution",
-      "Creates isolated execution context",
-      "Can accept parameters and return values"
-    ],
-    commonMistakes: [
-      "Forgetting parentheses around function expression",
-      "Not understanding private scope benefit",
-      "Confusing IIFE with regular function calls",
-      "Not using IIFE when module pattern is needed"
-    ],
-    difficulty: "INTERMEDIATE",
-    premium: false,
-    estimatedMinutes: 8
-  },
+---
 
-  // Section 3: Asynchronous JavaScript (6 lessons)
-  {
-    title: "Event Loop Mastery",
-    slug: "event-loop-mastery",
-    description: "Master JavaScript's event loop, microtasks, and macrotasks execution order",
-    markdownContent: `# Event Loop Mastery
+## SECTION 3: ASYNCHRONOUS JAVASCRIPT
 
-## The Event Loop
+### Lesson 3.1: Event Loop Mastery ⭐⭐⭐
+
+**Learning Objectives:**
+- Understand event loop
+- Know macro vs micro tasks
+- Predict execution order
+- Master setTimeout, Promises ordering
+
+**Content:**
+
+#### Part 1: The Event Loop
 
 JavaScript runs in **single thread** but can handle async using event loop:
 
-\`\`\`
+```
 ┌─ Call Stack
 │  (currently executing function)
 ├─ Micro Task Queue
@@ -1511,16 +1375,16 @@ JavaScript runs in **single thread** but can handle async using event loop:
 ├─ Macro Task Queue
 │  (setTimeout, setInterval, I/O)
 └─ Event Loop (checks when stack empty)
-\`\`\`
+```
 
-## Execution Order
+#### Part 2: Execution Order
 
 1. All **synchronous code** on call stack
 2. Check **micro tasks** (Promises, etc.)
 3. Check **macro tasks** (setTimeout, etc.)
 4. Repeat
 
-\`\`\`javascript
+```javascript
 console.log('Start');
 
 setTimeout(() => {
@@ -1539,9 +1403,9 @@ console.log('End');
 // End
 // Promise (micro task)
 // setTimeout (macro task)
-\`\`\`
+```
 
-## Micro vs Macro Tasks
+#### Part 3: Micro vs Macro Tasks
 
 **Micro Tasks** (Higher Priority):
 - Promise.then/catch/finally
@@ -1555,7 +1419,7 @@ console.log('End');
 - I/O operations
 - UI rendering
 
-\`\`\`javascript
+```javascript
 console.log('1');
 
 setTimeout(() => console.log('2'), 0); // macro
@@ -1567,11 +1431,11 @@ Promise.resolve().then(() => console.log('5')); // micro
 console.log('6');
 
 // Output: 1, 6, 3, 5, 2, 4
-\`\`\`
+```
 
-## Complex Example
+#### Part 4: Complex Example
 
-\`\`\`javascript
+```javascript
 console.log('Start');
 
 setTimeout(() => {
@@ -1602,22 +1466,22 @@ console.log('End');
 // Timeout 1
 // Promise in Timeout 1
 // Timeout in Promise 1
-\`\`\`
+```
 
-## Practice Problems
+**Practice Problems:**
 
-### Problem 1: Predict output
-\`\`\`javascript
+1. **Predict output:**
+```javascript
 console.log('A');
 setTimeout(() => console.log('B'), 0);
 Promise.resolve().then(() => console.log('C'));
 console.log('D');
 
 // A, D, C, B
-\`\`\`
+```
 
-### Problem 2: Complex scenario
-\`\`\`javascript
+2. **Complex scenario:**
+```javascript
 console.log('1');
 setTimeout(() => console.log('2'), 0);
 setTimeout(() => console.log('3'), 0);
@@ -1625,10 +1489,10 @@ Promise.resolve().then(() => console.log('4'));
 console.log('5');
 
 // 1, 5, 4, 2, 3
-\`\`\`
+```
 
-### Problem 3: Nested
-\`\`\`javascript
+3. **Nested:**
+```javascript
 Promise.resolve()
     .then(() => {
         console.log('P1');
@@ -1641,47 +1505,29 @@ Promise.resolve()
 setTimeout(() => console.log('T2'), 0);
 
 // P1, P2, T1, T2
-\`\`\`
+```
 
-## Interview Tips
-
+**Interview Tips:**
 - Draw the event loop diagram
 - Explain micro vs macro tasks
 - Show multiple Promises execute in order
 - Mention each macro task completion triggers micro task check
 
-## Company Asked At
-- Google, Meta, Amazon, ServiceNow
+**Company Asked At:** Google, Meta, Amazon, ServiceNow
 
-## Follow-up Questions
+---
 
-1. What's the difference between micro and macro tasks?
-2. Why do Promises execute before setTimeout(0)?
-3. How does the event loop handle multiple micro tasks?`,
-    keyTakeaways: [
-      "Event loop manages async execution with call stack, microtask queue, macrotask queue",
-      "Microtasks (Promises) execute before macrotasks (setTimeout) in each cycle",
-      "Understanding execution order is crucial for debugging async code",
-      "Event loop enables non-blocking I/O in single-threaded JavaScript"
-    ],
-    commonMistakes: [
-      "Thinking setTimeout(0) executes immediately",
-      "Not understanding microtask vs macrotask priority",
-      "Confusing execution order in complex async scenarios",
-      "Forgetting that each macrotask completion triggers microtask execution"
-    ],
-    difficulty: "HARD",
-    premium: true,
-    estimatedMinutes: 18
-  },
+### Lesson 3.2: Promises Fundamentals ⭐⭐⭐
 
-  {
-    title: "Promises Fundamentals",
-    slug: "promises-fundamentals",
-    description: "Master Promise states, chaining, and error handling",
-    markdownContent: `# Promises Fundamentals
+**Learning Objectives:**
+- Know Promise states
+- Understand then, catch, finally
+- Know Promise chaining
+- Understand Promise behavior
 
-## Promise States
+**Content:**
+
+#### Part 1: Promise States
 
 A Promise can be in one of three states:
 
@@ -1689,21 +1535,21 @@ A Promise can be in one of three states:
 **Fulfilled:** Operation succeeded, has value
 **Rejected:** Operation failed, has reason
 
-\`\`\`javascript
+```javascript
 const promise = new Promise((resolve, reject) => {
     // pending state
-
+    
     if (success) {
         resolve(value); // fulfilled
     } else {
         reject(error); // rejected
     }
 });
-\`\`\`
+```
 
-## then, catch, finally
+#### Part 2: then, catch, finally
 
-\`\`\`javascript
+```javascript
 // then handles fulfilled/rejected
 promise
     .then(
@@ -1716,13 +1562,16 @@ promise
     .then((value) => { /* fulfilled */ })
     .catch((error) => { /* rejected */ });
 
+// finally: cleanup, runs regardless of state
+promise
+    .then((value) => { /* ... */ })
     .catch((error) => { /* ... */ })
     .finally(() => { /* cleanup */ });
-\`\`\`
+```
 
-## Promise Behavior
+#### Part 3: Promise Behavior
 
-\`\`\`javascript
+```javascript
 // Promise resolves only once
 const p = new Promise((resolve) => {
     resolve('first');
@@ -1731,32 +1580,32 @@ const p = new Promise((resolve) => {
 });
 
 p.then(val => console.log(val)); // 'first'
-\`\`\`
+```
 
-\`\`\`javascript
+```javascript
 // Throwing in executor rejects Promise
 const p = new Promise(() => {
     throw new Error('Oops');
 });
 
 p.catch(err => console.log(err.message)); // 'Oops'
-\`\`\`
+```
 
-\`\`\`javascript
+```javascript
 // Promise.resolve wraps value
 Promise.resolve(5)
     .then(val => console.log(val)); // 5
 
 Promise.resolve(Promise.resolve(10))
     .then(val => console.log(val)); // 10
-\`\`\`
+```
 
-## Promise Chaining
+#### Part 4: Promise Chaining
 
-\`\`\`javascript
+```javascript
 fetch('/user/1')
     .then(response => response.json())
-    .then(user => fetch(\`/posts/\${user.id}\`))
+    .then(user => fetch(`/posts/${user.id}`))
     .then(response => response.json())
     .then(posts => console.log(posts))
     .catch(error => console.error(error));
@@ -1764,61 +1613,550 @@ fetch('/user/1')
 // Each then returns new Promise
 // If return Promise, chains to it
 // If return value, wraps in Promise
-\`\`\`
+```
 
-## Practice Problems
+**Practice Problems:**
 
-### Problem 1: Promise state
-\`\`\`javascript
+1. **Promise state:**
+```javascript
 const p = new Promise((resolve, reject) => {
     resolve(42);
 });
 
 p.then(val => console.log(val)); // 42
-\`\`\`
+```
 
-### Problem 2: Single resolution
-\`\`\`javascript
+2. **Single resolution:**
+```javascript
 const p = new Promise((resolve) => {
     resolve('A');
     resolve('B');
 });
 
 p.then(val => console.log(val)); // 'A'
-\`\`\`
+```
 
-### Problem 3: Chaining
-\`\`\`javascript
+3. **Chaining:**
+```javascript
 Promise.resolve(1)
     .then(x => x + 1)
     .then(x => x * 2)
     .then(x => console.log(x)); // 4
-\`\`\`
+```
 
-## Interview Tips
-
+**Interview Tips:**
 - Explain three states clearly
 - Show Promise can resolve only once
 - Explain chaining mechanism
 - Show error propagation in chains
 
-## Company Focus
-- **All companies** - Promise knowledge essential
-- **Meta, Google** - Complex Promise scenarios`,
-    keyTakeaways: [
-      "Promises have three states: pending, fulfilled, rejected",
-      "Promise can resolve or reject only once",
-      "then() handles both fulfillment and rejection",
-      "Promise chaining allows sequential async operations"
-    ],
-    commonMistakes: [
-      "Trying to resolve/reject promise multiple times",
-      "Not handling errors in promise chains",
-      "Confusing Promise.resolve() with new Promise()",
-      "Forgetting that then() returns a new promise"
-    ],
-    difficulty: "INTERMEDIATE",
-    premium: false,
-    estimatedMinutes: 14
-  }
-];
+---
+
+### Lesson 3.3: Promise.all, .race, .allSettled ⭐⭐⭐
+
+**Learning Objectives:**
+- Know when to use each method
+- Implement polyfills
+- Understand behavior differences
+- Know limitations
+
+**Content:**
+
+#### Part 1: Promise.all
+
+Waits for ALL promises to fulfill, rejects if ANY rejects.
+
+```javascript
+Promise.all([
+    Promise.resolve(1),
+    Promise.resolve(2),
+    Promise.resolve(3)
+])
+.then(results => console.log(results)); // [1, 2, 3]
+
+// If any rejects:
+Promise.all([
+    Promise.resolve(1),
+    Promise.reject('Error'),
+    Promise.resolve(3)
+])
+.catch(err => console.log(err)); // 'Error'
+```
+
+**Polyfill:**
+```javascript
+Promise.myAll = function(promises) {
+    return new Promise((resolve, reject) => {
+        const results = [];
+        let completed = 0;
+        
+        if (promises.length === 0) {
+            resolve([]);
+            return;
+        }
+        
+        promises.forEach((promise, index) => {
+            Promise.resolve(promise)
+                .then(value => {
+                    results[index] = value;
+                    completed++;
+                    if (completed === promises.length) {
+                        resolve(results);
+                    }
+                })
+                .catch(reject);
+        });
+    });
+};
+```
+
+#### Part 2: Promise.race
+
+Returns result of FIRST promise to settle (fulfill or reject).
+
+```javascript
+Promise.race([
+    new Promise(res => setTimeout(() => res('A'), 100)),
+    new Promise(res => setTimeout(() => res('B'), 50))
+])
+.then(result => console.log(result)); // 'B' (fastest)
+
+// Can also be rejection:
+Promise.race([
+    Promise.resolve('OK'),
+    Promise.reject('Error')
+])
+.catch(err => console.log(err)); // 'Error' (if rejects faster)
+```
+
+**Polyfill:**
+```javascript
+Promise.myRace = function(promises) {
+    return new Promise((resolve, reject) => {
+        promises.forEach(promise => {
+            Promise.resolve(promise)
+                .then(resolve)
+                .catch(reject);
+        });
+    });
+};
+```
+
+#### Part 3: Promise.allSettled
+
+Waits for ALL promises to settle (fulfill OR reject).
+
+```javascript
+Promise.allSettled([
+    Promise.resolve(1),
+    Promise.reject('Error'),
+    Promise.resolve(3)
+])
+.then(results => console.log(results));
+
+// [
+//   { status: 'fulfilled', value: 1 },
+//   { status: 'rejected', reason: 'Error' },
+//   { status: 'fulfilled', value: 3 }
+// ]
+```
+
+**Polyfill:**
+```javascript
+Promise.myAllSettled = function(promises) {
+    return Promise.all(
+        promises.map(p =>
+            Promise.resolve(p)
+                .then(
+                    value => ({ status: 'fulfilled', value }),
+                    reason => ({ status: 'rejected', reason })
+                )
+        )
+    );
+};
+```
+
+**Practice Problems:**
+
+1. **Promise.all rejection:**
+```javascript
+Promise.all([
+    Promise.resolve(1),
+    Promise.reject(2)
+])
+.catch(err => console.log(err)); // 2
+```
+
+2. **Promise.race:**
+```javascript
+Promise.race([
+    new Promise(r => setTimeout(() => r('slow'), 100)),
+    Promise.resolve('fast')
+])
+.then(r => console.log(r)); // 'fast'
+```
+
+3. **Promise.allSettled:**
+```javascript
+Promise.allSettled([
+    Promise.resolve(1),
+    Promise.reject('Error')
+])
+.then(results => {
+    console.log(results[1].status); // 'rejected'
+    console.log(results[1].reason); // 'Error'
+});
+```
+
+**Interview Tips:**
+- Explain when to use each
+- Implement at least one polyfill
+- Show error handling differences
+- Mention use cases (file uploads, parallel tasks)
+
+**Company Asked At:** Salesforce, Google, Every company
+
+---
+
+### Lesson 3.4: Async/Await ⭐⭐⭐
+
+**Learning Objectives:**
+- Understand async function syntax
+- Know await keyword behavior
+- Master error handling
+- Understand async patterns
+
+**Content:**
+
+#### Part 1: Async Function Syntax
+
+```javascript
+// Returns Promise
+async function fetchData() {
+    // Can use await inside
+    return 'data';
+}
+
+fetchData().then(data => console.log(data)); // 'data'
+
+// Any throw becomes rejection
+async function willReject() {
+    throw new Error('Oops');
+}
+
+willReject().catch(err => console.log(err.message));
+```
+
+#### Part 2: await Keyword
+
+```javascript
+// Without await (doesn't wait)
+async function test1() {
+    const promise = fetch('/data');
+    console.log(promise); // Promise object
+}
+
+// With await (waits for promise)
+async function test2() {
+    const response = await fetch('/data');
+    console.log(response); // actual response
+}
+```
+
+#### Part 3: Error Handling
+
+```javascript
+// Using try/catch
+async function getData() {
+    try {
+        const response = await fetch('/data');
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Failed:', error);
+    }
+}
+
+// Or use .catch()
+async function getDataAlt() {
+    const response = await fetch('/data')
+        .catch(err => console.error(err));
+    return await response.json();
+}
+```
+
+#### Part 4: Sequential vs Parallel
+
+```javascript
+// Sequential (slower)
+async function sequential() {
+    const a = await fetch('/a'); // wait
+    const b = await fetch('/b'); // then wait
+    return [a, b];
+}
+
+// Parallel (faster)
+async function parallel() {
+    const [a, b] = await Promise.all([
+        fetch('/a'),
+        fetch('/b')
+    ]);
+    return [a, b];
+}
+```
+
+**Practice Problems:**
+
+1. **Basic async/await:**
+```javascript
+async function test() {
+    return 42;
+}
+
+test().then(val => console.log(val)); // 42
+```
+
+2. **Error handling:**
+```javascript
+async function test() {
+    try {
+        throw new Error('oops');
+    } catch (e) {
+        console.log(e.message);
+    }
+}
+
+test(); // 'oops'
+```
+
+3. **Parallel execution:**
+```javascript
+async function test() {
+    const [a, b] = await Promise.all([
+        Promise.resolve(1),
+        Promise.resolve(2)
+    ]);
+    console.log(a + b); // 3
+}
+
+test();
+```
+
+**Interview Tips:**
+- Show async returns Promise
+- Explain await pauses execution
+- Show try/catch for errors
+- Compare sequential vs parallel
+
+---
+
+### Lesson 3.5: Event Queue Mastery (Complex Scenarios) ⭐⭐⭐
+
+**Learning Objectives:**
+- Master complex event loop scenarios
+- Combine setTimeout + Promise
+- Understand rendering timing
+- Predict complex execution
+
+**Content:**
+
+#### Complex Scenarios
+
+```javascript
+// Scenario 1: setTimeout in Promise
+console.log('1');
+
+Promise.resolve()
+    .then(() => {
+        console.log('2');
+        setTimeout(() => console.log('3'), 0);
+    })
+    .then(() => {
+        console.log('4');
+    });
+
+console.log('5');
+
+// Output: 1, 5, 2, 4, 3
+```
+
+```javascript
+// Scenario 2: Nested setTimeout and Promise
+setTimeout(() => {
+    console.log('T1');
+    Promise.resolve().then(() => console.log('P1'));
+}, 0);
+
+setTimeout(() => {
+    console.log('T2');
+}, 0);
+
+Promise.resolve().then(() => {
+    console.log('P2');
+    setTimeout(() => console.log('T3'), 0);
+});
+
+// Output: P2, T1, P1, T2, T3
+```
+
+```javascript
+// Scenario 3: Multiple Promise chains
+Promise.resolve()
+    .then(() => console.log('1'))
+    .then(() => console.log('2'));
+
+Promise.resolve()
+    .then(() => console.log('3'))
+    .then(() => console.log('4'));
+
+// Output: 1, 3, 2, 4
+```
+
+**Practice Problems:** (20+ variations in lesson)
+
+**Interview Tips:**
+- Draw event loop visualization
+- Execute step-by-step verbally
+- Explain why certain order happens
+- Show mastery of micro/macro task queues
+
+---
+
+### Lesson 3.6: Promise Polyfills ⭐⭐⭐
+
+**Learning Objectives:**
+- Implement Promise constructor
+- Create Promise.resolve/reject
+- Understand Promise behavior
+- Implement advanced features
+
+**Content:**
+
+Full Promise polyfill implementation (covered in separate detailed lesson with complete code).
+
+---
+
+## SECTION 4: PROTOTYPES & INHERITANCE
+
+### Lesson 4.1: Prototype Chain Basics ⭐⭐⭐
+
+**Learning Objectives:**
+- Understand prototype concept
+- Know property lookup
+- Understand __proto__ vs prototype
+- Master prototype chain
+
+**Content:**
+
+#### Part 1: What is a Prototype?
+
+Every JavaScript object has a **prototype** - another object it delegates to.
+
+```javascript
+const obj = {};
+console.log(Object.getPrototypeOf(obj)); // Object.prototype
+
+// __proto__ points to prototype
+console.log(obj.__proto__ === Object.prototype); // true
+```
+
+#### Part 2: Property Lookup Chain
+
+When accessing a property:
+1. Check own properties
+2. Check prototype
+3. Check prototype's prototype
+4. Continue until null
+5. Return undefined if not found
+
+```javascript
+const parent = {
+    greet() { return 'Parent'; }
+};
+
+const child = Object.create(parent);
+child.name = 'Child';
+
+console.log(child.name); // 'Child' (own)
+console.log(child.greet()); // 'Parent' (inherited)
+```
+
+#### Part 3: Prototype Chain
+
+```javascript
+function Animal(name) {
+    this.name = name;
+}
+
+Animal.prototype.speak = function() {
+    return `${this.name} speaks`;
+};
+
+function Dog(name) {
+    Animal.call(this, name);
+}
+
+Dog.prototype = Object.create(Animal.prototype);
+Dog.prototype.bark = function() {
+    return `${this.name} barks`;
+};
+
+const dog = new Dog('Rex');
+console.log(dog.speak()); // 'Rex speaks' (inherited from Animal)
+console.log(dog.bark()); // 'Rex barks' (own method)
+```
+
+**Practice Problems:** (6 problems in lesson)
+
+---
+
+### Lesson 4.2: Constructor Functions & new Keyword ⭐⭐
+
+### Lesson 4.3: Prototypal Inheritance ⭐⭐
+
+### Lesson 4.4: Object-Oriented Patterns ⭐⭐
+
+---
+
+## SECTION 5: TYPE COERCION & COMPARISON
+
+### Lesson 5.1: Type Coercion Rules ⭐⭐⭐
+
+### Lesson 5.2: NaN & typeof ⭐⭐
+
+### Lesson 5.3: Equality Comparisons ⭐⭐
+
+---
+
+## SECTION 6: ADVANCED JAVASCRIPT
+
+### Lesson 6.1: Destructuring & Spread ⭐⭐
+
+### Lesson 6.2: WeakMap & Memory ⭐⭐
+
+### Lesson 6.3: Deep Clone & Objects ⭐⭐⭐
+
+---
+
+## ASSESSMENT & PRACTICE
+
+### Total Practice Problems: 100+
+- 15 output prediction problems per section
+- 5 implementation challenges
+- 3 system design questions using JS concepts
+
+### Mock Tests:
+- Section 1 (Hoisting): 15 questions
+- Section 2 (this binding): 20 questions
+- Section 3 (Async): 25 questions
+- Section 4 (Prototypes): 15 questions
+- Section 5 (Coercion): 15 questions
+- Combined: Full exam (90 questions, 90 min)
+
+---
+
+**Expected Completion Time:** 15-20 hours  
+**Prerequisite:** Basic JavaScript knowledge  
+**Next Module:** Machine Coding Round  
+
+**By the end of this module, you should score 85%+ on JavaScript output problems.**
