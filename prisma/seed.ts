@@ -1,4 +1,14 @@
-import { prisma } from '../lib/db'
+import 'dotenv/config'
+import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
+import { Pool } from 'pg'
+import { javascriptFundamentalsLessons } from './content-data/javascript-fundamentals'
+
+const connectionString = process.env.DATABASE_URL
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg(new Pool({ connectionString })),
+})
 
 async function main() {
   console.log('🌱 Seeding database...')
@@ -255,7 +265,212 @@ async function main() {
     },
   })
 
-  // Create sample lesson
+  // Create JavaScript Fundamentals chapters
+  const jsBasicsChapter = await prisma.chapter.upsert({
+    where: {
+      moduleId_slug: {
+        moduleId: jsModule.id,
+        slug: 'basics-fundamentals'
+      }
+    },
+    update: {},
+    create: {
+      moduleId: jsModule.id,
+      title: 'Basics & Fundamentals',
+      slug: 'basics-fundamentals',
+      description: 'Core JavaScript concepts and language fundamentals',
+      orderIndex: 1,
+      difficultyLevel: 'BEGINNER',
+      estimatedHours: 8,
+    },
+  })
+
+  const jsES6Chapter = await prisma.chapter.upsert({
+    where: {
+      moduleId_slug: {
+        moduleId: jsModule.id,
+        slug: 'es6-features'
+      }
+    },
+    update: {},
+    create: {
+      moduleId: jsModule.id,
+      title: 'ES6+ Features',
+      slug: 'es6-features',
+      description: 'Modern JavaScript features and syntax improvements',
+      orderIndex: 2,
+      difficultyLevel: 'BEGINNER',
+      estimatedHours: 10,
+    },
+  })
+
+  const jsClosuresChapter = await prisma.chapter.upsert({
+    where: {
+      moduleId_slug: {
+        moduleId: jsModule.id,
+        slug: 'closures-scope'
+      }
+    },
+    update: {},
+    create: {
+      moduleId: jsModule.id,
+      title: 'Closures & Scope',
+      slug: 'closures-scope',
+      description: 'Understanding scope, closures, and lexical environment',
+      orderIndex: 3,
+      difficultyLevel: 'MEDIUM',
+      estimatedHours: 8,
+    },
+  })
+
+  const jsAsyncChapter = await prisma.chapter.upsert({
+    where: {
+      moduleId_slug: {
+        moduleId: jsModule.id,
+        slug: 'asynchronous-javascript'
+      }
+    },
+    update: {},
+    create: {
+      moduleId: jsModule.id,
+      title: 'Asynchronous JavaScript',
+      slug: 'asynchronous-javascript',
+      description: 'Callbacks, promises, and async/await patterns',
+      orderIndex: 4,
+      difficultyLevel: 'MEDIUM',
+      estimatedHours: 10,
+    },
+  })
+
+  // Create JavaScript Fundamentals lessons from data
+  const createdJSLessons = [];
+  let lessonIndex = 0;
+
+  // Basics chapter (first 4 lessons)
+  for (let i = 0; i < 4 && lessonIndex < javascriptFundamentalsLessons.length; i++) {
+    const lessonData = javascriptFundamentalsLessons[lessonIndex];
+    const lesson = await prisma.lesson.upsert({
+      where: {
+        chapterId_slug: {
+          chapterId: jsBasicsChapter.id,
+          slug: lessonData.slug,
+        },
+      },
+      update: {},
+      create: {
+        chapterId: jsBasicsChapter.id,
+        title: lessonData.title,
+        slug: lessonData.slug,
+        description: lessonData.description,
+        markdownContent: lessonData.markdownContent,
+        difficulty: lessonData.difficulty === 'BEGINNER' ? 'BEGINNER' :
+                   lessonData.difficulty === 'INTERMEDIATE' ? 'MEDIUM' :
+                   lessonData.difficulty as 'BEGINNER' | 'EASY' | 'MEDIUM' | 'HARD',
+        premium: lessonData.premium,
+        importantPoints: JSON.stringify(lessonData.keyTakeaways),
+        commonMistakes: JSON.stringify(lessonData.commonMistakes),
+        orderIndex: i + 1,
+        publishedAt: new Date(),
+      },
+    });
+    createdJSLessons.push(lesson);
+    lessonIndex++;
+  }
+
+  // ES6 chapter (next 5 lessons)
+  for (let i = 0; i < 5 && lessonIndex < javascriptFundamentalsLessons.length; i++) {
+    const lessonData = javascriptFundamentalsLessons[lessonIndex];
+    const lesson = await prisma.lesson.upsert({
+      where: {
+        chapterId_slug: {
+          chapterId: jsES6Chapter.id,
+          slug: lessonData.slug,
+        },
+      },
+      update: {},
+      create: {
+        chapterId: jsES6Chapter.id,
+        title: lessonData.title,
+        slug: lessonData.slug,
+        description: lessonData.description,
+        markdownContent: lessonData.markdownContent,
+        difficulty: (lessonData.difficulty === 'BEGINNER' ? 'BEGINNER' :
+                     lessonData.difficulty === 'INTERMEDIATE' ? 'MEDIUM' :
+                     lessonData.difficulty as 'BEGINNER' | 'EASY' | 'MEDIUM' | 'HARD'),
+        premium: lessonData.premium,
+        importantPoints: JSON.stringify(lessonData.keyTakeaways),
+        commonMistakes: JSON.stringify(lessonData.commonMistakes),
+        orderIndex: i + 1,
+        publishedAt: new Date(),
+      },
+    });
+    createdJSLessons.push(lesson);
+    lessonIndex++;
+  }
+
+  // Closures chapter (next 4 lessons)
+  for (let i = 0; i < 4 && lessonIndex < javascriptFundamentalsLessons.length; i++) {
+    const lessonData = javascriptFundamentalsLessons[lessonIndex];
+    const lesson = await prisma.lesson.upsert({
+      where: {
+        chapterId_slug: {
+          chapterId: jsClosuresChapter.id,
+          slug: lessonData.slug,
+        },
+      },
+      update: {},
+      create: {
+        chapterId: jsClosuresChapter.id,
+        title: lessonData.title,
+        slug: lessonData.slug,
+        description: lessonData.description,
+        markdownContent: lessonData.markdownContent,
+        difficulty: (lessonData.difficulty === 'BEGINNER' ? 'BEGINNER' :
+                     lessonData.difficulty === 'INTERMEDIATE' ? 'MEDIUM' :
+                     lessonData.difficulty as 'BEGINNER' | 'EASY' | 'MEDIUM' | 'HARD'),
+        premium: lessonData.premium,
+        importantPoints: JSON.stringify(lessonData.keyTakeaways),
+        commonMistakes: JSON.stringify(lessonData.commonMistakes),
+        orderIndex: i + 1,
+        publishedAt: new Date(),
+      },
+    });
+    createdJSLessons.push(lesson);
+    lessonIndex++;
+  }
+
+  // Async chapter (remaining lessons)
+  for (let i = 0; lessonIndex < javascriptFundamentalsLessons.length; i++) {
+    const lessonData = javascriptFundamentalsLessons[lessonIndex];
+    const lesson = await prisma.lesson.upsert({
+      where: {
+        chapterId_slug: {
+          chapterId: jsAsyncChapter.id,
+          slug: lessonData.slug,
+        },
+      },
+      update: {},
+      create: {
+        chapterId: jsAsyncChapter.id,
+        title: lessonData.title,
+        slug: lessonData.slug,
+        description: lessonData.description,
+        markdownContent: lessonData.markdownContent,
+        difficulty: (lessonData.difficulty === 'BEGINNER' ? 'BEGINNER' :
+                     lessonData.difficulty === 'INTERMEDIATE' ? 'MEDIUM' :
+                     lessonData.difficulty as 'BEGINNER' | 'EASY' | 'MEDIUM' | 'HARD'),
+        premium: lessonData.premium,
+        importantPoints: JSON.stringify(lessonData.keyTakeaways),
+        commonMistakes: JSON.stringify(lessonData.commonMistakes),
+        orderIndex: i + 1,
+        publishedAt: new Date(),
+      },
+    });
+    createdJSLessons.push(lesson);
+    lessonIndex++;
+  }
+
+  // Create sample DSA lessons (keeping existing for now)
   const arrayIntroLesson = await prisma.lesson.upsert({
     where: {
       chapterId_slug: {
@@ -304,7 +519,26 @@ Practice these concepts with the LeetCode problems linked below.`,
     },
   })
 
-  // Add practice links
+  // Add practice links for JS lessons
+  for (const lesson of createdJSLessons) {
+    // Add sample practice links for key lessons
+    if (lesson.slug === 'variables-types-operators') {
+      await prisma.practiceLink.upsert({
+        where: { id: `js-${lesson.id}-1` },
+        update: {},
+        create: {
+          lessonId: lesson.id,
+          platform: 'LEETCODE',
+          problemTitle: 'Two Sum',
+          problemUrl: 'https://leetcode.com/problems/two-sum/',
+          difficulty: 'EASY',
+          orderIndex: 1,
+        },
+      });
+    }
+  }
+
+  // Add practice links for DSA lessons
   await prisma.practiceLink.upsert({
     where: { id: 'array-two-sum' },
     update: {},
@@ -328,149 +562,6 @@ Practice these concepts with the LeetCode problems linked below.`,
       problemUrl: 'https://leetcode.com/problems/maximum-subarray/',
       difficulty: 'MEDIUM',
       orderIndex: 2,
-    },
-  })
-
-
-
-  // Linked List Introduction (FREE)
-  const linkedListIntroLesson = await prisma.lesson.upsert({
-    where: {
-      chapterId_slug: {
-        chapterId: linkedListsChapter.id,
-        slug: 'linked-list-introduction'
-      }
-    },
-    update: {},
-    create: {
-      chapterId: linkedListsChapter.id,
-      title: 'Linked List Introduction',
-      slug: 'linked-list-introduction',
-      description: 'Understanding linked list structure and basic operations',
-      orderIndex: 1,
-      markdownContent: `# Linked Lists - Introduction
-
-## What is a Linked List?
-
-A **Linked List** is a linear data structure where elements are stored in **nodes**, and each node points to the next node in the sequence.
-
-### Key Characteristics:
-- **Dynamic Size**: Can grow and shrink during runtime
-- **Non-contiguous**: Elements can be stored anywhere in memory
-- **Sequential Access**: Must traverse from head to access elements
-- **Efficient Insertions/Deletions**: O(1) at known positions
-
-### Types of Linked Lists:
-1. **Singly Linked List**: Each node points to the next node
-2. **Doubly Linked List**: Each node points to both next and previous nodes
-3. **Circular Linked List**: Last node points back to the first node
-
-### Basic Operations:
-- **Insert**: Add node at beginning, end, or specific position
-- **Delete**: Remove node from beginning, end, or specific position
-- **Search**: Find node with specific value
-- **Traverse**: Visit all nodes in the list
-
-### Time Complexities:
-- Access: O(n)
-- Search: O(n)
-- Insert/Delete at ends: O(1)
-- Insert/Delete at position: O(n)
-
-### Common Problems:
-- Detecting cycles
-- Finding middle element
-- Reversing the list
-- Merging two sorted lists
-
-Practice these concepts with the problems below.`,
-      difficulty: 'BEGINNER',
-      publishedAt: new Date(),
-    },
-  })
-
-  // Two Pointer Technique (PREMIUM)
-  const twoPointersLesson = await prisma.lesson.upsert({
-    where: {
-      chapterId_slug: {
-        chapterId: arraysChapter.id,
-        slug: 'two-pointers-technique'
-      }
-    },
-    update: {},
-    create: {
-      chapterId: arraysChapter.id,
-      title: 'Two Pointers Technique',
-      slug: 'two-pointers-technique',
-      description: 'Master the two pointers approach for array problems',
-      orderIndex: 2,
-      premium: true,
-      markdownContent: `# Two Pointers Technique
-
-## What is Two Pointers?
-
-The **Two Pointers** technique uses two indices to traverse an array simultaneously, often from opposite ends or at different speeds.
-
-### When to Use:
-- Sorted arrays
-- Finding pairs that satisfy conditions
-- Removing duplicates
-- Palindrome checking
-- Container problems (maximum area, etc.)
-
-### Common Patterns:
-
-#### 1. Opposite Direction (from ends)
-\`\`\`javascript
-function twoSum(nums, target) {
-    let left = 0;
-    let right = nums.length - 1;
-
-    while (left < right) {
-        const sum = nums[left] + nums[right];
-        if (sum === target) {
-            return [left, right];
-        } else if (sum < target) {
-            left++;
-        } else {
-            right--;
-        }
-    }
-    return [];
-}
-\`\`\`
-
-#### 2. Same Direction (different speeds)
-\`\`\`javascript
-function removeDuplicates(nums) {
-    if (nums.length === 0) return 0;
-
-    let slow = 0;
-    for (let fast = 1; fast < nums.length; fast++) {
-        if (nums[fast] !== nums[slow]) {
-            slow++;
-            nums[slow] = nums[fast];
-        }
-    }
-    return slow + 1;
-}
-\`\`\`
-
-### Key Insights:
-- **Sorted Arrays**: Perfect for two pointers
-- **O(n) Time**: Usually optimal for these problems
-- **O(1) Space**: No extra space needed
-- **Edge Cases**: Empty arrays, single elements, all duplicates
-
-### Practice Problems:
-1. Container with most water
-2. 3Sum problem
-3. Remove duplicates from sorted array
-4. Valid palindrome
-
-Master this technique - it's used in 20%+ of array problems!`,
-      difficulty: 'MEDIUM',
-      publishedAt: new Date(),
     },
   })
 
@@ -1289,13 +1380,13 @@ Master STAR method - it's the foundation of behavioral interview success! 🎯`,
   // Add lessons to express path (Week 1-4, 2 lessons per week)
   const expressLessons = [
     { lesson: arrayIntroLesson, week: 1, day: 1 },
-    { lesson: linkedListIntroLesson, week: 1, day: 2 },
-    { lesson: twoPointersLesson, week: 2, day: 1 },
-    { lesson: capTheoremLesson, week: 2, day: 2 },
-    { lesson: todoAppLesson, week: 3, day: 1 },
-    { lesson: starMethodLesson, week: 3, day: 2 },
-    { lesson: shoppingCartLesson, week: 4, day: 1 },
-    { lesson: urlShortenerLesson, week: 4, day: 2 },
+    { lesson: capTheoremLesson, week: 1, day: 2 },
+    { lesson: todoAppLesson, week: 2, day: 1 },
+    { lesson: starMethodLesson, week: 2, day: 2 },
+    { lesson: shoppingCartLesson, week: 3, day: 1 },
+    { lesson: urlShortenerLesson, week: 3, day: 2 },
+    { lesson: arrayIntroLesson, week: 4, day: 1 }, // Reusing for demo
+    { lesson: capTheoremLesson, week: 4, day: 2 }, // Reusing for demo
   ];
 
   for (let i = 0; i < expressLessons.length; i++) {
@@ -1324,32 +1415,32 @@ Master STAR method - it's the foundation of behavioral interview success! 🎯`,
     });
   }
 
-  // Add lessons to complete path (more comprehensive) - using different lessons to avoid duplicates
+  // Add lessons to complete path (more comprehensive) - using available lessons
   const completeLessons = [
-    // Week 1-2: DSA Fundamentals (using same lessons as express for now - would need more content)
+    // Week 1-2: DSA Fundamentals
     { lesson: arrayIntroLesson, week: 1, day: 1 },
-    { lesson: linkedListIntroLesson, week: 1, day: 2 },
-    { lesson: twoPointersLesson, week: 2, day: 1 },
+    { lesson: capTheoremLesson, week: 1, day: 2 },
+    { lesson: todoAppLesson, week: 2, day: 1 },
 
     // Week 3-4: System Design Basics
-    { lesson: capTheoremLesson, week: 3, day: 1 },
+    { lesson: starMethodLesson, week: 3, day: 1 },
     { lesson: urlShortenerLesson, week: 4, day: 1 },
 
     // Week 5-6: Machine Coding
-    { lesson: todoAppLesson, week: 5, day: 1 },
-    { lesson: shoppingCartLesson, week: 6, day: 1 },
+    { lesson: shoppingCartLesson, week: 5, day: 1 },
+    { lesson: arrayIntroLesson, week: 6, day: 1 },
 
-    // Week 7-8: More DSA (reusing lessons - in production would have more unique content)
-    { lesson: arrayIntroLesson, week: 7, day: 1 }, // Would be different advanced topics
-    { lesson: linkedListIntroLesson, week: 8, day: 1 },
+    // Week 7-8: More DSA
+    { lesson: capTheoremLesson, week: 7, day: 1 },
+    { lesson: todoAppLesson, week: 8, day: 1 },
 
     // Week 9-10: More System Design
-    { lesson: capTheoremLesson, week: 9, day: 1 },
+    { lesson: starMethodLesson, week: 9, day: 1 },
     { lesson: urlShortenerLesson, week: 10, day: 1 },
 
     // Week 11-12: Behavioral & Final Prep
-    { lesson: starMethodLesson, week: 11, day: 1 },
-    { lesson: todoAppLesson, week: 12, day: 1 }, // Mock interviews
+    { lesson: shoppingCartLesson, week: 11, day: 1 },
+    { lesson: arrayIntroLesson, week: 12, day: 1 },
   ];
 
   for (let i = 0; i < completeLessons.length; i++) {
