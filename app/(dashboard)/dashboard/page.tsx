@@ -263,12 +263,15 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-3xl font-bold text-indigo-600">
-                    {Math.round(pathProgressPercentage)}%
-                  </span>
-                  <p className="text-sm text-gray-600">complete</p>
-                </div>
+              <div className="text-right">
+                <Link
+                  href={`/learning-paths/${pathData.id}`}
+                  className="text-3xl font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+                >
+                  {Math.round(pathProgressPercentage)}%
+                </Link>
+                <p className="text-sm text-gray-600">complete</p>
+              </div>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
                 <div
@@ -356,71 +359,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
           )}
         </Card>
 
-        {/* Quick Actions */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {pathData ? (
-              <>
-                {/* Continue Path */}
-                <Link href={`/learning-paths/${pathData.id}`}>
-                  <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="text-3xl mb-4">{pathData.emoji}</div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Continue Your Path</h3>
-                    <p className="text-gray-600 text-sm">Resume {pathData.title}</p>
-                  </Card>
-                </Link>
-
-                {/* View Progress */}
-                <Link href={`/learning-paths/${pathData.id}`}>
-                  <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="text-3xl mb-4">📊</div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">View Progress</h3>
-                    <p className="text-gray-600 text-sm">Track your learning journey</p>
-                  </Card>
-                </Link>
-
-                {/* Browse Lessons */}
-                <Link href="/lessons">
-                  <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="text-3xl mb-4">📖</div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Browse Lessons</h3>
-                    <p className="text-gray-600 text-sm">Explore all available content</p>
-                  </Card>
-                </Link>
-              </>
-            ) : (
-              <>
-                {/* Choose Path */}
-                <Link href="/paths">
-                  <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="text-3xl mb-4">🎯</div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Choose Your Path</h3>
-                    <p className="text-gray-600 text-sm">Select a learning journey</p>
-                  </Card>
-                </Link>
-
-                {/* Explore Modules */}
-                <Link href="/paths">
-                  <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="text-3xl mb-4">📚</div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Explore Modules</h3>
-                    <p className="text-gray-600 text-sm">Browse by topic</p>
-                  </Card>
-                </Link>
-
-                {/* View Jobs */}
-                <Link href="/jobs">
-                  <Card className="p-6 text-center hover:shadow-lg transition-shadow cursor-pointer">
-                    <div className="text-3xl mb-4">💼</div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">Job Board</h3>
-                    <p className="text-gray-600 text-sm">Find interview opportunities</p>
-                  </Card>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

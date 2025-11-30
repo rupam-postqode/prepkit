@@ -28,6 +28,7 @@ model User {
   subscriptions       Subscription[]
   pathProgress        UserPathProgress[]
   videos              Video[]
+  resetHistory       ResetHistory[]
 
   @@index([email])
   @@index([subscriptionStatus])
@@ -250,6 +251,7 @@ model LearningPath {
   pathLessons       PathLesson[]
   userProgress      UserPathProgress[]
   milestones        Milestone[]        @relation("LearningPathToMilestone")
+  resetHistory      ResetHistory[]
 
   @@index([isActive])
   @@index([durationWeeks])
@@ -400,6 +402,22 @@ model Achievement {
   @@index([pathId])
 }
 
+model ResetHistory {
+  id         String       @id @default(cuid())
+  userId     String
+  type       ResetType
+  pathId     String?
+  weekNumber Int?
+  reason     String
+  timestamp  DateTime     @default(now())
+  path       LearningPath? @relation(fields: [pathId], references: [id])
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([pathId])
+}
+
 enum Role {
   USER
   ADMIN
@@ -484,4 +502,10 @@ enum MilestoneType {
   STREAK_MAINTAINED
   FIRST_LESSON
   SPEED_LEARNER
+}
+
+enum ResetType {
+  PATH
+  WEEK
+  ALL
 }

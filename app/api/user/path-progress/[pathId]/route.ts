@@ -69,13 +69,40 @@ export async function GET(
       );
     }
 
-    // Calculate detailed progress statistics
+    // Calculate detailed progress statistics with data consistency validation
     const totalLessons = pathProgress.learningPath.pathLessons.length;
     const completedLessons = pathProgress.learningPath.pathLessons.filter(
-      (pl) => pl.lesson.progress.length > 0
+      (pl) => pl.lesson.progress && pl.lesson.progress.length > 0
     ).length;
 
-    const progressPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+    // Ensure progress percentage is consistent
+    const rawProgressPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+    const progressPercentage = Math.min(100, Math.max(0, Math.round(rawProgressPercentage)));
+
+    // Validate currentWeek and currentDay are within bounds
+    const maxWeek = Math.max(...pathProgress.learningPath.pathLessons.map(pl => pl.weekNumber));
+    const maxDayInCurrentWeek = Math.max(
+      ...pathProgress.learningPath.pathLessons
+        .filter(pl => pl.weekNumber === pathProgress.currentWeek)
+        .map(pl => pl.dayNumber)
+    );
+    
+    const validatedCurrentWeek = Math.min(Math.max(1, pathProgress.currentWeek), maxWeek);
+    const validatedCurrentDay = Math.min(Math.max(1, pathProgress.currentDay), Math.max(1, maxDayInCurrentWeek));
+
+    // Update progress if inconsistent
+    if (validatedCurrentWeek !== pathProgress.currentWeek || validatedCurrentDay !== pathProgress.currentDay) {
+      await prisma.userPathProgress.update({
+        where: {
+          userId_learningPathId: { userId, learningPathId: pathId }
+        },
+        data: {
+          currentWeek: validatedCurrentWeek,
+          currentDay: validatedCurrentDay,
+          lastActivityAt: new Date()
+        }
+      });
+    }
 
     // Calculate study streak
     const sevenDaysAgo = new Date();

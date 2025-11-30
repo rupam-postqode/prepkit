@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -28,6 +28,8 @@ export default function PathsPage() {
   const [enrolling, setEnrolling] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const isChangingPath = searchParams?.get('change') === 'true';
 
   useEffect(() => {
     fetchPaths();
@@ -63,13 +65,18 @@ export default function PathsPage() {
       const data = await response.json();
 
       if (response.ok) {
-        alert(`Successfully enrolled in ${pathTitle}!`);
+        const action = isChangingPath ? 'switched to' : 'enrolled in';
+        alert(`Successfully ${action} ${pathTitle}!`);
         router.push(`/dashboard/learning-paths/${pathId}?welcome=true`);
       } else {
         if (data.error.includes("User not found")) {
           alert("Please sign up first before enrolling in a learning path.");
         } else if (data.error.includes("Already enrolled")) {
-          alert("You're already enrolled in this path. Check your dashboard to continue.");
+          if (isChangingPath) {
+            alert("You're already enrolled in this path. Choose a different path to switch to.");
+          } else {
+            alert("You're already enrolled in this path. Check your dashboard to continue.");
+          }
         } else {
           alert(data.error || "Failed to enroll in path");
         }
@@ -132,12 +139,21 @@ export default function PathsPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Choose Your Learning Path
+            {isChangingPath ? 'Switch Your Learning Path' : 'Choose Your Learning Path'}
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Select a structured learning path designed to take you from beginner to interview-ready.
-            Each path includes carefully sequenced lessons, practice problems, and progress tracking.
+            {isChangingPath 
+              ? 'Select a new learning path to continue your interview preparation journey. Your current progress will be saved, and you can always switch back.'
+              : 'Select a structured learning path designed to take you from beginner to interview-ready. Each path includes carefully sequenced lessons, practice problems, and progress tracking.'
+            }
           </p>
+          {isChangingPath && (
+            <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg max-w-2xl mx-auto">
+              <p className="text-sm text-yellow-800">
+                <strong>Note:</strong> Switching paths will replace your current active path. Your progress in the previous path will be saved and can be resumed later.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Paths Grid */}
@@ -208,7 +224,7 @@ export default function PathsPage() {
                   disabled={enrolling === path.id}
                   className="w-full bg-indigo-600 hover:bg-indigo-700"
                 >
-                  {enrolling === path.id ? "Enrolling..." : "Start This Path"}
+                  {enrolling === path.id ? "Switching..." : isChangingPath ? "Switch to This Path" : "Start This Path"}
                 </Button>
               )}
             </Card>

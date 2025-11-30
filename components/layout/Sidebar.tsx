@@ -299,7 +299,7 @@ export function Sidebar({ className }: SidebarProps) {
                           const weekB = parseInt(b.split(' ')[1]);
                           return weekA - weekB;
                         })
-                        .slice(0, 3) // Show only first 3 weeks for space
+                        .slice(0, 6) // Show first 6 weeks for better visibility
                         .map(([weekKey, lessons]) => (
                           <div key={weekKey} className="space-y-1">
                             <div className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">

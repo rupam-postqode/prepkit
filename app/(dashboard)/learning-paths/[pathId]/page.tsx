@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, Target, Award, BookOpen, Users, TrendingUp } from "lucide-react";
+import { Calendar, Clock, Target, Award, BookOpen, Users, TrendingUp, Pause, Play, RotateCcw, Settings, RotateCcw as ResetIcon } from "lucide-react";
+import { ResetDialog } from "@/components/ui/reset-dialog";
 
 interface LearningPath {
   id: string;
@@ -56,6 +57,7 @@ interface UserProgress {
   studyStreak: number;
   totalStudyTime: number;
   weeklyGoal?: number;
+  isActive?: boolean;
 }
 
 interface Achievement {
@@ -84,6 +86,8 @@ export default function LearningPathPage() {
   const [studySessions, setStudySessions] = useState<StudySession[]>([]);
   const [activeTab, setActiveTab] = useState("overview");
   const [error, setError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     if (params.pathId) {
@@ -186,6 +190,67 @@ export default function LearningPathPage() {
            !isLessonCompleted(lesson);
   };
 
+  const handlePathAction = async (action: string, data?: unknown) => {
+    if (!params.pathId) return;
+    
+    setIsUpdating(true);
+    try {
+      const response = await fetch(`/api/paths/${params.pathId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action, data }),
+      });
+
+      if (response.ok) {
+        // Refresh the data to show updated state
+        await fetchPathData();
+      } else {
+        const errorData = await response.json();
+        console.error('Path action failed:', errorData.error);
+      }
+    } catch (error) {
+      console.error('Error performing path action:', error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleChangePath = () => {
+    router.push('/paths?change=true');
+  };
+
+  const handleReset = async (type: "path" | "week", weekNumber?: number) => {
+    if (!params.pathId) return;
+    
+    setIsResetting(true);
+    try {
+      const response = await fetch(`/api/paths/${params.pathId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          action: type === "path" ? "RESET_PATH" : "RESET_WEEK",
+          data: type === "week" ? { weekNumber } : undefined
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh data to show updated state
+        await fetchPathData();
+      } else {
+        const errorData = await response.json();
+        console.error('Reset failed:', errorData.error);
+      }
+    } catch (error) {
+      console.error('Error resetting progress:', error);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -230,9 +295,72 @@ export default function LearningPathPage() {
                 <p className="text-gray-600 mt-1">{pathData.description}</p>
               </div>
             </div>
-            <Button onClick={() => router.push("/dashboard")} variant="outline">
-              Back to Dashboard
-            </Button>
+            <div className="flex items-center space-x-3">
+              {/* Path Management Controls */}
+              {userProgress?.isActive ? (
+                <Button
+                  onClick={() => handlePathAction('PAUSE_PATH')}
+                  variant="outline"
+                  disabled={isUpdating}
+                  className="text-yellow-600 border-yellow-600 hover:bg-yellow-50"
+                >
+                  <Pause className="w-4 h-4 mr-2" />
+                  {isUpdating ? 'Pausing...' : 'Pause Path'}
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => handlePathAction('RESUME_PATH')}
+                  variant="outline"
+                  disabled={isUpdating}
+                  className="text-green-600 border-green-600 hover:bg-green-50"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  {isUpdating ? 'Resuming...' : 'Resume Path'}
+                </Button>
+              )}
+              
+              <Button
+                onClick={() => handlePathAction('UPDATE_WEEK_DAY', { 
+                  weekNumber: userProgress?.currentWeek || 1, 
+                  dayNumber: Math.min((userProgress?.currentDay || 1) + 1, 7) 
+                })}
+                variant="outline"
+                disabled={isUpdating}
+                className="text-blue-600 border-blue-600 hover:bg-blue-50"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Next Day
+              </Button>
+              
+              <Button
+                onClick={handleChangePath}
+                variant="outline"
+                className="text-purple-600 border-purple-600 hover:bg-purple-50"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Change Path
+              </Button>
+              
+              <ResetDialog
+                pathTitle={pathData.title}
+                currentWeek={userProgress?.currentWeek}
+                onReset={handleReset}
+                isResetting={isResetting}
+              >
+                <Button
+                  variant="outline"
+                  disabled={isResetting}
+                  className="text-red-600 border-red-600 hover:bg-red-50"
+                >
+                  <ResetIcon className="w-4 h-4 mr-2" />
+                  Reset Progress
+                </Button>
+              </ResetDialog>
+              
+              <Button onClick={() => router.push("/dashboard")} variant="outline">
+                Back to Dashboard
+              </Button>
+            </div>
           </div>
 
           {/* Quick Stats */}

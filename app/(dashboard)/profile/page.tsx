@@ -16,7 +16,8 @@ import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { User, Settings, Shield, CreditCard, Trash2, Loader2 } from "lucide-react";
+import { User, Settings, Shield, CreditCard, Trash2, Loader2, RotateCcw, AlertTriangle } from "lucide-react";
+import { ResetDialog } from "@/components/ui/reset-dialog";
 import { toast } from "sonner";
 
 interface UserProfile {
@@ -58,7 +59,51 @@ export default function ProfilePage() {
   const [deletePassword, setDeletePassword] = useState("");
   const [deletingAccount, setDeletingAccount] = useState(false);
 
-  // Fetch user profile
+  // Reset progress states
+  const [isResetting, setIsResetting] = useState(false);
+  const [userPaths, setUserPaths] = useState<any[]>([]);
+
+  // Fetch user paths for data management
+  const fetchUserPaths = async () => {
+    try {
+      const response = await fetch("/api/paths");
+      if (response.ok) {
+        const data = await response.json();
+        setUserPaths(data.paths || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user paths:", error);
+    }
+  };
+
+  // Handle reset all progress
+  const handleResetAllProgress = async () => {
+    setIsResetting(true);
+    try {
+      // Reset all user path progress
+      for (const path of userPaths) {
+        await fetch(`/api/paths/${path.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ action: 'RESET_PATH' }),
+        });
+      }
+      
+      toast.success("All learning progress has been reset");
+      // Refresh data
+      await fetchProfile();
+      await fetchUserPaths();
+    } catch (error) {
+      console.error("Failed to reset all progress:", error);
+      toast.error("Failed to reset progress");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  // Fetch user profile and paths
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -82,6 +127,7 @@ export default function ProfilePage() {
 
     if (session) {
       fetchProfile();
+      fetchUserPaths();
     }
   }, [session]);
 
@@ -222,7 +268,7 @@ export default function ProfilePage() {
 
         {/* Profile Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="w-4 h-4" />
               Profile
@@ -238,6 +284,10 @@ export default function ProfilePage() {
             <TabsTrigger value="billing" className="flex items-center gap-2">
               <CreditCard className="w-4 h-4" />
               Billing
+            </TabsTrigger>
+            <TabsTrigger value="data" className="flex items-center gap-2">
+              <RotateCcw className="w-4 h-4" />
+              Data Management
             </TabsTrigger>
           </TabsList>
 
@@ -477,6 +527,128 @@ export default function ProfilePage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Data Management Tab */}
+          <TabsContent value="data">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Data Management</CardTitle>
+                  <CardDescription>
+                    Manage your learning progress and reset data if needed.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription>
+                      Resetting your progress is permanent and cannot be undone. 
+                      All your completed lessons, study time, and achievements will be lost.
+                    </AlertDescription>
+                  </Alert>
+
+                  {/* Reset All Progress */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-gray-900">Reset All Progress</h4>
+                    <p className="text-sm text-gray-600">
+                      This will reset all your learning progress across all paths, including:
+                    </p>
+                    <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+                      <li>Completed lessons and progress</li>
+                      <li>Study time and session history</li>
+                      <li>Achievements and milestones</li>
+                      <li>Current week and day progress</li>
+                    </ul>
+                    
+                    <ResetDialog
+                      pathTitle="All Learning Paths"
+                      onReset={handleResetAllProgress}
+                      isResetting={isResetting}
+                    >
+                      <Button
+                        variant="destructive"
+                        disabled={isResetting}
+                        className="w-full"
+                      >
+                        {isResetting ? (
+                          <><Loader2 className="w-4 h-4 animate-spin mr-2" />Resetting...</>
+                        ) : (
+                          <><RotateCcw className="w-4 h-4 mr-2" />Reset All Progress</>
+                        )}
+                      </Button>
+                    </ResetDialog>
+                  </div>
+
+                  <Separator />
+
+                  {/* Individual Path Resets */}
+                  <div className="space-y-4">
+                    <h4 className="text-sm font-medium text-gray-900">Individual Path Progress</h4>
+                    <p className="text-sm text-gray-600">
+                      Reset progress for specific learning paths. Visit individual path pages for more granular controls.
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {userPaths.map((path) => (
+                        <div key={path.id} className="border rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center">
+                              <span className="text-2xl mr-2">{path.emoji}</span>
+                              <div>
+                                <h5 className="font-medium">{path.title}</h5>
+                                <p className="text-sm text-gray-500">{path.durationWeeks} weeks</p>
+                              </div>
+                            </div>
+                            <Badge variant="secondary">
+                              {path.difficulty}
+                            </Badge>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.push(`/learning-paths/${path.id}`)}
+                            className="w-full"
+                          >
+                            Manage Progress
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Data Statistics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Data Statistics</CardTitle>
+                  <CardDescription>
+                    Overview of your learning data and activity.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 border rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{userPaths.length}</div>
+                      <div className="text-sm text-gray-600">Active Paths</div>
+                    </div>
+                    <div className="text-center p-4 border rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">
+                        {userPaths.reduce((acc, path) => acc + (path.progress?.progressPercentage || 0), 0) / Math.max(userPaths.length, 1)}%
+                      </div>
+                      <div className="text-sm text-gray-600">Average Progress</div>
+                    </div>
+                    <div className="text-center p-4 border rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">
+                        {userPaths.reduce((acc, path) => acc + (path.progress?.totalStudyTime || 0), 0) / 3600}h
+                      </div>
+                      <div className="text-sm text-gray-600">Total Study Time</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
 
           {/* Billing Tab */}

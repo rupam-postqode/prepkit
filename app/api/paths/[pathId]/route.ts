@@ -119,7 +119,7 @@ export async function PUT(
         break;
 
       case "PAUSE_PATH":
-        // Pause the learning path
+        // Pause learning path
         updatedProgress = await prisma.userPathProgress.update({
           where: {
             userId_learningPathId: {
@@ -134,7 +134,7 @@ export async function PUT(
         break;
 
       case "RESUME_PATH":
-        // Resume the learning path
+        // Resume learning path
         updatedProgress = await prisma.userPathProgress.update({
           where: {
             userId_learningPathId: {
@@ -162,6 +162,104 @@ export async function PUT(
             completedAt: new Date(),
             currentWeek: 999, // Signal completion
             lastActivityAt: new Date(),
+          },
+        });
+        break;
+
+      case "RESET_PATH":
+        // Reset path progress to beginning
+        // First, delete all lesson progress for this path
+        const pathLessons = await prisma.pathLesson.findMany({
+          where: { learningPathId: pathId },
+          select: { lessonId: true }
+        });
+
+        if (pathLessons.length > 0) {
+          await prisma.lessonProgress.deleteMany({
+            where: {
+              userId: session.user.id,
+              lessonId: {
+                in: pathLessons.map(pl => pl.lessonId)
+              }
+            }
+          });
+        }
+
+        // Reset path progress to initial state
+        updatedProgress = await prisma.userPathProgress.update({
+          where: {
+            userId_learningPathId: {
+              userId: session.user.id,
+              learningPathId: pathId,
+            },
+          },
+          data: {
+            currentWeek: 1,
+            currentDay: 1,
+            completedLessons: 0,
+            completedAt: null,
+            lastActivityAt: new Date(),
+          },
+        });
+
+        // Log reset history
+        await prisma.resetHistory.create({
+          data: {
+            userId: session.user.id,
+            type: 'PATH',
+            pathId: pathId,
+            reason: 'User requested path reset',
+            timestamp: new Date(),
+          },
+        });
+        break;
+
+      case "RESET_WEEK":
+        // Reset progress for a specific week
+        const { weekNumber: resetWeekNumber } = data;
+        const weekLessons = await prisma.pathLesson.findMany({
+          where: { 
+            learningPathId: pathId,
+            weekNumber: resetWeekNumber
+          },
+          select: { lessonId: true }
+        });
+
+        if (weekLessons.length > 0) {
+          await prisma.lessonProgress.deleteMany({
+            where: {
+              userId: session.user.id,
+              lessonId: {
+                in: weekLessons.map(pl => pl.lessonId)
+              }
+            }
+          });
+        }
+
+        // Update path progress to beginning of week
+        updatedProgress = await prisma.userPathProgress.update({
+          where: {
+            userId_learningPathId: {
+              userId: session.user.id,
+              learningPathId: pathId,
+            },
+          },
+          data: {
+            currentWeek: resetWeekNumber,
+            currentDay: 1,
+            lastActivityAt: new Date(),
+          },
+        });
+
+        // Log reset history
+        await prisma.resetHistory.create({
+          data: {
+            userId: session.user.id,
+            type: 'WEEK',
+            pathId: pathId,
+            weekNumber: resetWeekNumber,
+            reason: 'User requested week reset',
+            timestamp: new Date(),
           },
         });
         break;
