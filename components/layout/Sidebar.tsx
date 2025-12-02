@@ -6,7 +6,6 @@ import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { interactive } from "@/lib/transitions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -223,21 +222,45 @@ export function Sidebar({ className }: SidebarProps) {
 
   return (
     <div className={cn(
-      "flex flex-col h-full bg-card border-r border-border/50 shadow-sm",
+      // Base styles
+      "flex flex-col h-full",
+      
+      // Modern design with glassmorphism
+      "bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm",
+      "border-r border-gray-200/50 dark:border-gray-700/50",
+      "shadow-sm",
+      
       className
     )}>
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-border/50">
+      <div className={cn(
+        "flex items-center justify-between p-6",
+        "border-b border-gray-200/50 dark:border-gray-700/50",
+        "bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm"
+      )}>
         <Link
           href={isAdmin ? "/admin" : "/dashboard"}
-          className={interactive.navItem + " flex items-center space-x-3 group"}
+          className={cn(
+            "flex items-center space-x-3 group transition-all duration-200",
+            "hover:scale-105 hover:opacity-80"
+          )}
         >
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center transition-colors">
-            <span className="text-primary-foreground font-bold text-sm">PK</span>
+          <div className={cn(
+            "w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl",
+            "flex items-center justify-center transition-all duration-300",
+            "shadow-lg shadow-indigo-500/25 group-hover:shadow-xl group-hover:shadow-indigo-500/30",
+            "group-hover:scale-110"
+          )}>
+            <span className="text-white font-bold text-sm">PK</span>
           </div>
           <div>
-            <h1 className="font-semibold text-foreground">PrepKit</h1>
-            <p className="text-xs text-muted-foreground">
+            <h1 className={cn(
+              "font-semibold text-gray-900 dark:text-gray-100",
+              "transition-colors duration-200"
+            )}>
+              PrepKit
+            </h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {isAdmin ? "Admin Panel" : "Interview Prep"}
             </p>
           </div>
@@ -256,22 +279,44 @@ export function Sidebar({ className }: SidebarProps) {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    interactive.navItem + " flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium group",
+                    // Base styles
+                    "flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium",
+                    "transition-all duration-200 group relative overflow-hidden",
+                    
+                    // Modern hover effects
+                    "hover:scale-[1.02] hover:shadow-md",
+                    
+                    // Active state
                     isActive
-                      ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
+                      ? cn(
+                          "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300",
+                          "border border-indigo-200/50 dark:border-indigo-700/50",
+                          "shadow-sm shadow-indigo-500/10"
+                        )
+                      : cn(
+                          "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100",
+                          "hover:bg-gray-50 dark:hover:bg-gray-800/50",
+                          "border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700/50"
+                        )
                   )}
                 >
                   <item.icon className={cn(
-                    "w-5 h-5 shrink-0",
-                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                    "w-5 h-5 shrink-0 transition-all duration-200",
+                    isActive 
+                      ? "text-indigo-600 dark:text-indigo-400 scale-110" 
+                      : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 group-hover:scale-105"
                   )} />
                   <div className="flex-1 min-w-0">
-                    <div className="truncate">{item.name}</div>
-                    <div className="text-xs text-muted-foreground/70 truncate">
+                    <div className="truncate font-medium">{item.name}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {item.description}
                     </div>
                   </div>
+                  
+                  {/* Subtle indicator for active state */}
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full" />
+                  )}
                 </Link>
               );
             })}
@@ -284,7 +329,10 @@ export function Sidebar({ className }: SidebarProps) {
             {learningPath && (
               <div className="space-y-3">
                 <div className="px-3">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  <h3 className={cn(
+                    "text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider",
+                    "transition-colors duration-200"
+                  )}>
                     Learning Path
                   </h3>
                 </div>
@@ -292,29 +340,50 @@ export function Sidebar({ className }: SidebarProps) {
                 <div className="space-y-3">
                   <button
                     onClick={() => setExpandedPath(!expandedPath)}
-                    className={interactive.navItem + " flex items-center space-x-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-left group"}
+                    className={cn(
+                      // Base styles
+                      "flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-left",
+                      "transition-all duration-200 group relative overflow-hidden",
+                      
+                      // Modern hover effects
+                      "hover:scale-[1.02] hover:shadow-md",
+                      
+                      // Colors
+                      "bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20",
+                      "border border-indigo-200/50 dark:border-indigo-700/50",
+                      "text-indigo-700 dark:text-indigo-300",
+                      "shadow-sm shadow-indigo-500/10"
+                    )}
                   >
-                    <span className="text-lg">{learningPath.emoji}</span>
+                    <span className="text-xl transition-transform duration-200 group-hover:scale-110">
+                      {learningPath.emoji}
+                    </span>
                     <div className="flex-1 min-w-0">
                       <div className="truncate font-medium">{learningPath.title}</div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-xs text-indigo-600 dark:text-indigo-400">
                         Week {learningPath.currentWeek} of {learningPath.durationWeeks}
                       </div>
                     </div>
-                    {expandedPath ? (
-                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                    )}
+                    <div className={cn(
+                      "transition-all duration-200",
+                      expandedPath ? "rotate-180" : ""
+                    )}>
+                      <ChevronDown className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                    </div>
                   </button>
 
                   {/* Progress Bar */}
-                  <div className="px-3 space-y-2">
+                  <div className="px-4 space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Progress</span>
-                      <span className="font-medium">{Math.round(learningPath.progressPercentage)}%</span>
+                      <span className="text-gray-500 dark:text-gray-400">Progress</span>
+                      <span className="font-medium text-indigo-600 dark:text-indigo-400">
+                        {Math.round(learningPath.progressPercentage)}%
+                      </span>
                     </div>
-                    <Progress value={learningPath.progressPercentage} className="h-2" />
+                    <Progress 
+                      value={learningPath.progressPercentage} 
+                      className="h-2 bg-gray-100 dark:bg-gray-800"
+                    />
                   </div>
 
                   {/* Expanded Content */}
@@ -329,7 +398,7 @@ export function Sidebar({ className }: SidebarProps) {
                         .slice(0, 6) // Show first 6 weeks for better visibility
                         .map(([weekKey, lessons]) => (
                           <div key={weekKey} className="space-y-1">
-                            <div className="px-3 py-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            <div className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                               {weekKey}
                             </div>
                             <div className="space-y-1">
@@ -341,15 +410,27 @@ export function Sidebar({ className }: SidebarProps) {
                                     key={lesson.id}
                                     href={`/lessons/${lesson.id}`}
                                     className={cn(
-                                      "flex items-center space-x-2 px-3 py-2 text-xs rounded-md transition-colors",
+                                      // Base styles
+                                      "flex items-center space-x-2 px-3 py-2 text-xs rounded-lg transition-all duration-200",
+                                      "hover:scale-[1.02] hover:shadow-sm",
+                                      
+                                      // Active state
                                       pathname === `/lessons/${lesson.id}`
-                                        ? "bg-primary/10 text-primary"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                                        ? cn(
+                                            "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300",
+                                            "border border-indigo-200/50 dark:border-indigo-700/50"
+                                          )
+                                        : cn(
+                                            "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100",
+                                            "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                                          )
                                     )}
                                   >
                                     <div className={cn(
-                                      "w-2 h-2 rounded-full",
-                                      lesson.completed ? "bg-green-500" : "bg-blue-500"
+                                      "w-2 h-2 rounded-full transition-all duration-200",
+                                      lesson.completed 
+                                        ? "bg-green-500 shadow-sm shadow-green-500/30" 
+                                        : "bg-blue-500 shadow-sm shadow-blue-500/30"
                                     )} />
                                     <span className="truncate flex-1">{lesson.title}</span>
                                   </Link>
@@ -363,12 +444,15 @@ export function Sidebar({ className }: SidebarProps) {
               </div>
             )}
 
-            <Separator />
+            <Separator className="bg-gray-200/50 dark:bg-gray-700/50" />
 
             {/* Modules */}
             <div className="flex-1 flex flex-col min-h-0">
               <div className="px-3 pb-2 flex-shrink-0">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <h3 className={cn(
+                  "text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider",
+                  "transition-colors duration-200"
+                )}>
                   Modules
                 </h3>
               </div>
@@ -377,7 +461,7 @@ export function Sidebar({ className }: SidebarProps) {
                 <div className="px-3 space-y-3">
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="animate-pulse">
-                      <div className="h-12 bg-muted rounded-lg"></div>
+                      <div className="h-12 bg-gray-100 dark:bg-gray-800 rounded-xl"></div>
                     </div>
                   ))}
                 </div>
@@ -394,23 +478,54 @@ export function Sidebar({ className }: SidebarProps) {
                           <button
                             onClick={() => toggleModule(module.id)}
                             className={cn(
-                              interactive.navItem + " flex items-center space-x-3 w-full px-3 py-3 rounded-lg text-sm font-medium group",
+                              // Base styles
+                              "flex items-center space-x-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-left",
+                              "transition-all duration-200 group relative overflow-hidden",
+                              
+                              // Modern hover effects
+                              "hover:scale-[1.02] hover:shadow-md",
+                              
+                              // Active state
                               isModuleActive
-                                ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
-                                : "text-muted-foreground hover:text-foreground"
+                                ? cn(
+                                    "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300",
+                                    "border border-indigo-200/50 dark:border-indigo-700/50",
+                                    "shadow-sm shadow-indigo-500/10"
+                                  )
+                                : cn(
+                                    "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100",
+                                    "hover:bg-gray-50 dark:hover:bg-gray-800/50",
+                                    "border border-transparent hover:border-gray-200/50 dark:hover:border-gray-700/50"
+                                  )
                             )}
                           >
-                            <span className="text-lg">{module.emoji}</span>
+                            <span className={cn(
+                              "text-lg transition-transform duration-200 group-hover:scale-110",
+                              isModuleActive && "scale-110"
+                            )}>
+                              {module.emoji}
+                            </span>
                             <div className="flex-1 min-w-0 text-left">
-                              <div className="truncate">{module.title}</div>
-                              <div className="text-xs text-muted-foreground/70">
+                              <div className="truncate font-medium">{module.title}</div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
                                 {module._count?.chapters || module.chapters?.length || 0} chapters
                               </div>
                             </div>
-                            {expandedModules.has(module.id) ? (
-                              <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            ) : (
-                              <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <div className={cn(
+                              "transition-all duration-200",
+                              expandedModules.has(module.id) ? "rotate-180" : ""
+                            )}>
+                              <ChevronDown className={cn(
+                                "w-4 h-4 shrink-0",
+                                isModuleActive 
+                                  ? "text-indigo-600 dark:text-indigo-400" 
+                                  : "text-gray-500 dark:text-gray-400"
+                              )} />
+                            </div>
+                            
+                            {/* Subtle indicator for active state */}
+                            {isModuleActive && (
+                              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-indigo-500 rounded-r-full" />
                             )}
                           </button>
 
@@ -419,7 +534,7 @@ export function Sidebar({ className }: SidebarProps) {
                             <div className="ml-6 mt-2 space-y-2 animate-in slide-in-from-top-2 duration-200">
                               {module.chapters.map((chapter) => (
                                 <div key={chapter.id} className="space-y-1">
-                                  <div className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                  <div className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                     {chapter.title}
                                   </div>
                                   <div className="space-y-1">
@@ -428,15 +543,27 @@ export function Sidebar({ className }: SidebarProps) {
                                         key={lesson.id}
                                         href={`/lessons/${lesson.id}`}
                                         className={cn(
-                                          interactive.navItem + " flex items-center space-x-2 px-3 py-2 text-xs rounded-md",
+                                          // Base styles
+                                          "flex items-center space-x-2 px-3 py-2 text-xs rounded-lg transition-all duration-200",
+                                          "hover:scale-[1.02] hover:shadow-sm",
+                                          
+                                          // Active state
                                           pathname === `/lessons/${lesson.id}`
-                                            ? "bg-primary/10 text-primary"
-                                            : "text-muted-foreground hover:text-foreground"
+                                            ? cn(
+                                                "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300",
+                                                "border border-indigo-200/50 dark:border-indigo-700/50"
+                                              )
+                                            : cn(
+                                                "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100",
+                                                "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                                              )
                                         )}
                                       >
                                         <div className={cn(
-                                          "w-2 h-2 rounded-full flex-shrink-0",
-                                          lesson.completed ? "bg-green-500" : "bg-blue-500"
+                                          "w-2 h-2 rounded-full flex-shrink-0 transition-all duration-200",
+                                          lesson.completed 
+                                            ? "bg-green-500 shadow-sm shadow-green-500/30" 
+                                            : "bg-blue-500 shadow-sm shadow-blue-500/30"
                                         )} />
                                         <span className="truncate flex-1">{lesson.title}</span>
                                       </Link>
@@ -458,14 +585,23 @@ export function Sidebar({ className }: SidebarProps) {
       </nav>
 
       {/* Sign Out */}
-      <div className="p-4 border-t border-border">
+      <div className={cn(
+        "p-4 border-t border-gray-200/50 dark:border-gray-700/50",
+        "bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm"
+      )}>
         <Button
           onClick={handleSignOut}
           variant="outline"
           size="sm"
-          className="w-full justify-start"
+          className={cn(
+            "w-full justify-start transition-all duration-200",
+            "hover:scale-105 hover:shadow-md",
+            "border-gray-200/50 dark:border-gray-700/50",
+            "text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400",
+            "hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200/50 dark:hover:border-red-700/50"
+          )}
         >
-          <LogOut className="w-4 h-4 mr-2" />
+          <LogOut className="w-4 h-4 mr-2 transition-colors duration-200" />
           Sign Out
         </Button>
       </div>

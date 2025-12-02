@@ -70,7 +70,7 @@ export function ResetDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+      <DialogTrigger className="inline-flex items-center justify-center">
         {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">

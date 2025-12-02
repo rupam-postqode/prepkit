@@ -4,7 +4,15 @@ import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { interactive } from "@/lib/transitions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 export function Header() {
   const { data: session, status } = useSession();
@@ -45,77 +53,166 @@ export function Header() {
   };
 
   return (
-    <header className="bg-background/80 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50 safe-area">
+    <header className={cn(
+      // Base styles
+      "sticky top-0 z-50 w-full backdrop-blur-sm",
+      
+      // Modern design
+      "bg-white/80 dark:bg-gray-900/80 border-b border-gray-200/50 dark:border-gray-700/50",
+      "shadow-sm",
+      
+      // Safe area
+      "safe-area-inset-top"
+    )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center touch-target group" onClick={closeMobileMenu}>
-            <div className="text-2xl font-bold text-primary transition-colors group-hover:text-primary/80">PrepKit</div>
+          <Link 
+            href="/" 
+            className={cn(
+              "flex items-center space-x-2 transition-colors duration-200",
+              "hover:opacity-80"
+            )}
+            onClick={closeMobileMenu}
+          >
+            <div className={cn(
+              "text-2xl font-bold bg-gradient-to-r from-indigo-600 to-indigo-500 bg-clip-text text-transparent",
+              "transition-all duration-300"
+            )}>
+              PrepKit
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-1">
+          <nav className="hidden md:flex items-center space-x-1">
             <Link
               href="/dashboard"
-              className={interactive.navItem + " px-4 py-2 text-sm font-medium rounded-lg"}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                "hover:bg-gray-100 dark:hover:bg-gray-800",
+                "border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+              )}
             >
               Dashboard
             </Link>
             <Link
               href="/search"
-              className={interactive.navItem + " px-4 py-2 text-sm font-medium rounded-lg"}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                "hover:bg-gray-100 dark:hover:bg-gray-800",
+                "border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+              )}
             >
               Search
             </Link>
             {canViewJobs && (
               <Link
                 href="/jobs"
-                className={interactive.navItem + " px-4 py-2 text-sm font-medium rounded-lg"}
+                className={cn(
+                  "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                  "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                  "hover:bg-gray-100 dark:hover:bg-gray-800",
+                  "border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                )}
               >
                 Jobs
               </Link>
             )}
             <Link
               href="/paths"
-              className={interactive.navItem + " px-4 py-2 text-sm font-medium rounded-lg"}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                "hover:bg-gray-100 dark:hover:bg-gray-800",
+                "border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+              )}
             >
               Modules
             </Link>
             <Link
               href="/pricing"
-              className={interactive.navItem + " px-4 py-2 text-sm font-medium rounded-lg"}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200",
+                "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                "hover:bg-gray-100 dark:hover:bg-gray-800",
+                "border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+              )}
             >
               Pricing
             </Link>
           </nav>
 
-          {/* Desktop Auth Buttons */}
+          {/* Desktop User Menu */}
           <div className="hidden md:flex items-center space-x-4">
             {status === "loading" ? (
-              <div className="text-sm text-gray-500">Loading...</div>
+              <div className="text-sm text-gray-500 dark:text-gray-400 animate-pulse">Loading...</div>
             ) : session ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700 hidden lg:inline">
-                  Welcome, {session.user?.name}
-                </span>
-                <Button
-                  onClick={() => signOut()}
-                  variant="outline"
-                  size="sm"
-                  className="touch-target"
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  className={cn(
+                    "p-2 rounded-lg transition-all duration-200",
+                    "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                    "hover:bg-gray-100 dark:hover:bg-gray-800",
+                    "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  )}
                 >
-                  Sign Out
-                </Button>
-              </div>
+                  <div className="flex items-center space-x-2 cursor-pointer transition-colors duration-200 hover:opacity-80">
+                    <Avatar className="h-8 w-8 border-2 border-indigo-200 dark:border-indigo-700">
+                      {session.user.image ? (
+                        <AvatarImage
+                          src={session.user.image}
+                          alt={session.user.name || ""}
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <AvatarFallback className="bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-100">
+                          {session.user.name?.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      {session.user.name}
+                    </span>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Link href="/profile" className="block w-full">
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer">
+                    <Link href="/profile/payment-history" className="block w-full">
+                      Payment History
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    className="cursor-pointer text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    onClick={() => signOut()}
+                  >
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
                 <Link href="/login">
-                  <Button variant="ghost" size="sm" className="touch-target">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="transition-all duration-200 hover:scale-105"
+                  >
                     Sign In
                   </Button>
                 </Link>
                 <Link href="/signup">
-                  <Button size="sm" className="mobile-btn touch-target">
+                  <Button 
+                    size="sm"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                  >
                     Get Started
                   </Button>
                 </Link>
@@ -127,7 +224,12 @@ export function Header() {
           <div className="md:hidden">
             <button
               onClick={toggleMobileMenu}
-              className={interactive.navItem + " touch-target p-2 rounded-lg"}
+              className={cn(
+                "p-2 rounded-lg transition-all duration-200",
+                "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                "hover:bg-gray-100 dark:hover:bg-gray-800",
+                "focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              )}
               aria-expanded={isMobileMenuOpen}
               aria-label="Toggle mobile menu"
             >
@@ -159,17 +261,27 @@ export function Header() {
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-sm">
-            <div className="px-2 pt-2 pb-3 space-y-1">
+          <div className={cn(
+            "md:hidden absolute top-full left-0 right-0 bg-white dark:bg-gray-900",
+            "border-b border-gray-200 dark:border-gray-700",
+            "shadow-lg backdrop-blur-sm",
+            "animate-in slide-in-from-top-2 duration-200"
+          )}>
+            <div className="px-4 py-3 space-y-2">
               {session && (
-                <div className="px-3 py-2 text-sm text-foreground border-b border-border">
+                <div className="px-3 py-2 text-sm text-gray-700 dark:text-gray-200 border-b border-gray-200 dark:border-gray-700">
                   Welcome, {session.user?.name}
                 </div>
               )}
 
               <Link
                 href="/dashboard"
-                className={interactive.navItem + " block px-3 py-2 text-base font-medium rounded-lg touch-target"}
+                className={cn(
+                  "block px-3 py-2 text-base font-medium rounded-lg transition-all duration-200",
+                  "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                  "hover:bg-gray-100 dark:hover:bg-gray-800",
+                  "border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                )}
                 onClick={closeMobileMenu}
               >
                 Dashboard
@@ -177,7 +289,12 @@ export function Header() {
 
               <Link
                 href="/search"
-                className={interactive.navItem + " block px-3 py-2 text-base font-medium rounded-lg touch-target"}
+                className={cn(
+                  "block px-3 py-2 text-base font-medium rounded-lg transition-all duration-200",
+                  "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                  "hover:bg-gray-100 dark:hover:bg-gray-800",
+                  "border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                )}
                 onClick={closeMobileMenu}
               >
                 Search
@@ -186,7 +303,12 @@ export function Header() {
               {canViewJobs && (
                 <Link
                   href="/jobs"
-                  className={interactive.navItem + " block px-3 py-2 text-base font-medium rounded-lg touch-target"}
+                  className={cn(
+                    "block px-3 py-2 text-base font-medium rounded-lg transition-all duration-200",
+                    "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                    "hover:bg-gray-100 dark:hover:bg-gray-800",
+                    "border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                  )}
                   onClick={closeMobileMenu}
                 >
                   Jobs
@@ -195,7 +317,12 @@ export function Header() {
 
               <Link
                 href="/paths"
-                className={interactive.navItem + " block px-3 py-2 text-base font-medium rounded-lg touch-target"}
+                className={cn(
+                  "block px-3 py-2 text-base font-medium rounded-lg transition-all duration-200",
+                  "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                  "hover:bg-gray-100 dark:hover:bg-gray-800",
+                  "border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                )}
                 onClick={closeMobileMenu}
               >
                 Modules
@@ -203,20 +330,30 @@ export function Header() {
 
               <Link
                 href="/pricing"
-                className={interactive.navItem + " block px-3 py-2 text-base font-medium rounded-lg touch-target"}
+                className={cn(
+                  "block px-3 py-2 text-base font-medium rounded-lg transition-all duration-200",
+                  "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                  "hover:bg-gray-100 dark:hover:bg-gray-800",
+                  "border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                )}
                 onClick={closeMobileMenu}
               >
                 Pricing
               </Link>
 
-              <div className="border-t border-border pt-3 mt-3">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
                 {session ? (
                   <button
                     onClick={() => {
                       signOut();
                       closeMobileMenu();
                     }}
-                    className={interactive.navItem + " block w-full text-left px-3 py-2 text-base font-medium rounded-lg touch-target"}
+                    className={cn(
+                      "block w-full text-left px-3 py-2 text-base font-medium rounded-lg transition-all duration-200",
+                      "text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300",
+                      "hover:bg-red-50 dark:hover:bg-red-900/20",
+                      "border border-transparent hover:border-red-200 dark:hover:border-red-700"
+                    )}
                   >
                     Sign Out
                   </button>
@@ -224,14 +361,24 @@ export function Header() {
                   <div className="space-y-2">
                     <Link
                       href="/login"
-                      className={interactive.navItem + " block px-3 py-2 text-base font-medium rounded-lg touch-target"}
+                      className={cn(
+                        "block px-3 py-2 text-base font-medium rounded-lg transition-all duration-200",
+                        "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
+                        "hover:bg-gray-100 dark:hover:bg-gray-800",
+                        "border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                      )}
                       onClick={closeMobileMenu}
                     >
                       Sign In
                     </Link>
                     <Link
                       href="/signup"
-                      className="block px-3 py-2 text-base font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors touch-target text-center"
+                      className={cn(
+                        "block px-3 py-2 text-base font-medium rounded-lg transition-all duration-200",
+                        "text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300",
+                        "hover:bg-indigo-50 dark:hover:bg-indigo-900/20",
+                        "border border-transparent hover:border-indigo-200 dark:hover:border-indigo-700"
+                      )}
                       onClick={closeMobileMenu}
                     >
                       Get Started
