@@ -38,12 +38,8 @@ export function NavigationProvider({ children }: NavigationProviderProps) {
   const [currentPage, setCurrentPage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Debug logs to track navigation provider state
-  console.log('[NavigationProvider] Render - pathname:', pathname, 'isLoading:', isLoading, 'breadcrumbs count:', breadcrumbs.length);
   // Auto-generate breadcrumbs based on current route
   const generateBreadcrumbs = useCallback(async (path: string) => {
-    console.log('[NavigationProvider] generateBreadcrumbs called for path:', path);
     setIsLoading(true);
     setError(null);
     
@@ -100,7 +96,6 @@ export function NavigationProvider({ children }: NavigationProviderProps) {
       });
 
       setBreadcrumbs(generatedBreadcrumbs);
-      console.log('[NavigationProvider] Breadcrumbs generated successfully:', generatedBreadcrumbs.length, 'items');
     } catch (err) {
       console.error('Error generating breadcrumbs:', err);
       setError('Failed to generate breadcrumbs');
@@ -158,7 +153,6 @@ export function NavigationProvider({ children }: NavigationProviderProps) {
 
   // Auto-generate breadcrumbs when route changes
   useEffect(() => {
-    console.log('[NavigationProvider] Pathname useEffect triggered - pathname:', pathname);
     if (pathname) {
       generateBreadcrumbs(pathname);
     }
