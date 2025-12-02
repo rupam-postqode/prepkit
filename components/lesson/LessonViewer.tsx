@@ -56,11 +56,17 @@ type TabType = "markdown" | "video" | "notes" | "practice";
 function ContentWatermark({ userId }: { userId: string }) {
   return (
     <div
-      className="fixed inset-0 pointer-events-none z-0 select-none"
+      className="absolute inset-0 pointer-events-none z-0 select-none"
       style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg width='300' height='300' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='50%25' y='50%25' font-family='Arial' font-size='14' fill='rgba(0,0,0,0.03)' text-anchor='middle' dominant-baseline='middle' transform='rotate(-45 150 150)'%3EPrepKit User: ${userId.slice(-6)}%3C/text%3E%3C/svg%3E")`,
         backgroundRepeat: 'repeat',
         backgroundSize: '300px 300px',
+        // Restrict watermark to content area only, not entire viewport
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
       }}
     />
   );
@@ -178,12 +184,9 @@ export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen relative bg-background">
-      {/* Content Watermark */}
-      <ContentWatermark userId={session?.user?.id || userId} />
-
+    <div className="flex flex-col h-[calc(100vh-8rem)] relative bg-background">
       {/* Progress Bar */}
-      <div className="bg-card border-b border-border px-6 py-3">
+      <div className="bg-card border-b border-border px-6 py-3 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
@@ -219,7 +222,7 @@ export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
       {/* Main Content with Tabs */}
       <div className="flex-1 overflow-hidden">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabType)} className="h-full flex flex-col">
-          <div className="border-b border-border bg-card px-6">
+          <div className="border-b border-border bg-card px-6 flex-shrink-0">
             <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-none lg:flex">
               <TabsTrigger value="markdown" className="flex items-center space-x-2">
                 <FileText className="w-4 h-4" />

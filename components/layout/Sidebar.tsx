@@ -79,21 +79,30 @@ export function Sidebar({ className }: SidebarProps) {
 
   const isAdmin = session?.user?.role === "ADMIN";
 
+  // Debug logs to track sidebar rendering
+  console.log('[Sidebar] Render - pathname:', pathname, 'session status:', session ? 'authenticated' : 'not authenticated', 'isAdmin:', isAdmin);
+
   const fetchNavigationData = async () => {
+    console.log('[Sidebar] fetchNavigationData called - isAdmin:', isAdmin, 'pathname:', pathname);
     try {
       // Only fetch learning content for non-admin users
       if (!isAdmin) {
+        console.log('[Sidebar] Fetching navigation data for non-admin user');
         // Fetch modules
         const modulesResponse = await fetch("/api/navigation");
         if (modulesResponse.ok) {
           const modulesData = await modulesResponse.json();
+          console.log('[Sidebar] Modules data received:', modulesData.length, 'modules');
           setModules(modulesData);
+        } else {
+          console.log('[Sidebar] Failed to fetch modules:', modulesResponse.status);
         }
 
         // Fetch learning path progress
         const pathResponse = await fetch("/api/user/path-progress");
         if (pathResponse.ok) {
           const pathData = await pathResponse.json();
+          console.log('[Sidebar] Path progress data received:', pathData.enrolled ? 'enrolled' : 'not enrolled');
           if (pathData.enrolled) {
             setLearningPath({
               id: pathData.path.id,
@@ -106,24 +115,34 @@ export function Sidebar({ className }: SidebarProps) {
               lessonsByWeek: pathData.lessonsByWeek,
             });
           }
+        } else {
+          console.log('[Sidebar] Failed to fetch path progress:', pathResponse.status);
         }
+      } else {
+        console.log('[Sidebar] Skipping navigation data fetch for admin user');
       }
     } catch (error) {
-      console.error("Failed to fetch navigation:", error);
+      console.error("[Sidebar] Failed to fetch navigation:", error);
     } finally {
+      console.log('[Sidebar] fetchNavigationData completed, setting loading to false');
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    console.log('[Sidebar] Session useEffect triggered - session:', session ? 'exists' : 'null', 'isAdmin:', isAdmin);
     if (session) {
       fetchNavigationData();
+    } else {
+      console.log('[Sidebar] No session available, skipping navigation data fetch');
+      setLoading(false);
     }
   }, [session, isAdmin]);
 
   // Refetch navigation data when window gains focus (user returns from path changes)
   useEffect(() => {
     const handleVisibilityChange = () => {
+      console.log('[Sidebar] Visibility change - visible:', document.visibilityState === 'visible', 'session:', session ? 'exists' : 'null', 'isAdmin:', isAdmin);
       if (document.visibilityState === 'visible' && session && !isAdmin) {
         fetchNavigationData();
       }

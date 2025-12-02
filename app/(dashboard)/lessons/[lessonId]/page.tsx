@@ -103,31 +103,31 @@ export default async function LessonPage({ params }: LessonPageProps) {
 
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className={`flex-1 flex flex-col ${isAdmin ? 'max-w-7xl mx-auto' : 'max-w-4xl mx-auto'}`}>
-        {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{lesson.title}</h1>
-              <p className="text-gray-600 mt-1">{lesson.description}</p>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-500">Difficulty</div>
-                <span className={"inline-flex px-2 py-1 text-xs font-medium rounded-full " + getDifficultyClasses(lesson.difficulty)}>
-                {lesson.difficulty}
-              </span>
-            </div>
+    <>
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{lesson.title}</h1>
+            <p className="text-gray-600 mt-1">{lesson.description}</p>
+          </div>
+          <div className="text-right">
+            <div className="text-sm text-gray-500">Difficulty</div>
+              <span className={"inline-flex px-2 py-1 text-xs font-medium rounded-full " + getDifficultyClasses(lesson.difficulty)}>
+              {lesson.difficulty}
+            </span>
           </div>
         </div>
+      </div>
 
-        {/* Lesson Content */}
+      {/* Lesson Content */}
+      <div className="h-full">
         <LessonViewer
           lesson={lesson}
           progress={progress}
           userId={session.user?.id || ""}
         />
       </div>
-    </div>
+    </>
   );
 }
