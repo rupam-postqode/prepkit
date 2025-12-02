@@ -5,6 +5,11 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { sendWelcomeEmail } from "@/lib/email";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { interactive } from "@/lib/transitions";
 
 export default function SignupPage() {
   const [name, setName] = useState("");

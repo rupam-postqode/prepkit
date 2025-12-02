@@ -1,31 +1,38 @@
 /**
  * Transition utilities for smooth animations and micro-interactions
+ * Modern design system with consistent timing and easing
  */
 
 export const transition = {
-  // Fast transitions
+  // Fast transitions - for quick feedback
   fast: "transition-all duration-150 ease-out",
   
-  // Standard transitions
-  default: "transition-all duration-300 ease-out",
+  // Standard transitions - default for most interactions
+  default: "transition-all duration-200 ease-out",
   
-  // Slow transitions
-  slow: "transition-all duration-500 ease-out",
+  // Slow transitions - for major state changes
+  slow: "transition-all duration-300 ease-out",
   
-  // Bounce transitions
+  // Bounce transitions - for playful interactions
   bounce: "transition-all duration-300 ease-bounce",
   
-  // Smooth transitions
+  // Smooth transitions - for fluid animations
   smooth: "transition-all duration-200 ease-in-out",
   
-  // Color transitions
+  // Color transitions - for theme changes
   colors: "transition-colors duration-200 ease-out",
   
-  // Transform transitions
+  // Transform transitions - for movement
   transform: "transition-transform duration-200 ease-out",
   
-  // Opacity transitions
+  // Opacity transitions - for fade effects
   opacity: "transition-opacity duration-200 ease-out",
+  
+  // Shadow transitions - for depth changes
+  shadow: "transition-shadow duration-200 ease-out",
+  
+  // Border transitions - for outline changes
+  border: "transition-border-color duration-200 ease-out",
 };
 
 export const animation = {
@@ -53,50 +60,67 @@ export const animation = {
 };
 
 export const hover = {
-  // Scale effects
-  scale: "hover:scale-105",
-  scaleSm: "hover:scale-102",
-  scaleLg: "hover:scale-110",
+  // Scale effects - subtle and professional
+  scale: "hover:scale-102",
+  scaleSm: "hover:scale-101",
+  scaleLg: "hover:scale-105",
   
   // Color effects
   bg: "hover:bg-opacity-90",
-  brightness: "hover:brightness-110",
+  brightness: "hover:brightness-105",
   
-  // Shadow effects
-  shadow: "hover:shadow-lg",
-  shadowSm: "hover:shadow-md",
-  shadowLg: "hover:shadow-xl",
+  // Shadow effects - modern depth
+  shadow: "hover:shadow-md",
+  shadowSm: "hover:shadow-sm",
+  shadowLg: "hover:shadow-lg",
+  shadowXl: "hover:shadow-xl",
   
-  // Transform effects
-  lift: "hover:-translate-y-1",
-  liftSm: "hover:-translate-y-0.5",
-  liftLg: "hover:-translate-y-2",
+  // Transform effects - smooth lift
+  lift: "hover:-translate-y-0.5",
+  liftSm: "hover:-translate-y-0.25",
+  liftLg: "hover:-translate-y-1",
+  
+  // Border effects - subtle emphasis
+  border: "hover:border-primary/20",
+  
+  // Text effects
+  text: "hover:text-primary",
 };
 
 export const focus = {
-  // Ring effects
-  ring: "focus:outline-none focus:ring-2 focus:ring-offset-2",
-  ringPrimary: "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500",
-  ringSuccess: "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500",
-  ringWarning: "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500",
-  ringError: "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500",
+  // Ring effects - consistent with new color system
+  ring: "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring",
+  ringPrimary: "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary/20",
+  ringSuccess: "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-success/20",
+  ringWarning: "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-warning/20",
+  ringError: "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-destructive/20",
+  ringSubtle: "focus:outline-none focus:ring-1 focus:ring-offset-1 focus:ring-border",
 };
 
 export const interactive = {
-  // Button interactions
-  button: `${transition.default} ${hover.scale} ${hover.shadow} ${focus.ring}`,
+  // Button interactions - modern and subtle
+  button: `${transition.default} ${hover.scale} ${hover.shadow} ${focus.ringSubtle}`,
+  buttonPrimary: `${transition.default} ${hover.scale} ${hover.shadow} ${focus.ringPrimary}`,
   
-  // Card interactions
-  card: `${transition.default} ${hover.lift} ${hover.shadow}`,
+  // Card interactions - elegant lift
+  card: `${transition.default} ${hover.lift} ${hover.shadow} ${hover.border}`,
+  cardInteractive: `${transition.default} ${hover.scaleSm} ${hover.shadowLg} ${hover.border}`,
   
-  // Link interactions
-  link: `${transition.colors} ${hover.brightness}`,
+  // Link interactions - smooth color transitions
+  link: `${transition.colors} ${hover.text}`,
+  linkUnderline: `${transition.colors} ${hover.text} hover:underline`,
   
-  // Input interactions
-  input: `${transition.colors} ${focus.ring}`,
+  // Input interactions - clean focus states
+  input: `${transition.colors} ${transition.border} ${focus.ringSubtle}`,
+  inputFocused: `${transition.colors} ${transition.border} ${focus.ringPrimary}`,
   
-  // Tab interactions
-  tab: `${transition.default} ${hover.lift} ${focus.ring}`,
+  // Tab interactions - smooth transitions
+  tab: `${transition.default} ${hover.lift} ${focus.ringSubtle}`,
+  tabActive: `${transition.colors} ${focus.ringPrimary}`,
+  
+  // Navigation interactions
+  nav: `${transition.colors} ${hover.text} ${hover.border}`,
+  navItem: `${transition.colors} ${hover.lift} ${focus.ringSubtle}`,
 };
 
 // Custom animation keyframes

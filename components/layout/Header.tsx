@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { interactive } from "@/lib/transitions";
 
 export function Header() {
   const { data: session, status } = useSession();
@@ -44,45 +45,45 @@ export function Header() {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b safe-area">
+    <header className="bg-background/80 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50 safe-area">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center touch-target" onClick={closeMobileMenu}>
-            <div className="text-2xl font-bold text-indigo-600">PrepKit</div>
+          <Link href="/" className="flex items-center touch-target group" onClick={closeMobileMenu}>
+            <div className="text-2xl font-bold text-primary transition-colors group-hover:text-primary/80">PrepKit</div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-1">
             <Link
               href="/dashboard"
-              className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors"
+              className={interactive.navItem + " px-4 py-2 text-sm font-medium rounded-lg"}
             >
               Dashboard
             </Link>
             <Link
               href="/search"
-              className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors"
+              className={interactive.navItem + " px-4 py-2 text-sm font-medium rounded-lg"}
             >
               Search
             </Link>
             {canViewJobs && (
               <Link
                 href="/jobs"
-                className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors"
+                className={interactive.navItem + " px-4 py-2 text-sm font-medium rounded-lg"}
               >
                 Jobs
               </Link>
             )}
             <Link
               href="/paths"
-              className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors"
+              className={interactive.navItem + " px-4 py-2 text-sm font-medium rounded-lg"}
             >
               Modules
             </Link>
             <Link
               href="/pricing"
-              className="text-gray-700 hover:text-indigo-600 px-3 py-2 text-sm font-medium transition-colors"
+              className={interactive.navItem + " px-4 py-2 text-sm font-medium rounded-lg"}
             >
               Pricing
             </Link>
@@ -126,7 +127,7 @@ export function Header() {
           <div className="md:hidden">
             <button
               onClick={toggleMobileMenu}
-              className="touch-target p-2 rounded-md text-gray-700 hover:text-indigo-600 hover:bg-gray-100 transition-colors"
+              className={interactive.navItem + " touch-target p-2 rounded-lg"}
               aria-expanded={isMobileMenuOpen}
               aria-label="Toggle mobile menu"
             >
@@ -158,17 +159,17 @@ export function Header() {
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-sm">
             <div className="px-2 pt-2 pb-3 space-y-1">
               {session && (
-                <div className="px-3 py-2 text-sm text-gray-700 border-b border-gray-200">
+                <div className="px-3 py-2 text-sm text-foreground border-b border-border">
                   Welcome, {session.user?.name}
                 </div>
               )}
 
               <Link
                 href="/dashboard"
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors touch-target"
+                className={interactive.navItem + " block px-3 py-2 text-base font-medium rounded-lg touch-target"}
                 onClick={closeMobileMenu}
               >
                 Dashboard
@@ -176,7 +177,7 @@ export function Header() {
 
               <Link
                 href="/search"
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors touch-target"
+                className={interactive.navItem + " block px-3 py-2 text-base font-medium rounded-lg touch-target"}
                 onClick={closeMobileMenu}
               >
                 Search
@@ -185,7 +186,7 @@ export function Header() {
               {canViewJobs && (
                 <Link
                   href="/jobs"
-                  className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors touch-target"
+                  className={interactive.navItem + " block px-3 py-2 text-base font-medium rounded-lg touch-target"}
                   onClick={closeMobileMenu}
                 >
                   Jobs
@@ -194,7 +195,7 @@ export function Header() {
 
               <Link
                 href="/paths"
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors touch-target"
+                className={interactive.navItem + " block px-3 py-2 text-base font-medium rounded-lg touch-target"}
                 onClick={closeMobileMenu}
               >
                 Modules
@@ -202,20 +203,20 @@ export function Header() {
 
               <Link
                 href="/pricing"
-                className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors touch-target"
+                className={interactive.navItem + " block px-3 py-2 text-base font-medium rounded-lg touch-target"}
                 onClick={closeMobileMenu}
               >
                 Pricing
               </Link>
 
-              <div className="border-t border-gray-200 pt-3 mt-3">
+              <div className="border-t border-border pt-3 mt-3">
                 {session ? (
                   <button
                     onClick={() => {
                       signOut();
                       closeMobileMenu();
                     }}
-                    className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors touch-target"
+                    className={interactive.navItem + " block w-full text-left px-3 py-2 text-base font-medium rounded-lg touch-target"}
                   >
                     Sign Out
                   </button>
@@ -223,14 +224,14 @@ export function Header() {
                   <div className="space-y-2">
                     <Link
                       href="/login"
-                      className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-indigo-600 hover:bg-gray-50 rounded-md transition-colors touch-target"
+                      className={interactive.navItem + " block px-3 py-2 text-base font-medium rounded-lg touch-target"}
                       onClick={closeMobileMenu}
                     >
                       Sign In
                     </Link>
                     <Link
                       href="/signup"
-                      className="block px-3 py-2 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md transition-colors touch-target text-center"
+                      className="block px-3 py-2 text-base font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-lg transition-colors touch-target text-center"
                       onClick={closeMobileMenu}
                     >
                       Get Started

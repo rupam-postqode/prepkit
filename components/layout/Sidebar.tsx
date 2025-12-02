@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { interactive } from "@/lib/transitions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -222,16 +223,16 @@ export function Sidebar({ className }: SidebarProps) {
 
   return (
     <div className={cn(
-      "flex flex-col h-full bg-card border-r border-border shadow-sm",
+      "flex flex-col h-full bg-card border-r border-border/50 shadow-sm",
       className
     )}>
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-border">
+      <div className="flex items-center justify-between p-6 border-b border-border/50">
         <Link
           href={isAdmin ? "/admin" : "/dashboard"}
-          className="flex items-center space-x-3 group"
+          className={interactive.navItem + " flex items-center space-x-3 group"}
         >
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center group-hover:bg-primary/90 transition-colors">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center transition-colors">
             <span className="text-primary-foreground font-bold text-sm">PK</span>
           </div>
           <div>
@@ -255,10 +256,10 @@ export function Sidebar({ className }: SidebarProps) {
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
+                    interactive.navItem + " flex items-center space-x-3 px-3 py-3 rounded-lg text-sm font-medium group",
                     isActive
                       ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <item.icon className={cn(
@@ -291,7 +292,7 @@ export function Sidebar({ className }: SidebarProps) {
                 <div className="space-y-3">
                   <button
                     onClick={() => setExpandedPath(!expandedPath)}
-                    className="flex items-center space-x-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-left hover:bg-accent/50 transition-colors group"
+                    className={interactive.navItem + " flex items-center space-x-3 w-full px-3 py-3 rounded-lg text-sm font-medium text-left group"}
                   >
                     <span className="text-lg">{learningPath.emoji}</span>
                     <div className="flex-1 min-w-0">
@@ -393,10 +394,10 @@ export function Sidebar({ className }: SidebarProps) {
                           <button
                             onClick={() => toggleModule(module.id)}
                             className={cn(
-                              "flex items-center space-x-3 w-full px-3 py-3 rounded-lg text-sm font-medium transition-all duration-200 group",
+                              interactive.navItem + " flex items-center space-x-3 w-full px-3 py-3 rounded-lg text-sm font-medium group",
                               isModuleActive
                                 ? "bg-primary/10 text-primary border border-primary/20 shadow-sm"
-                                : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                                : "text-muted-foreground hover:text-foreground"
                             )}
                           >
                             <span className="text-lg">{module.emoji}</span>
@@ -427,10 +428,10 @@ export function Sidebar({ className }: SidebarProps) {
                                         key={lesson.id}
                                         href={`/lessons/${lesson.id}`}
                                         className={cn(
-                                          "flex items-center space-x-2 px-3 py-2 text-xs rounded-md transition-colors",
+                                          interactive.navItem + " flex items-center space-x-2 px-3 py-2 text-xs rounded-md",
                                           pathname === `/lessons/${lesson.id}`
                                             ? "bg-primary/10 text-primary"
-                                            : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                                            : "text-muted-foreground hover:text-foreground"
                                         )}
                                       >
                                         <div className={cn(

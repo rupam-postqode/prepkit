@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
+import { interactive } from "@/lib/transitions";
 
 interface DashboardPageProps {
   searchParams: { [key: string]: string | string[] | undefined };
@@ -119,7 +120,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const studyTimeFormatted = `${hours}h ${minutes}m`;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-secondary/20">
       <div className="max-w-7xl mx-auto py-4 px-3 sm:px-4 lg:px-6">
         {/* Welcome Message */}
         {showWelcome && pathData && (
@@ -171,48 +172,48 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-6 mb-8">
-          <Card className="mobile-card touch-target">
+          <Card className={interactive.card + " mobile-card touch-target"}>
             <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left">
               <div className="text-2xl lg:text-2xl mb-2 lg:mb-0 lg:mr-4">📚</div>
               <div>
-                <p className="text-xs lg:text-sm font-medium text-gray-600">Lessons Completed</p>
-                <p className="text-xl lg:text-2xl font-bold text-gray-900">{completedLessons}</p>
-                <p className="text-xs text-gray-500">of {totalLessons} total</p>
+                <p className="text-xs lg:text-sm font-medium text-muted-foreground">Lessons Completed</p>
+                <p className="text-xl lg:text-2xl font-bold text-foreground">{completedLessons}</p>
+                <p className="text-xs text-muted-foreground/70">of {totalLessons} total</p>
               </div>
             </div>
           </Card>
 
-          <Card className="mobile-card touch-target">
+          <Card className={interactive.card + " mobile-card touch-target"}>
             <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left">
               <div className="text-2xl lg:text-2xl mb-2 lg:mb-0 lg:mr-4">🔥</div>
               <div>
-                <p className="text-xs lg:text-sm font-medium text-gray-600">Study Streak</p>
-                <p className="text-xl lg:text-2xl font-bold text-gray-900">{studyStreak}</p>
-                <p className="text-xs text-gray-500">days this week</p>
+                <p className="text-xs lg:text-sm font-medium text-muted-foreground">Study Streak</p>
+                <p className="text-xl lg:text-2xl font-bold text-foreground">{studyStreak}</p>
+                <p className="text-xs text-muted-foreground/70">days this week</p>
               </div>
             </div>
           </Card>
 
-          <Card className="mobile-card touch-target">
+          <Card className={interactive.card + " mobile-card touch-target"}>
             <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left">
               <div className="text-2xl lg:text-2xl mb-2 lg:mb-0 lg:mr-4">⏱️</div>
               <div>
-                <p className="text-xs lg:text-sm font-medium text-gray-600">Study Time</p>
-                <p className="text-xl lg:text-2xl font-bold text-gray-900">{studyTimeFormatted}</p>
-                <p className="text-xs text-gray-500">total time</p>
+                <p className="text-xs lg:text-sm font-medium text-muted-foreground">Study Time</p>
+                <p className="text-xl lg:text-2xl font-bold text-foreground">{studyTimeFormatted}</p>
+                <p className="text-xs text-muted-foreground/70">total time</p>
               </div>
             </div>
           </Card>
 
-          <Card className="mobile-card touch-target lg:col-span-1 col-span-2">
+          <Card className={interactive.card + " mobile-card touch-target lg:col-span-1 col-span-2"}>
             <div className="flex flex-col items-center text-center lg:flex-row lg:items-center lg:text-left">
               <div className="text-2xl lg:text-2xl mb-2 lg:mb-0 lg:mr-4">📊</div>
               <div>
-                <p className="text-xs lg:text-sm font-medium text-gray-600">Overall Progress</p>
-                <p className="text-xl lg:text-2xl font-bold text-gray-900">
+                <p className="text-xs lg:text-sm font-medium text-muted-foreground">Overall Progress</p>
+                <p className="text-xl lg:text-2xl font-bold text-foreground">
                   {totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0}%
                 </p>
-                <p className="text-xs text-gray-500">complete</p>
+                <p className="text-xs text-muted-foreground/70">complete</p>
               </div>
             </div>
           </Card>
