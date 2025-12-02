@@ -63,6 +63,25 @@ export default function ProfilePage() {
   const [isResetting, setIsResetting] = useState(false);
   const [userPaths, setUserPaths] = useState<any[]>([]);
 
+  // Fetch user profile
+  const fetchProfile = async () => {
+    try {
+      const response = await fetch("/api/user/profile");
+      if (response.ok) {
+        const data = await response.json();
+        setProfile(data.user);
+        setName(data.user.name || "");
+        setEmail(data.user.email || "");
+        setExperienceLevel(data.user.experienceLevel || "");
+        setPreferredLanguage(data.user.preferredLanguage || "");
+        setTargetCompanies(data.user.targetCompanies || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+      toast.error("Failed to load profile");
+    }
+  };
+
   // Fetch user paths for data management
   const fetchUserPaths = async () => {
     try {
@@ -105,29 +124,14 @@ export default function ProfilePage() {
 
   // Fetch user profile and paths
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await fetch("/api/user/profile");
-        if (response.ok) {
-          const data = await response.json();
-          setProfile(data.user);
-          setName(data.user.name || "");
-          setEmail(data.user.email || "");
-          setExperienceLevel(data.user.experienceLevel || "");
-          setPreferredLanguage(data.user.preferredLanguage || "");
-          setTargetCompanies(data.user.targetCompanies || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch profile:", error);
-        toast.error("Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (session) {
-      fetchProfile();
-      fetchUserPaths();
+      const loadInitialData = async () => {
+        await fetchProfile();
+        await fetchUserPaths();
+        setLoading(false);
+      };
+      
+      loadInitialData();
     }
   }, [session]);
 

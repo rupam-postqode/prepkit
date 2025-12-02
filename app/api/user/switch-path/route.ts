@@ -55,10 +55,10 @@ export async function POST(
       // Deactivate old path
       await tx.userPathProgress.updateMany({
         where: {
-          userId_learningPathId: {
-            userId,
-            learningPathId: oldPathId,
-          },
+          AND: [
+            { userId },
+            { learningPathId: oldPathId }
+          ]
         },
         data: {
           isActive: false,
@@ -66,12 +66,12 @@ export async function POST(
       });
 
       // Activate new path
-      await tx.userPathProgress.update({
+      await tx.userPathProgress.updateMany({
         where: {
-          userId_learningPathId: {
-            userId,
-            learningPathId: newPathId,
-          },
+          AND: [
+            { userId },
+            { learningPathId: newPathId }
+          ]
         },
         data: {
           isActive: true,

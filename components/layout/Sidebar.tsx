@@ -79,43 +79,43 @@ export function Sidebar({ className }: SidebarProps) {
 
   const isAdmin = session?.user?.role === "ADMIN";
 
-  useEffect(() => {
-    const fetchNavigationData = async () => {
-      try {
-        // Only fetch learning content for non-admin users
-        if (!isAdmin) {
-          // Fetch modules
-          const modulesResponse = await fetch("/api/navigation");
-          if (modulesResponse.ok) {
-            const modulesData = await modulesResponse.json();
-            setModules(modulesData);
-          }
+  const fetchNavigationData = async () => {
+    try {
+      // Only fetch learning content for non-admin users
+      if (!isAdmin) {
+        // Fetch modules
+        const modulesResponse = await fetch("/api/navigation");
+        if (modulesResponse.ok) {
+          const modulesData = await modulesResponse.json();
+          setModules(modulesData);
+        }
 
-          // Fetch learning path progress
-          const pathResponse = await fetch("/api/user/path-progress");
-          if (pathResponse.ok) {
-            const pathData = await pathResponse.json();
-            if (pathData.enrolled) {
-              setLearningPath({
-                id: pathData.path.id,
-                title: pathData.path.title,
-                emoji: pathData.path.emoji,
-                durationWeeks: pathData.path.durationWeeks,
-                currentWeek: pathData.progress.currentWeek,
-                currentDay: pathData.progress.currentDay,
-                progressPercentage: pathData.progress.progressPercentage,
-                lessonsByWeek: pathData.lessonsByWeek,
-              });
-            }
+        // Fetch learning path progress
+        const pathResponse = await fetch("/api/user/path-progress");
+        if (pathResponse.ok) {
+          const pathData = await pathResponse.json();
+          if (pathData.enrolled) {
+            setLearningPath({
+              id: pathData.path.id,
+              title: pathData.path.title,
+              emoji: pathData.path.emoji,
+              durationWeeks: pathData.path.durationWeeks,
+              currentWeek: pathData.progress.currentWeek,
+              currentDay: pathData.progress.currentDay,
+              progressPercentage: pathData.progress.progressPercentage,
+              lessonsByWeek: pathData.lessonsByWeek,
+            });
           }
         }
-      } catch (error) {
-        console.error("Failed to fetch navigation:", error);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Failed to fetch navigation:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (session) {
       fetchNavigationData();
     }

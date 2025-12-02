@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,9 @@ interface LearningPath {
   completionRate?: number;
 }
 
-export default function PathsPage() {
+function PathsPageComponent() {
+  const searchParams = useSearchParams();
+  const isChangingPath = searchParams.get('change') === 'true';
   const [paths, setPaths] = useState<LearningPath[]>([]);
   const [filteredPaths, setFilteredPaths] = useState<LearningPath[]>([]);
   const [loading, setLocalLoading] = useState(true);
@@ -45,11 +47,9 @@ export default function PathsPage() {
   const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { setBreadcrumbs, setCurrentPage } = useNavigation();
   const { setLoading: setGlobalLoading } = useLoading();
   const { toast } = useToast();
-  const isChangingPath = searchParams?.get('change') === 'true';
 
   const DIFFICULTY_OPTIONS = ["all", "BEGINNER", "EASY", "MEDIUM", "HARD"];
   const DURATION_OPTIONS = [
@@ -617,3 +617,13 @@ export default function PathsPage() {
     </div>
   );
 }
+
+function PathsPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PathsPageComponent />
+    </Suspense>
+  );
+}
+
+export default PathsPage;

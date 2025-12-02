@@ -56,12 +56,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { 
-      name, 
-      description, 
-      emoji, 
-      durationWeeks, 
-      difficulty, 
+    const {
+      name,
+      description,
+      emoji,
+      durationWeeks,
+      difficulty,
       targetAudience,
       lessonsPerDay,
       daysPerWeek,
@@ -70,9 +70,7 @@ export async function POST(request: NextRequest) {
       excludeModules,
       minDifficulty,
       maxDifficulty,
-      companyFocus,
-      balanceTheoryPractice,
-      rules 
+      rules
     } = await request.json();
 
     // Validate required fields
@@ -100,8 +98,6 @@ export async function POST(request: NextRequest) {
         excludeModules: excludeModules || [],
         minDifficulty,
         maxDifficulty,
-        companyFocus: companyFocus || [],
-        balanceTheoryPractice: balanceTheoryPractice !== undefined ? balanceTheoryPractice : true,
         rules: rules || {},
       },
     });
