@@ -131,10 +131,24 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
+    // Convert userProfile to match expected interface
+    const normalizedUserProfile: UserProfile = userProfile ? {
+      ...userProfile,
+      targetCompanies: userProfile.targetCompanies ?
+        (Array.isArray(userProfile.targetCompanies)
+          ? userProfile.targetCompanies
+          : userProfile.targetCompanies.split(',').map(c => c.trim()))
+        : []
+    } : {
+      experienceLevel: 'FRESHER',
+      targetCompanies: [],
+      preferredLanguage: 'javascript'
+    };
+
     const recommendations = await generateRecommendations(
       userProgress as UserProgress | null,
       completedLessons as CompletedLesson[],
-      userProfile as UserProfile,
+      normalizedUserProfile,
       type
     );
 
@@ -273,10 +287,15 @@ function generateReviewRecommendations(completedLessons: CompletedLesson[]): Rec
     acc[moduleName].totalLessons++;
     acc[moduleName].totalTime += lessonProgress.timeSpentSeconds;
     return acc;
-  }, {} as Record<string, any>);
+  }, {} as Record<string, {
+    totalLessons: number;
+    totalTime: number;
+    avgTime: number;
+    difficulty: string;
+  }>);
 
   // Calculate averages and identify areas for review
-  Object.entries(modulePerformance).forEach(([moduleName, performance]: [string, any]) => {
+  Object.entries(modulePerformance).forEach(([moduleName, performance]) => {
     performance.avgTime = performance.totalTime / performance.totalLessons;
 
     // Flag modules where user spent significantly more time than average

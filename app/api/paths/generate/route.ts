@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
 
       // Extract rules from template
       rules = {
-        includeModules: template.includeModules,
-        excludeModules: template.excludeModules,
+        includeModules: template.includeModules ? template.includeModules.split(',').map(m => m.trim()) : [],
+        excludeModules: template.excludeModules ? template.excludeModules.split(',').map(m => m.trim()) : [],
         minDifficulty: template.minDifficulty || undefined,
         maxDifficulty: template.maxDifficulty || undefined,
         lessonsPerDay: template.lessonsPerDay,

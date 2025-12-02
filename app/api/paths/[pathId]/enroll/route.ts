@@ -72,6 +72,7 @@ export async function POST(
         userId,
         learningPathId: pathId,
         totalLessons: path._count.pathLessons,
+        completedMilestones: "", // Add empty completedMilestones as required field
       },
     });
 

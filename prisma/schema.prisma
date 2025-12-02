@@ -12,7 +12,7 @@ model User {
   passwordHash        String
   name                String
   role                Role               @default(USER)
-  targetCompanies     String[]
+  targetCompanies     String
   experienceLevel     Experience         @default(FRESHER)
   preferredLanguage   String             @default("javascript")
   subscriptionStatus  SubscriptionStatus @default(FREE)
@@ -239,7 +239,7 @@ model LearningPath {
   emoji             String             @default("🎯")
   durationWeeks     Int
   difficulty        Difficulty         @default(MEDIUM)
-  targetCompanies   String[]
+  targetCompanies   String
   isActive          Boolean            @default(true)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
@@ -248,14 +248,24 @@ model LearningPath {
   lastGeneratedAt   DateTime?
   templateId        String?
   template          PathTemplate?      @relation(fields: [templateId], references: [id])
+  
+  // New timeline-specific fields
+  pathType          PathType           @default(STANDARD)
+  intensityLevel    Int                @default(2)
+  estimatedHoursPerDay Float           @default(2.0)
+  priorityTopics    Json?
+  optionalContent   Json?
+  
   pathLessons       PathLesson[]
   userProgress      UserPathProgress[]
   milestones        Milestone[]        @relation("LearningPathToMilestone")
+  timelineMilestones TimelineMilestone[]
   resetHistory      ResetHistory[]
 
   @@index([isActive])
   @@index([durationWeeks])
   @@index([isDynamic])
+  @@index([pathType])
 }
 
 model PathTemplate {
@@ -267,8 +277,8 @@ model PathTemplate {
   difficulty           Difficulty     @default(MEDIUM)
   targetAudience       String
   rules                Json
-  includeModules       String[]
-  excludeModules       String[]
+  includeModules       String
+  excludeModules       String
   minDifficulty        Difficulty?
   maxDifficulty        Difficulty?
   lessonsPerDay        Int            @default(2)
@@ -317,13 +327,23 @@ model PathLesson {
   isRequired     Boolean      @default(true)
   estimatedHours Float        @default(1.0)
   createdAt      DateTime     @default(now())
+  
+  // New timeline-specific fields
+  priority       Int          @default(2)
+  isSkippable    Boolean      @default(false)
+  dependencies   String
+  masteryLevel   MasteryLevel @default(STANDARD)
+  adaptiveContent Json?
+  
   learningPath   LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
   lesson         Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  contentAdaptations ContentAdaptation[]
 
   @@unique([learningPathId, lessonId])
   @@index([learningPathId])
   @@index([lessonId])
   @@index([weekNumber, dayNumber])
+  @@index([priority])
 }
 
 model UserPathProgress {
@@ -340,13 +360,28 @@ model UserPathProgress {
   isActive         Boolean      @default(true)
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
+  
+  // New timeline-specific fields
+  targetInterviewDate    DateTime?
+  originalTargetDate     DateTime?
+  paceAdjustments       Json?
+  timeSpentVsPlanned    Float?
+  deadlineAlerts        Json?
+  completedMilestones   String
+  studyStreak           Int          @default(0)
+  longestStreak         Int          @default(0)
+  weeklyGoals           Json?
+  
   learningPath     LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
   user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  studySessions     StudySession[]
+  timelineAlerts    TimelineAlert[]
 
   @@unique([userId, learningPathId])
   @@index([userId])
   @@index([learningPathId])
   @@index([isActive])
+  @@index([targetInterviewDate])
 }
 
 model Job {
@@ -380,7 +415,7 @@ model Milestone {
   pathSpecific  Boolean        @default(false)
   isActive      Boolean        @default(true)
   createdAt     DateTime       @default(now())
-  achievements  Achievement[]
+  achievements   Achievement[]
   learningPaths LearningPath[] @relation("LearningPathToMilestone")
 
   @@index([type])
@@ -508,4 +543,122 @@ enum ResetType {
   PATH
   WEEK
   ALL
+}
+
+// New enums for timeline-based learning paths
+enum PathType {
+  STANDARD
+  TIMELINE_1_MONTH
+  TIMELINE_3_MONTHS
+  TIMELINE_6_MONTHS
+  CUSTOM
+}
+
+enum MasteryLevel {
+  BASIC          // For 1-month timeline - just enough to pass
+  STANDARD       // For 3-month timeline - good understanding
+  ADVANCED       // For 6-month timeline - deep mastery
+}
+
+// New models for timeline features
+model TimelineMilestone {
+  id              String       @id @default(cuid())
+  learningPathId  String
+  title           String
+  description     String
+  emoji           String       @default("🎉")
+  targetDate      DateTime
+  bufferDays      Int          @default(0)
+  isCritical      Boolean      @default(false)
+  type            MilestoneType
+  threshold       Int
+  isActive        Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  learningPath    LearningPath @relation(fields: [learningPathId], references: [id], onDelete: Cascade)
+
+  @@index([learningPathId])
+  @@index([targetDate])
+  @@index([isCritical])
+}
+
+model StudySession {
+  id               String    @id @default(cuid())
+  userId           String
+  userPathProgressId String
+  startTime         DateTime  @default(now())
+  endTime           DateTime?
+  lessonsStudied   String
+  topicsCovered     String
+  timeSpent        Int       @default(0)
+  focusScore       Int       @default(0)
+  comprehensionScore Int       @default(0)
+  interruptions    Int       @default(0)
+  effectiveness    Int       @default(0)
+  deviceType       String?
+  location         String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  userPathProgress UserPathProgress @relation(fields: [userPathProgressId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userPathProgressId])
+  @@index([startTime])
+  @@index([effectiveness])
+}
+
+model ContentAdaptation {
+  id             String       @id @default(cuid())
+  lessonId       String
+  pathType       PathType
+  masteryLevel   MasteryLevel
+  adaptedContent Json
+  estimatedTime  Int
+  priority       Int          @default(2)
+  isSkippable    Boolean      @default(false)
+  learningObjectives String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  pathLesson     PathLesson?  @relation(fields: [lessonId], references: [id])
+
+  @@index([lessonId])
+  @@index([pathType])
+  @@index([masteryLevel])
+  @@index([priority])
+}
+
+model PaceAdjustment {
+  id                 String @id @default(cuid())
+  userPathProgressId  String
+  adjustmentType     String
+  oldPace            Float?
+  newPace            Float?
+  reason             String?
+  impact             String?
+  automatic          Boolean @default(false)
+  createdAt          DateTime @default(now())
+
+
+  @@index([userPathProgressId])
+  @@index([createdAt])
+}
+
+model TimelineAlert {
+  id                 String @id @default(cuid())
+  userPathProgressId  String
+  alertType          String
+  severity            String
+  message            String
+  isRead             Boolean @default(false)
+  actionRequired      Boolean @default(false)
+  actionUrl          String?
+  scheduledFor       DateTime?
+  sentAt             DateTime?
+  createdAt          DateTime @default(now())
+
+  userPathProgress UserPathProgress @relation(fields: [userPathProgressId], references: [id], onDelete: Cascade)
+
+  @@index([userPathProgressId])
+  @@index([isRead])
+  @@index([scheduledFor])
 }

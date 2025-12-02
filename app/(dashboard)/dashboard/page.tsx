@@ -131,7 +131,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   Welcome to your learning journey, {session?.user?.name}!
                 </h3>
                 <p className="text-gray-700 mb-4">
-                  You've successfully enrolled in the <strong>{pathData.title}</strong> path.
+                  You&apos;ve successfully enrolled in the <strong>{pathData.title}</strong> path.
                   This {pathData.durationWeeks}-week program will prepare you for interviews at top companies.
                 </p>
                 <div className="flex flex-wrap gap-2 mb-4">
@@ -164,7 +164,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               Welcome back, {session?.user?.name}! 👋
             </h1>
             <p className="mt-2 text-gray-600">
-              Continue your interview preparation journey. You're making great progress!
+              Continue your interview preparation journey. You&apos;re making great progress!
             </p>
           </div>
         </div>
@@ -252,19 +252,33 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                   style={{ width: `${pathProgressPercentage}%` }}
                 ></div>
               </div>
-              {pathData.targetCompanies && pathData.targetCompanies.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-sm text-gray-600">Preparing for:</span>
-                  {pathData.targetCompanies.slice(0, 4).map((company) => (
-                    <span
-                      key={company}
-                      className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
-                    >
-                      {company}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {(() => {
+                let companies: string[] = [];
+                if (Array.isArray(pathData.targetCompanies)) {
+                  companies = pathData.targetCompanies;
+                } else if (typeof pathData.targetCompanies === 'string') {
+                  try {
+                    companies = JSON.parse(pathData.targetCompanies);
+                  } catch (e) {
+                    // If parsing fails, treat as empty array
+                    companies = [];
+                  }
+                }
+                
+                return companies.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    <span className="text-sm text-gray-600">Preparing for:</span>
+                    {companies.slice(0, 4).map((company) => (
+                      <span
+                        key={company}
+                        className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
+                      >
+                        {company}
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
             </Card>
           ) : (
             <Card className="p-8 text-center">

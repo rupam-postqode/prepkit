@@ -13,7 +13,7 @@ interface LearningPath {
   emoji: string;
   durationWeeks: number;
   difficulty: string;
-  targetCompanies: string[];
+  targetCompanies: string[] | string; // Handle both array and string formats
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -168,12 +168,26 @@ export default async function AdminLearningPathsPage() {
                         <div className="text-sm text-gray-500">
                           {path.durationWeeks} weeks
                         </div>
-                        {path.targetCompanies.length > 0 && (
-                          <div className="text-xs text-gray-500">
-                            Targets: {path.targetCompanies.slice(0, 2).join(", ")}
-                            {path.targetCompanies.length > 2 && ` +${path.targetCompanies.length - 2}`}
-                          </div>
-                        )}
+                        {(() => {
+                          let companies: string[] = [];
+                          if (Array.isArray(path.targetCompanies)) {
+                            companies = path.targetCompanies;
+                          } else if (typeof path.targetCompanies === 'string') {
+                            try {
+                              companies = JSON.parse(path.targetCompanies);
+                            } catch (e) {
+                              // If parsing fails, treat as empty array
+                              companies = [];
+                            }
+                          }
+                          
+                          return companies.length > 0 && (
+                            <div className="text-xs text-gray-500">
+                              Targets: {companies.slice(0, 2).join(", ")}
+                              {companies.length > 2 && ` +${companies.length - 2}`}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

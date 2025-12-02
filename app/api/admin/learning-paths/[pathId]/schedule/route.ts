@@ -62,6 +62,7 @@ export async function PUT(
       orderIndex: lesson.orderIndex || 1,
       isRequired: lesson.isRequired !== undefined ? lesson.isRequired : true,
       estimatedHours: lesson.estimatedHours || 1.0,
+      dependencies: "", // Add empty dependencies as required field
     }));
 
     if (pathLessonData.length > 0) {

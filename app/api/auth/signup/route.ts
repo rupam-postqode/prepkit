@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
         experienceLevel: "FRESHER",
         preferredLanguage: "javascript",
         subscriptionStatus: "FREE",
+        targetCompanies: "", // Add empty targetCompanies as required field
       },
     });
 

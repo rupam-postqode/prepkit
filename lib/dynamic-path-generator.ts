@@ -370,7 +370,7 @@ export class DynamicPathGenerator {
         emoji,
         durationWeeks: template.durationWeeks,
         difficulty: template.difficulty,
-        targetCompanies: [], // Can be customized based on template
+        targetCompanies: "", // Use empty string as required by schema
         isDynamic: true,
         templateId: template.id,
         generatedFromJson: JSON.stringify(schedule),
@@ -391,6 +391,7 @@ export class DynamicPathGenerator {
           orderIndex: lesson.orderIndex,
           isRequired: lesson.isRequired,
           estimatedHours: lesson.estimatedHours,
+          dependencies: "", // Add empty dependencies as required field
         });
       }
     }

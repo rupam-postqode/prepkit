@@ -12,9 +12,10 @@ export async function GET(
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
+      const { lessonId } = await params;
       const errorResponse = handleApiError(
         new Error('Unauthorized'),
-        { method: 'GET', url: `/api/lessons/${params}/content` }
+        { method: 'GET', url: `/api/lessons/${lessonId}/content` }
       );
       return NextResponse.json(errorResponse, { status: 401 });
     }
@@ -40,7 +41,7 @@ export async function GET(
   } catch (error) {
     const errorResponse = handleApiError(
       error,
-      { method: 'GET', url: `/api/lessons/${params}/content` }
+      { method: 'GET', url: `/api/lessons/[lessonId]/content` }
     );
     return NextResponse.json({
       accessGranted: false,

@@ -412,7 +412,7 @@ async function main() {
       emoji: "⚡",
       durationWeeks: 4,
       difficulty: "MEDIUM",
-      targetCompanies: ["Google", "Meta", "Amazon", "Microsoft"],
+      targetCompanies: "Google,Meta,Amazon,Microsoft", // Use string as required by schema
     },
   });
 
@@ -426,7 +426,7 @@ async function main() {
       emoji: "🎯",
       durationWeeks: 12,
       difficulty: "MEDIUM",
-      targetCompanies: ["Google", "Meta", "Amazon", "Microsoft", "Flipkart", "Swiggy"],
+      targetCompanies: "Google,Meta,Amazon,Microsoft,Flipkart,Swiggy", // Use string as required by schema
     },
   });
 
