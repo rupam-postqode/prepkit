@@ -5,7 +5,7 @@ import { interviewService } from '@/lib/services/interview/interviewService';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { sessionId: string } }
+  { params }: { params: Promise<{ sessionId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -16,7 +16,7 @@ export async function GET(
       );
     }
 
-    const { sessionId } = params;
+    const { sessionId } = await params;
 
     const report = await interviewService.getInterviewReport(sessionId, session.user.id);
 

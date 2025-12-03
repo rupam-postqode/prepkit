@@ -6,7 +6,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 
 // Initialize Stripe with API version
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2025-02-24.acacia',
   typescript: true,
 });
 
@@ -31,7 +31,7 @@ export async function createYearlySubscriptionCheckout(
   userName: string
 ) {
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card', 'upi'],
+    payment_method_types: ['card'],
     line_items: [
       {
         price_data: {
@@ -70,7 +70,7 @@ export async function createInterviewCheckout(
   interviewDifficulty: string
 ) {
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card', 'upi'],
+    payment_method_types: ['card'],
     line_items: [
       {
         price_data: {

@@ -59,7 +59,7 @@ export class InterviewService {
             specificRequirements: input.specificRequirements,
             duration: estimatedDuration
           },
-          questionsGenerated: questions,
+          questionsGenerated: questions as any,
           costCalculated: pricing.userPrice,
           paymentStatus: 'CREATED'
         }
@@ -175,11 +175,11 @@ export class InterviewService {
           sessionId: session.id,
           overallScore: report.overallScore,
           scoreBreakdown: report.scoreBreakdown,
-          strengths: report.strengths,
-          weaknesses: report.weaknesses,
-          recommendations: report.recommendations,
+          strengths: report.strengths as any,
+          weaknesses: report.weaknesses as any,
+          recommendations: report.recommendations as any,
           detailedAnalysis: report.summary,
-          reportJson: report
+          reportJson: report as any
         }
       });
       

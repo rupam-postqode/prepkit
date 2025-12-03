@@ -6,7 +6,7 @@ import { DynamicPathGenerator, PathGenerationRule } from "@/lib/dynamic-path-gen
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { templateId: string } }
+  { params }: { params: Promise<{ templateId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -25,9 +25,12 @@ export async function POST(
     const body = await request.json();
     const { preview = false, title, description, emoji } = body;
 
+    // Await params as they are now async in Next.js 15+
+    const { templateId } = await params;
+
     // Fetch the template
     const template = await prisma.pathTemplate.findUnique({
-      where: { id: params.templateId },
+      where: { id: templateId },
     });
 
     if (!template) {
@@ -45,7 +48,7 @@ export async function POST(
     }
 
     // Parse the rules
-    const rules = template.rules as PathGenerationRule;
+    const rules = template.rules as unknown as PathGenerationRule;
 
     // Initialize the generator
     const generator = new DynamicPathGenerator();

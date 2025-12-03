@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { templateId: string } }
+  { params }: { params: Promise<{ templateId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -21,8 +21,10 @@ export async function GET(
       );
     }
 
+    const { templateId } = await params;
+
     const template = await prisma.pathTemplate.findUnique({
-      where: { id: params.templateId },
+      where: { id: templateId },
       include: {
         generatedPaths: {
           select: {
@@ -64,7 +66,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { templateId: string } }
+  { params }: { params: Promise<{ templateId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -79,6 +81,8 @@ export async function PUT(
         { status: 403 }
       );
     }
+
+    const { templateId } = await params;
 
     const body = await request.json();
     const {
@@ -115,7 +119,7 @@ export async function PUT(
     };
 
     const template = await prisma.pathTemplate.update({
-      where: { id: params.templateId },
+      where: { id: templateId },
       data: {
         name,
         description,
@@ -147,7 +151,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { templateId: string } }
+  { params }: { params: Promise<{ templateId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -163,9 +167,11 @@ export async function DELETE(
       );
     }
 
+    const { templateId } = await params;
+
     // Check if template has generated paths
     const template = await prisma.pathTemplate.findUnique({
-      where: { id: params.templateId },
+      where: { id: templateId },
       include: {
         _count: {
           select: {
@@ -185,7 +191,7 @@ export async function DELETE(
     if (template._count.generatedPaths > 0) {
       // Soft delete by marking as inactive
       await prisma.pathTemplate.update({
-        where: { id: params.templateId },
+        where: { id: templateId },
         data: { isActive: false },
       });
 
@@ -197,7 +203,7 @@ export async function DELETE(
 
     // Hard delete if no paths generated
     await prisma.pathTemplate.delete({
-      where: { id: params.templateId },
+      where: { id: templateId },
     });
 
     return NextResponse.json({
