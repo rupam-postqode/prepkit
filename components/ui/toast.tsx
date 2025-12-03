@@ -32,16 +32,19 @@ export function useToast() {
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = React.useState<Array<ToastProps & { id: string }>>([]);
+  const [counter, setCounter] = React.useState(0);
 
   const toast = ({ title, description, variant = "info", duration = 5000, action }: ToastProps) => {
-    const id = Math.random().toString(36).substring(2, 9);
+    const id = `toast-${counter}`;
+    setCounter(prev => prev + 1);
+    
     const newToast = { id, title, description, variant, duration, action };
     
     setToasts(prev => [...prev, newToast]);
     
     // Auto remove after duration
     setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
+      dismiss(id);
     }, duration);
   };
 
@@ -68,13 +71,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 function Toast({ title, description, variant, action, onDismiss }: ToastProps & { id: string; onDismiss: () => void }) {
   const [isVisible, setIsVisible] = React.useState(true);
 
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(onDismiss, 300); // Wait for exit animation
-    }, 4000);
+  const handleDismiss = () => {
+    setIsVisible(false);
+    setTimeout(onDismiss, 300); // Wait for exit animation
+  };
 
-    return () => clearTimeout(timer);
+  React.useEffect(() => {
+    // Don't set auto-dismiss timer here since it's handled by the provider
+    return () => {};
   }, []);
 
   const getIcon = () => {
@@ -136,7 +140,7 @@ function Toast({ title, description, variant, action, onDismiss }: ToastProps & 
         </div>
         <div className="flex-shrink-0 ml-4">
           <button
-            onClick={() => setIsVisible(false)}
+            onClick={handleDismiss}
             className="inline-flex text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-md"
           >
             <X className="w-4 h-4" />

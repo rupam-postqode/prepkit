@@ -56,21 +56,40 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) => {
   )
 }
 
+interface DialogTriggerProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  asChild?: boolean
+}
+
 const DialogTrigger = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(({ onClick, ...props }, ref) => {
+  DialogTriggerProps
+>(({ onClick, asChild = false, children, ...props }, ref) => {
   const { onOpenChange } = React.useContext(DialogContext)
+  
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    onClick?.(e)
+    onOpenChange(true)
+  }
+  
+  if (asChild && React.isValidElement(children)) {
+    const child = children as React.ReactElement<React.ComponentPropsWithRef<'button'>>
+    return React.cloneElement(child, {
+      ...child.props,
+      onClick: (e: React.MouseEvent<HTMLButtonElement>) => {
+        child.props.onClick?.(e)
+        handleClick(e)
+      },
+    })
+  }
   
   return (
     <button
       ref={ref}
-      onClick={(e) => {
-        onClick?.(e)
-        onOpenChange(true)
-      }}
+      onClick={handleClick}
       {...props}
-    />
+    >
+      {children}
+    </button>
   )
 })
 DialogTrigger.displayName = "DialogTrigger"

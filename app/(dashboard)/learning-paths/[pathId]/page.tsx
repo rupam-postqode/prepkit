@@ -19,7 +19,7 @@ interface LearningPath {
   emoji: string;
   durationWeeks: number;
   difficulty: string;
-  targetCompanies: string[];
+  targetCompanies: string[] | string; // Can be string from DB or array from frontend
   pathLessons: PathLesson[];
 }
 
@@ -370,7 +370,7 @@ export default function LearningPathPage() {
                   disabled={isResetting}
                   className="text-red-600 border-red-600 hover:bg-red-50"
                 >
-                  <ResetIcon className="w-4 h-4 mr-2" />
+                  <RotateCcw className="w-4 h-4 mr-2" />
                   Reset Progress
                 </Button>
               </ResetDialog>
@@ -492,18 +492,34 @@ export default function LearningPathPage() {
                   </div>
                 </div>
 
-                {pathData.targetCompanies && pathData.targetCompanies.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="font-medium text-gray-900 mb-2">Target Companies:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {pathData.targetCompanies.map((company) => (
-                        <Badge key={company} variant="outline">
-                          {company}
-                        </Badge>
-                      ))}
+                {(() => {
+                  const companies = (() => {
+                    if (!pathData.targetCompanies) return [];
+                    if (Array.isArray(pathData.targetCompanies)) return pathData.targetCompanies;
+                    if (typeof pathData.targetCompanies === 'string') {
+                      try {
+                        const parsed = JSON.parse(pathData.targetCompanies);
+                        return Array.isArray(parsed) ? parsed : pathData.targetCompanies.split(',').map(c => c.trim()).filter(Boolean);
+                      } catch {
+                        return pathData.targetCompanies.split(',').map(c => c.trim()).filter(Boolean);
+                      }
+                    }
+                    return [];
+                  })();
+                  
+                  return companies.length > 0 && (
+                    <div className="mt-4">
+                      <h4 className="font-medium text-gray-900 mb-2">Target Companies:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {companies.map((company, index) => (
+                          <Badge key={`${company}-${index}`} variant="outline">
+                            {company}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </Card>
 
               {/* Current Week Focus */}

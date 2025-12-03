@@ -104,9 +104,9 @@ function PathsPageComponent() {
       filtered = filtered.filter(path =>
         path.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         path.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        path.targetCompanies.some(company =>
+        (Array.isArray(path.targetCompanies) && path.targetCompanies.some(company =>
           company.toLowerCase().includes(searchTerm.toLowerCase())
-        )
+        ))
       );
     }
 
@@ -127,7 +127,7 @@ function PathsPageComponent() {
     // Company filter
     if (selectedCompanies.length > 0) {
       filtered = filtered.filter(path =>
-        selectedCompanies.some(company => path.targetCompanies.includes(company))
+        Array.isArray(path.targetCompanies) && selectedCompanies.some(company => path.targetCompanies.includes(company))
       );
     }
 
@@ -141,6 +141,37 @@ function PathsPageComponent() {
     setSelectedCompanies([]);
   };
 
+  const normalizeTargetCompanies = (targetCompanies: unknown): string[] => {
+    console.log('normalizeTargetCompanies input:', targetCompanies, 'type:', typeof targetCompanies, 'isArray:', Array.isArray(targetCompanies));
+    
+    if (!targetCompanies) return [];
+    
+    if (typeof targetCompanies === 'string') {
+      try {
+        const parsed = JSON.parse(targetCompanies);
+        const result = Array.isArray(parsed) ? [...parsed] : [String(parsed)];
+        console.log('Parsed from string:', result);
+        return result;
+      } catch {
+        // If parsing fails, treat as comma-separated string
+        const result = targetCompanies.split(',').map((c) => c.trim()).filter(Boolean);
+        console.log('Split from string:', result);
+        return result;
+      }
+    }
+    
+    if (Array.isArray(targetCompanies)) {
+      // Force create a new array using spread to ensure it's a true array
+      const result = [...targetCompanies];
+      console.log('Already array, spreading:', result);
+      return result;
+    }
+    
+    // Handle any other case by converting to array
+    console.log('Converting to array from unknown type');
+    return [];
+  };
+
   const fetchPaths = async () => {
     setGlobalLoading(true, "Loading learning paths...");
     
@@ -149,11 +180,14 @@ function PathsPageComponent() {
       if (response.ok) {
         const data = await response.json();
         // Add mock rating and completion data for demonstration
-        const enrichedData = data.map((path: LearningPath) => ({
-          ...path,
-          averageRating: Math.random() * 2 + 3, // 3-5 stars
-          completionRate: Math.floor(Math.random() * 40 + 60), // 60-100%
-        }));
+        const enrichedData = data.map((path: Omit<LearningPath, 'targetCompanies' | 'averageRating' | 'completionRate'> & { targetCompanies: unknown }) => {
+          return {
+            ...path,
+            targetCompanies: normalizeTargetCompanies(path.targetCompanies),
+            averageRating: Math.random() * 2 + 3, // 3-5 stars
+            completionRate: Math.floor(Math.random() * 40 + 60), // 60-100%
+          } as LearningPath;
+        });
         setPaths(enrichedData);
       } else {
         setError("Failed to load learning paths");
@@ -163,6 +197,7 @@ function PathsPageComponent() {
       setError("Failed to load learning paths");
     } finally {
       setLocalLoading(false);
+      setGlobalLoading(false);
     }
   };
 
@@ -534,23 +569,30 @@ function PathsPageComponent() {
               </div>
 
               {/* Target Companies */}
-              {path.targetCompanies && path.targetCompanies.length > 0 && (
+              {Array.isArray(path.targetCompanies) && path.targetCompanies.length > 0 && (
                 <div className="mb-6">
                   <div className="text-sm text-gray-600 mb-2">Prepares for:</div>
                   <div className="flex flex-wrap gap-1">
-                    {path.targetCompanies.slice(0, 3).map((company) => (
-                      <span
-                        key={company}
-                        className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
-                      >
-                        {company}
-                      </span>
-                    ))}
-                    {path.targetCompanies.length > 3 && (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                        +{path.targetCompanies.length - 3} more
-                      </span>
-                    )}
+                    {(() => {
+                      const companies = Array.isArray(path.targetCompanies) ? path.targetCompanies : [];
+                      const topCompanies = companies.slice(0, 3);
+                      return Array.isArray(topCompanies) ? topCompanies.map((company) => (
+                        <span
+                          key={company}
+                          className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
+                        >
+                          {company}
+                        </span>
+                      )) : null;
+                    })()}
+                    {(() => {
+                      const companies = Array.isArray(path.targetCompanies) ? path.targetCompanies : [];
+                      return companies.length > 3 ? (
+                        <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                          +{companies.length - 3} more
+                        </span>
+                      ) : null;
+                    })()}
                   </div>
                 </div>
               )}

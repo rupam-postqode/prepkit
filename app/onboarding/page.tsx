@@ -15,7 +15,7 @@ interface LearningPath {
   emoji: string;
   durationWeeks: number;
   difficulty: string;
-  targetCompanies: string[];
+  targetCompanies: string[] | string; // Can be string from DB or array from frontend
   _count: {
     pathLessons: number;
     userProgress: number;
@@ -155,8 +155,8 @@ export default function OnboardingPage() {
             Welcome to PrepKit, {session?.user?.name}! 👋
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            You're about to start an amazing journey to land your dream job.
-            Let's choose the perfect learning path for your interview preparation.
+            You&apos;re about to start an amazing journey to land your dream job.
+            Let&apos;s choose the perfect learning path for your interview preparation.
           </p>
         </div>
 
@@ -224,26 +224,42 @@ export default function OnboardingPage() {
                   </div>
 
                   {/* Target Companies */}
-                  {path.targetCompanies && path.targetCompanies.length > 0 && (
-                    <div className="mb-4">
-                      <div className="text-sm text-gray-600 mb-2">Prepares for:</div>
-                      <div className="flex flex-wrap gap-1 justify-center">
-                        {path.targetCompanies.slice(0, 3).map((company) => (
-                          <span
-                            key={company}
-                            className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
-                          >
-                            {company}
-                          </span>
-                        ))}
-                        {path.targetCompanies.length > 3 && (
-                          <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                            +{path.targetCompanies.length - 3} more
-                          </span>
-                        )}
+                  {(() => {
+                    const companies = (() => {
+                      if (!path.targetCompanies) return [];
+                      if (Array.isArray(path.targetCompanies)) return path.targetCompanies;
+                      if (typeof path.targetCompanies === 'string') {
+                        try {
+                          const parsed = JSON.parse(path.targetCompanies);
+                          return Array.isArray(parsed) ? parsed : path.targetCompanies.split(',').map(c => c.trim()).filter(Boolean);
+                        } catch {
+                          return path.targetCompanies.split(',').map(c => c.trim()).filter(Boolean);
+                        }
+                      }
+                      return [];
+                    })();
+                    
+                    return companies.length > 0 && (
+                      <div className="mb-4">
+                        <div className="text-sm text-gray-600 mb-2">Prepares for:</div>
+                        <div className="flex flex-wrap gap-1 justify-center">
+                          {companies.slice(0, 3).map((company, index) => (
+                            <span
+                              key={`${company}-${index}`}
+                              className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full"
+                            >
+                              {company}
+                            </span>
+                          ))}
+                          {companies.length > 3 && (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                              +{companies.length - 3} more
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Selection Indicator */}
                   {selectedPath === path.id && (
@@ -273,7 +289,7 @@ export default function OnboardingPage() {
                 {enrolling ? "Starting Your Journey..." : "Start My Learning Path →"}
               </Button>
               <p className="text-sm text-gray-600">
-                Don't worry, you can change paths later if needed.
+                Don&apos;t worry, you can change paths later if needed.
               </p>
             </div>
           ) : (
