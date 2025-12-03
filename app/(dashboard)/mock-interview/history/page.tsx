@@ -1,239 +1,412 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, TrendingUp, Eye, Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { 
+  Loader2, 
+  Calendar,
+  Clock,
+  FileText,
+  TrendingUp,
+  TrendingDown,
+  Search,
+  Filter
+} from 'lucide-react';
+
+interface Interview {
+  sessionId: string;
+  type: string;
+  difficulty: string;
+  status: string;
+  date: string;
+  duration: number;
+  score?: number;
+}
 
 export default function HistoryPage() {
+  const router = useRouter();
+  const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [filteredInterviews, setFilteredInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
-  const [history, setHistory] = useState<any>(null);
-  const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  
+  // Stats
+  const [stats, setStats] = useState({
+    total: 0,
+    avgScore: 0,
+    bestScore: 0,
+    totalDuration: 0,
+  });
 
   useEffect(() => {
-    fetchHistory(page);
-  }, [page]);
+    fetchHistory();
+  }, []);
 
-  const fetchHistory = async (pageNum: number) => {
-    setLoading(true);
+  useEffect(() => {
+    applyFilters();
+  }, [interviews, searchTerm, filterType, filterStatus]);
+
+  const fetchHistory = async () => {
     try {
-      const response = await fetch(`/api/interviews/history?page=${pageNum}&limit=10`);
-      const data = await response.json();
-      if (data.success) {
-        setHistory(data.data);
+      const response = await fetch('/api/interviews/history');
+      if (!response.ok) {
+        throw new Error('Failed to load history');
       }
+      const data = await response.json();
+      setInterviews(data.data.interviews || []);
+      
+      // Calculate stats
+      const completed = data.data.interviews.filter((i: Interview) => i.status === 'COMPLETED');
+      const scores = completed.filter((i: Interview) => i.score).map((i: Interview) => i.score!);
+      
+      setStats({
+        total: data.data.interviews.length,
+        avgScore: scores.length > 0 ? Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length) : 0,
+        bestScore: scores.length > 0 ? Math.max(...scores) : 0,
+        totalDuration: data.data.interviews.reduce((sum: number, i: Interview) => sum + (i.duration || 0), 0),
+      });
     } catch (error) {
-      console.error('Failed to fetch history:', error);
+      console.error('Failed to load history:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-IN', {
-      day: 'numeric',
+  const applyFilters = () => {
+    let filtered = [...interviews];
+    
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(interview =>
+        interview.type.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Type filter
+    if (filterType !== 'all') {
+      filtered = filtered.filter(interview => interview.type === filterType);
+    }
+    
+    // Status filter
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(interview => interview.status === filterStatus);
+    }
+    
+    setFilteredInterviews(filtered);
+  };
+
+  const formatType = (type: string) => {
+    return type.split('_').map(word => 
+      word.charAt(0) + word.slice(1).toLowerCase()
+    ).join(' ');
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
       month: 'short',
-      year: 'numeric'
+      day: 'numeric',
     });
   };
 
   const formatDuration = (seconds: number) => {
-    if (!seconds) return 'N/A';
     const mins = Math.floor(seconds / 60);
     return `${mins} min`;
   };
 
+  const getScoreBadge = (score?: number) => {
+    if (!score) return null;
+    
+    if (score >= 80) {
+      return <Badge className="bg-success text-success-foreground">{score}</Badge>;
+    } else if (score >= 60) {
+      return <Badge className="bg-warning text-warning-foreground">{score}</Badge>;
+    } else {
+      return <Badge className="bg-destructive text-destructive-foreground">{score}</Badge>;
+    }
+  };
+
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, any> = {
-      COMPLETED: 'default',
-      IN_PROGRESS: 'secondary',
-      FAILED: 'destructive',
-      SETUP: 'outline'
-    };
-    return <Badge variant={variants[status] || 'secondary'}>{status}</Badge>;
+    switch (status) {
+      case 'COMPLETED':
+        return <Badge variant="default">Completed</Badge>;
+      case 'IN_PROGRESS':
+        return <Badge variant="secondary">In Progress</Badge>;
+      case 'SETUP':
+        return <Badge variant="outline">Pending</Badge>;
+      case 'FAILED':
+        return <Badge variant="destructive">Failed</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
   };
 
-  const getScoreBadge = (score: number | null) => {
-    if (!score) return <Badge variant="outline">Pending</Badge>;
-    if (score >= 80) return <Badge className="bg-green-600">⭐⭐⭐ {score}</Badge>;
-    if (score >= 60) return <Badge className="bg-blue-600">⭐⭐ {score}</Badge>;
-    return <Badge className="bg-orange-600">⭐ {score}</Badge>;
-  };
-
-  if (loading && !history) {
+  if (loading) {
     return (
-      <div className="container max-w-7xl mx-auto py-16 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="container max-w-7xl mx-auto py-8">
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container max-w-7xl mx-auto py-8 space-y-6">
+    <div className="container max-w-7xl mx-auto py-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Interview History</h1>
-          <p className="text-muted-foreground mt-2">
-            Track your progress and review past interviews
-          </p>
-        </div>
-        <Link href="/mock-interview/setup">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            New Interview
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Interview History</h1>
+            <p className="text-muted-foreground">
+              Track your progress and review past interviews
+            </p>
+          </div>
+          <Button onClick={() => router.push('/mock-interview/setup')}>
+            Schedule New Interview
           </Button>
-        </Link>
+        </div>
       </div>
 
-      {/* Statistics */}
-      {history && history.interviews.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Interviews
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">{history.total}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Completed
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">
-                {history.interviews.filter((i: any) => i.status === 'COMPLETED').length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Average Score
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-2xl font-bold">
-                {Math.round(
-                  history.interviews
-                    .filter((i: any) => i.score)
-                    .reduce((acc: number, i: any) => acc + i.score, 0) /
-                    history.interviews.filter((i: any) => i.score).length || 0
-                )}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Progress
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                <p className="text-2xl font-bold">
-                  {history.interviews.length > 1 ? '+12%' : 'N/A'}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-4 mb-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Interviews</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+          </CardContent>
+        </Card>
 
-      {/* Interview Table */}
-      <Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Average Score</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.avgScore}%</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Across all completed interviews
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Best Score</CardTitle>
+            <TrendingUp className="h-4 w-4 text-success" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-success">{stats.bestScore}%</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Personal best performance
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Time</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {Math.round(stats.totalDuration / 60)} min
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Time spent in interviews
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <Card className="mb-6">
         <CardHeader>
-          <CardTitle>All Interviews</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="h-5 w-5" />
+            Filters & Search
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {!history || history.interviews.length === 0 ? (
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by type..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="JAVASCRIPT">JavaScript</SelectItem>
+                <SelectItem value="MACHINE_CODING">Machine Coding</SelectItem>
+                <SelectItem value="DSA">Data Structures</SelectItem>
+                <SelectItem value="SYSTEM_DESIGN">System Design</SelectItem>
+                <SelectItem value="BEHAVIORAL">Behavioral</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                <SelectItem value="SETUP">Pending</SelectItem>
+                <SelectItem value="FAILED">Failed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Interviews Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Interviews</CardTitle>
+          <CardDescription>
+            {filteredInterviews.length} interview{filteredInterviews.length !== 1 ? 's' : ''} found
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {filteredInterviews.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground mb-4">No interviews yet</p>
-              <Link href="/mock-interview/setup">
-                <Button>Start Your First Interview</Button>
-              </Link>
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-4">
+                {interviews.length === 0 
+                  ? 'No interviews yet. Start your first interview!'
+                  : 'No interviews match your filters.'}
+              </p>
+              {interviews.length === 0 && (
+                <Button onClick={() => router.push('/mock-interview/setup')}>
+                  Schedule Your First Interview
+                </Button>
+              )}
             </div>
           ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Difficulty</TableHead>
-                    <TableHead>Duration</TableHead>
-                    <TableHead>Score</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Difficulty</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Score</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredInterviews.map((interview) => (
+                  <TableRow key={interview.sessionId}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <span>{formatDate(interview.date)}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {formatType(interview.type)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{interview.difficulty}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      {interview.duration ? formatDuration(interview.duration) : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {getStatusBadge(interview.status)}
+                    </TableCell>
+                    <TableCell>
+                      {interview.score ? getScoreBadge(interview.score) : '-'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {interview.status === 'COMPLETED' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/mock-interview/${interview.sessionId}/report`)}
+                        >
+                          View Report
+                        </Button>
+                      )}
+                      {interview.status === 'SETUP' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/mock-interview/${interview.sessionId}`)}
+                        >
+                          Continue
+                        </Button>
+                      )}
+                      {interview.status === 'IN_PROGRESS' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => router.push(`/mock-interview/${interview.sessionId}`)}
+                        >
+                          Resume
+                        </Button>
+                      )}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {history.interviews.map((interview: any) => (
-                    <TableRow key={interview.sessionId}>
-                      <TableCell className="font-medium">
-                        {formatDate(interview.date)}
-                      </TableCell>
-                      <TableCell className="capitalize">
-                        {interview.type.replace('_', ' ').toLowerCase()}
-                      </TableCell>
-                      <TableCell className="capitalize">
-                        {interview.difficulty.toLowerCase()}
-                      </TableCell>
-                      <TableCell>{formatDuration(interview.duration)}</TableCell>
-                      <TableCell>{getScoreBadge(interview.score)}</TableCell>
-                      <TableCell>{getStatusBadge(interview.status)}</TableCell>
-                      <TableCell className="text-right">
-                        {interview.status === 'COMPLETED' && (
-                          <Link href={`/mock-interview/${interview.sessionId}/report`}>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="mr-2 h-4 w-4" />
-                              View Report
-                            </Button>
-                          </Link>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {/* Pagination */}
-              {history.totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                  >
-                    Previous
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Page {page} of {history.totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage(p => Math.min(history.totalPages, p + 1))}
-                    disabled={page === history.totalPages}
-                  >
-                    Next
-                  </Button>
-                </div>
-              )}
-            </>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
+
+      {/* Score Trend (Coming Soon) */}
+      {filteredInterviews.filter(i => i.score).length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Performance Trend</CardTitle>
+            <CardDescription>Track your improvement over time</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-64 flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Performance chart coming soon!</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

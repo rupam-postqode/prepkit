@@ -16,6 +16,7 @@
     "@google/generative-ai": "^0.24.1",
     "@prisma/adapter-pg": "^7.0.1",
     "@prisma/client": "^7.0.1",
+    "@stripe/stripe-js": "^8.5.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/fluent-ffmpeg": "^2.1.28",
     "@types/jsonwebtoken": "^9.0.10",

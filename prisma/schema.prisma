@@ -19,6 +19,8 @@ model User {
   subscriptionStatus  SubscriptionStatus @default(FREE)
   subscriptionPlan    String?
   subscriptionEndDate DateTime?
+  learningPath        String?
+  learningPathProgress String?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
   lastLoginAt         DateTime?

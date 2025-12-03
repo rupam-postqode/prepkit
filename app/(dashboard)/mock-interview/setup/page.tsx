@@ -1,264 +1,353 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowRight, CheckCircle } from 'lucide-react';
-import { useToast } from '@/components/ui/toast';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, CheckCircle, AlertTriangle, Clock, Target, Zap } from 'lucide-react';
 
-const interviewTypes = [
-  { id: 'javascript', label: 'JavaScript/Frontend', duration: 20, price: 149 },
-  { id: 'machine-coding', label: 'Machine Coding', duration: 25, price: 199 },
-  { id: 'dsa', label: 'Data Structures & Algorithms', duration: 20, price: 149 },
-  { id: 'system-design', label: 'System Design', duration: 30, price: 299 },
-  { id: 'behavioral', label: 'Behavioral/HR', duration: 15, price: 99 }
+const INTERVIEW_TYPES = [
+  { 
+    id: 'JAVASCRIPT', 
+    label: 'JavaScript / Frontend', 
+    price: 149, 
+    duration: 20, 
+    difficulty: 'Medium',
+    description: 'ES6+, Async, Closures, DOM, React concepts'
+  },
+  { 
+    id: 'MACHINE_CODING', 
+    label: 'Machine Coding', 
+    price: 199, 
+    duration: 25, 
+    difficulty: 'Hard',
+    description: 'Build components, state management, API integration'
+  },
+  { 
+    id: 'DSA', 
+    label: 'Data Structures & Algorithms', 
+    price: 149, 
+    duration: 20, 
+    difficulty: 'Medium',
+    description: 'Arrays, Trees, Graphs, Dynamic Programming'
+  },
+  { 
+    id: 'SYSTEM_DESIGN', 
+    label: 'System Design', 
+    price: 299, 
+    duration: 30, 
+    difficulty: 'Expert',
+    description: 'Scalability, Databases, Load Balancing, Microservices'
+  },
+  { 
+    id: 'BEHAVIORAL', 
+    label: 'Behavioral / HR', 
+    price: 99, 
+    duration: 15, 
+    difficulty: 'Easy',
+    description: 'Leadership, Conflict Resolution, Communication'
+  },
 ];
 
-const difficultyLevels = [
-  { id: 'easy', label: 'Easy', description: 'Beginner level - 5-10 min', price: 99 },
-  { id: 'medium', label: 'Medium', description: 'Intermediate - 15-20 min', price: 149 },
-  { id: 'hard', label: 'Hard', description: 'Advanced - 20-25 min', price: 199 },
-  { id: 'expert', label: 'Expert', description: 'FAANG level - 25-30 min', price: 299 }
+const DIFFICULTIES = [
+  { id: 'EASY', label: 'Easy', color: 'bg-green-500' },
+  { id: 'MEDIUM', label: 'Medium', color: 'bg-yellow-500' },
+  { id: 'HARD', label: 'Hard', color: 'bg-orange-500' },
+  { id: 'EXPERT', label: 'Expert', color: 'bg-red-500' },
 ];
 
-const focusAreasByType: Record<string, string[]> = {
-  'javascript': ['Event Loop', 'Closures', 'Promises', 'React Hooks', 'Performance', 'TypeScript'],
-  'machine-coding': ['Component Design', 'State Management', 'API Integration', 'Testing', 'Optimization'],
-  'dsa': ['Arrays', 'Linked Lists', 'Trees', 'Graphs', 'Dynamic Programming', 'Sorting'],
-  'system-design': ['Scalability', 'Database Design', 'Caching', 'Load Balancing', 'Microservices', 'Security'],
-  'behavioral': ['Leadership', 'Conflict Resolution', 'Team Collaboration', 'Problem Solving', 'Communication']
+const FOCUS_AREAS_MAP: Record<string, string[]> = {
+  JAVASCRIPT: ['ES6+', 'Async/Promises', 'Closures', 'Prototypes', 'DOM Manipulation'],
+  MACHINE_CODING: ['React', 'State Management', 'API Integration', 'Performance', 'Testing'],
+  DSA: ['Arrays', 'Trees', 'Graphs', 'Dynamic Programming', 'Sorting', 'Searching'],
+  SYSTEM_DESIGN: ['Scalability', 'Databases', 'Caching', 'Load Balancing', 'Microservices', 'Security'],
+  BEHAVIORAL: ['Leadership', 'Conflict Resolution', 'Project Management', 'Communication', 'Teamwork'],
 };
 
 export default function InterviewSetupPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { toast } = useToast();
-
-  const [type, setType] = useState(searchParams.get('type') || 'javascript');
-  const [difficulty, setDifficulty] = useState('medium');
+  const [selectedType, setSelectedType] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('MEDIUM');
   const [focusAreas, setFocusAreas] = useState<string[]>([]);
-  const [specificRequirements, setSpecificRequirements] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const currentType = interviewTypes.find(t => t.id === type);
-  const currentDifficulty = difficultyLevels.find(d => d.id === difficulty);
-  const availableFocusAreas = focusAreasByType[type] || [];
-
+  const [requirements, setRequirements] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const selectedInterview = INTERVIEW_TYPES.find(t => t.id === selectedType);
+  
   const handleFocusAreaToggle = (area: string) => {
     setFocusAreas(prev =>
-      prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area]
+      prev.includes(area)
+        ? prev.filter(a => a !== area)
+        : [...prev, area]
     );
   };
-
-  const handleSubmit = async () => {
-    if (focusAreas.length === 0) {
-      toast({
-        title: 'Focus areas required',
-        description: 'Please select at least one focus area',
-        variant: 'error'
-      });
+  
+  const handleSetup = async () => {
+    if (!selectedType) {
+      setError('Please select an interview type');
       return;
     }
-
-    setLoading(true);
+    
+    setIsLoading(true);
+    setError(null);
+    
     try {
       const response = await fetch('/api/interviews/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type,
-          difficulty,
+          type: selectedType,
+          difficulty: selectedDifficulty,
           focusAreas,
-          specificRequirements: specificRequirements || undefined
-        })
+          specificRequirements: requirements,
+        }),
       });
-
+      
       const data = await response.json();
-
-      if (data.success) {
-        toast({
-          title: 'Interview created!',
-          description: 'Proceeding to payment...'
-        });
-        // Navigate to payment or directly to interview session
-        router.push(`/mock-interview/${data.data.sessionId}/payment`);
-      } else {
-        throw new Error(data.error || 'Failed to create interview');
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Setup failed');
       }
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to setup interview',
-        variant: 'error'
-      });
+      
+      // Redirect to payment page
+      router.push(`/mock-interview/${data.data.sessionId}/payment`);
+      
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to setup interview');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
-
+  
   return (
-    <div className="container max-w-4xl mx-auto py-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Setup Mock Interview</h1>
-        <p className="text-muted-foreground mt-2">
-          Configure your interview session and get personalized questions
+    <div className="container max-w-5xl mx-auto py-8">
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold mb-3">AI Mock Interview</h1>
+        <p className="text-muted-foreground text-lg">
+          Practice with our AI interviewer and get instant feedback to ace your next interview
         </p>
       </div>
 
-      <div className="grid gap-6">
-        {/* Interview Type */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Interview Type</CardTitle>
-            <CardDescription>Choose the type of interview you want to practice</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup value={type} onValueChange={setType}>
-              <div className="grid gap-3">
-                {interviewTypes.map((t) => (
-                  <Label
-                    key={t.id}
-                    htmlFor={t.id}
-                    className="flex items-center space-x-3 space-y-0 border rounded-lg p-4 cursor-pointer hover:bg-accent"
-                  >
-                    <RadioGroupItem value={t.id} id={t.id} />
-                    <div className="flex-1">
-                      <div className="font-medium">{t.label}</div>
-                      <div className="text-sm text-muted-foreground">~{t.duration} minutes</div>
-                    </div>
-                    <Badge variant="secondary">₹{t.price}</Badge>
-                  </Label>
-                ))}
-              </div>
-            </RadioGroup>
-          </CardContent>
-        </Card>
+      {/* Error Alert */}
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-        {/* Difficulty Level */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Difficulty Level</CardTitle>
-            <CardDescription>Select the difficulty that matches your preparation level</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RadioGroup value={difficulty} onValueChange={setDifficulty}>
-              <div className="grid gap-3">
-                {difficultyLevels.map((d) => (
-                  <Label
-                    key={d.id}
-                    htmlFor={d.id}
-                    className="flex items-center space-x-3 space-y-0 border rounded-lg p-4 cursor-pointer hover:bg-accent"
-                  >
-                    <RadioGroupItem value={d.id} id={d.id} />
-                    <div className="flex-1">
-                      <div className="font-medium">{d.label}</div>
-                      <div className="text-sm text-muted-foreground">{d.description}</div>
+      {/* Interview Type Selection */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            Step 1: Select Interview Type
+          </CardTitle>
+          <CardDescription>Choose the type of interview you want to practice</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {INTERVIEW_TYPES.map((type) => (
+            <div
+              key={type.id}
+              onClick={() => setSelectedType(type.id)}
+              className={`p-5 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                selectedType === type.id
+                  ? 'border-primary bg-primary/5 shadow-sm'
+                  : 'border-border hover:border-primary/50'
+              }`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-semibold text-lg">{type.label}</h3>
+                    <Badge variant="outline" className="text-xs">
+                      {type.difficulty}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">{type.description}</p>
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Clock className="h-4 w-4" />
+                      <span>{type.duration} min</span>
                     </div>
-                    <Badge variant="secondary">₹{d.price}</Badge>
-                  </Label>
-                ))}
+                    <div className="font-semibold text-primary">
+                      ₹{type.price}
+                    </div>
+                  </div>
+                </div>
+                {selectedType === type.id && (
+                  <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                    <CheckCircle className="h-4 w-4 text-primary-foreground" />
+                  </div>
+                )}
               </div>
-            </RadioGroup>
-          </CardContent>
-        </Card>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
-        {/* Focus Areas */}
-        <Card>
+      {/* Difficulty Level */}
+      {selectedType && (
+        <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Focus Areas</CardTitle>
-            <CardDescription>Select topics you want to focus on (select at least one)</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              Step 2: Choose Difficulty Level
+            </CardTitle>
+            <CardDescription>Select the difficulty that matches your skill level</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {availableFocusAreas.map((area) => (
-                <Label
-                  key={area}
-                  htmlFor={area}
-                  className="flex items-center space-x-2 space-y-0 border rounded-lg p-3 cursor-pointer hover:bg-accent"
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {DIFFICULTIES.map((diff) => (
+                <Button
+                  key={diff.id}
+                  variant={selectedDifficulty === diff.id ? 'default' : 'outline'}
+                  onClick={() => setSelectedDifficulty(diff.id)}
+                  className="h-auto py-4 flex flex-col items-center gap-2"
                 >
-                  <Checkbox
-                    id={area}
-                    checked={focusAreas.includes(area)}
-                    onCheckedChange={() => handleFocusAreaToggle(area)}
-                  />
-                  <span className="text-sm font-medium">{area}</span>
-                </Label>
+                  <div className={`w-3 h-3 rounded-full ${diff.color}`} />
+                  <span>{diff.label}</span>
+                </Button>
               ))}
             </div>
           </CardContent>
         </Card>
+      )}
 
-        {/* Additional Requirements */}
-        <Card>
+      {/* Focus Areas */}
+      {selectedType && (
+        <Card className="mb-6">
           <CardHeader>
-            <CardTitle>Additional Requirements (Optional)</CardTitle>
-            <CardDescription>
-              Specify any specific topics, companies, or areas you want to focus on
-            </CardDescription>
+            <CardTitle>Step 3: Focus Areas (Optional)</CardTitle>
+            <CardDescription>Select specific topics you want to focus on</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {FOCUS_AREAS_MAP[selectedType]?.map((area) => (
+                <Badge
+                  key={area}
+                  variant={focusAreas.includes(area) ? 'default' : 'outline'}
+                  className="cursor-pointer px-4 py-2 text-sm hover:bg-primary/90"
+                  onClick={() => handleFocusAreaToggle(area)}
+                >
+                  {area}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Special Requirements */}
+      {selectedType && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Step 4: Additional Requirements (Optional)</CardTitle>
+            <CardDescription>Any specific topics or areas you want the interviewer to focus on</CardDescription>
           </CardHeader>
           <CardContent>
             <Textarea
-              placeholder="e.g., Preparing for Google L4 interview, focus on distributed systems..."
-              value={specificRequirements}
-              onChange={(e) => setSpecificRequirements(e.target.value)}
+              placeholder="E.g., Focus on distributed systems, include questions about React hooks, prepare me for Amazon interview, etc."
+              value={requirements}
+              onChange={(e) => setRequirements(e.target.value)}
               rows={4}
+              className="resize-none"
             />
           </CardContent>
         </Card>
+      )}
 
-        {/* Summary */}
-        <Card className="border-primary">
-          <CardHeader>
-            <CardTitle>Interview Summary</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Type:</span>
-                <p className="font-medium">{currentType?.label}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Difficulty:</span>
-                <p className="font-medium capitalize">{difficulty}</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Duration:</span>
-                <p className="font-medium">~{currentType?.duration} minutes</p>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Focus Areas:</span>
-                <p className="font-medium">{focusAreas.length} selected</p>
-              </div>
-            </div>
-            <div className="pt-4 border-t flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Total Amount</p>
-                <p className="text-3xl font-bold">₹{currentDifficulty?.price}</p>
+      {/* Pricing Summary & CTA */}
+      {selectedInterview && (
+        <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-0 shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="text-center md:text-left">
+                <p className="text-sm opacity-90 mb-1">Interview Fee</p>
+                <p className="text-4xl font-bold mb-2">₹{selectedInterview.price}</p>
+                <div className="flex items-center gap-4 text-sm opacity-90">
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    <span>~{selectedInterview.duration} minutes</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Instant Report</span>
+                  </div>
+                </div>
               </div>
               <Button
                 size="lg"
-                onClick={handleSubmit}
-                disabled={loading || focusAreas.length === 0}
+                variant="secondary"
+                onClick={handleSetup}
+                disabled={isLoading || !selectedType}
+                className="w-full md:w-auto px-8"
               >
-                {loading ? (
+                {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Setting up...
                   </>
                 ) : (
                   <>
                     Proceed to Payment
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
                   </>
                 )}
               </Button>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Features */}
+      <div className="grid md:grid-cols-3 gap-6 mt-8">
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <svg className="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="font-semibold mb-2">AI-Powered Questions</h3>
+            <p className="text-sm text-muted-foreground">
+              Questions tailored to your level and focus areas using Google Gemini AI
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <svg className="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+              </svg>
+            </div>
+            <h3 className="font-semibold mb-2">Voice Interview</h3>
+            <p className="text-sm text-muted-foreground">
+              Natural conversation with AI interviewer via voice call
+            </p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <svg className="h-6 w-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </div>
+            <h3 className="font-semibold mb-2">Instant Feedback</h3>
+            <p className="text-sm text-muted-foreground">
+              Detailed report with scores, strengths, and improvement areas
+            </p>
           </CardContent>
         </Card>
       </div>
