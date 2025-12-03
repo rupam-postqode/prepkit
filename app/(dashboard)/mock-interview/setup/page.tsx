@@ -14,7 +14,7 @@ const INTERVIEW_TYPES = [
   { 
     id: 'JAVASCRIPT', 
     label: 'JavaScript / Frontend', 
-    price: 149, 
+    price: 99, 
     duration: 20, 
     difficulty: 'Medium',
     description: 'ES6+, Async, Closures, DOM, React concepts'
@@ -22,7 +22,7 @@ const INTERVIEW_TYPES = [
   { 
     id: 'MACHINE_CODING', 
     label: 'Machine Coding', 
-    price: 199, 
+    price: 149, 
     duration: 25, 
     difficulty: 'Hard',
     description: 'Build components, state management, API integration'
@@ -30,7 +30,7 @@ const INTERVIEW_TYPES = [
   { 
     id: 'DSA', 
     label: 'Data Structures & Algorithms', 
-    price: 149, 
+    price: 129, 
     duration: 20, 
     difficulty: 'Medium',
     description: 'Arrays, Trees, Graphs, Dynamic Programming'
@@ -38,7 +38,7 @@ const INTERVIEW_TYPES = [
   { 
     id: 'SYSTEM_DESIGN', 
     label: 'System Design', 
-    price: 299, 
+    price: 199, 
     duration: 30, 
     difficulty: 'Expert',
     description: 'Scalability, Databases, Load Balancing, Microservices'
