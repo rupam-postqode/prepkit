@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ArrowRight, Save, BookOpen, Target, Calendar } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save, BookOpen, Target, Calendar, Zap } from "lucide-react";
 import Link from "next/link";
 
 interface Module {
@@ -51,6 +51,7 @@ const COMPANY_OPTIONS = [
 
 export default function CreateLearningPathPage() {
   const router = useRouter();
+  const [creationMode, setCreationMode] = useState<"manual" | "template" | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [modules, setModules] = useState<Module[]>([]);
@@ -380,20 +381,127 @@ export default function CreateLearningPathPage() {
     }
   };
 
+  // Mode selection screen
+  if (creationMode === null) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center space-x-4">
+              <Link href="/admin/learning-paths">
+                <Button variant="outline" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">Create Learning Path</h1>
+                <p className="text-gray-600">Choose how you want to create your learning path</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Manual Creation */}
+            <Card 
+              className="p-8 hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-indigo-500"
+              onClick={() => setCreationMode("manual")}
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <BookOpen className="w-8 h-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Manual Creation</h3>
+                <p className="text-gray-600 mb-4">
+                  Manually select lessons and configure the path structure yourself
+                </p>
+                <ul className="text-sm text-left space-y-2 mb-6">
+                  <li className="flex items-start">
+                    <span className="text-green-600 mr-2">✓</span>
+                    <span>Full control over lesson selection</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-600 mr-2">✓</span>
+                    <span>Custom scheduling</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-600 mr-2">✓</span>
+                    <span>Flexible configuration</span>
+                  </li>
+                </ul>
+                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                  Start Manual Creation
+                </Button>
+              </div>
+            </Card>
+
+            {/* Template-Based Generation */}
+            <Card 
+              className="p-8 hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-indigo-500"
+              onClick={() => router.push("/admin/path-templates")}
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-8 h-8 text-green-600" />
+                </div>
+                <h3 className="text-xl font-semibold mb-3">Generate from Template</h3>
+                <p className="text-gray-600 mb-4">
+                  Automatically generate a path based on predefined templates
+                </p>
+                <ul className="text-sm text-left space-y-2 mb-6">
+                  <li className="flex items-start">
+                    <span className="text-green-600 mr-2">✓</span>
+                    <span>Intelligent lesson sequencing</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-600 mr-2">✓</span>
+                    <span>Prerequisite-aware ordering</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-green-600 mr-2">✓</span>
+                    <span>Optimized for companies</span>
+                  </li>
+                </ul>
+                <Button className="w-full bg-green-600 hover:bg-green-700">
+                  Browse Templates
+                </Button>
+              </div>
+            </Card>
+          </div>
+
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-600">
+              💡 Tip: Use templates for faster path creation with intelligent content selection
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
-            <Link href="/admin/learning-paths">
-              <Button variant="outline" size="sm">
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setCreationMode(null)}
+              >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
+                Change Mode
               </Button>
-            </Link>
+              <Link href="/admin/learning-paths">
+                <Button variant="outline" size="sm">
+                  Back to Paths
+                </Button>
+              </Link>
+            </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Create Learning Path</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Create Learning Path - Manual</h1>
               <p className="text-gray-600">Build a structured learning journey for interview preparation</p>
             </div>
           </div>

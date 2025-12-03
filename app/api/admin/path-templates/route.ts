@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const body = await request.json();
     const {
       name,
       description,
@@ -63,25 +64,39 @@ export async function POST(request: NextRequest) {
       durationWeeks,
       difficulty,
       targetAudience,
-      lessonsPerDay,
-      daysPerWeek,
-      estimatedHoursPerDay,
       includeModules,
       excludeModules,
       minDifficulty,
       maxDifficulty,
-      rules
-    } = await request.json();
+      lessonsPerDay,
+      daysPerWeek,
+      estimatedHoursPerDay,
+      balanceTheoryPractice,
+      companyFocus,
+    } = body;
 
     // Validate required fields
-    if (!name || !description || !durationWeeks || !lessonsPerDay || !daysPerWeek || !estimatedHoursPerDay) {
+    if (!name || !description || !durationWeeks || !targetAudience) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    // Create the template
+    // Build rules object
+    const rules = {
+      includeModules: includeModules || [],
+      excludeModules: excludeModules || [],
+      minDifficulty: minDifficulty || null,
+      maxDifficulty: maxDifficulty || null,
+      lessonsPerDay: lessonsPerDay || 2,
+      daysPerWeek: daysPerWeek || 5,
+      estimatedHoursPerDay: estimatedHoursPerDay || 2.0,
+      targetDurationWeeks: durationWeeks,
+      balanceTheoryPractice: balanceTheoryPractice || false,
+      companyFocus: companyFocus || [],
+    };
+
     const template = await prisma.pathTemplate.create({
       data: {
         name,
@@ -90,15 +105,15 @@ export async function POST(request: NextRequest) {
         durationWeeks: parseInt(durationWeeks),
         difficulty: difficulty || "MEDIUM",
         targetAudience,
-        lessonsPerDay: parseInt(lessonsPerDay),
-        daysPerWeek: parseInt(daysPerWeek),
-        estimatedHoursPerDay: parseFloat(estimatedHoursPerDay),
+        rules,
+        includeModules: (includeModules || []).join(","),
+        excludeModules: (excludeModules || []).join(","),
+        minDifficulty: minDifficulty || null,
+        maxDifficulty: maxDifficulty || null,
+        lessonsPerDay: lessonsPerDay || 2,
+        daysPerWeek: daysPerWeek || 5,
+        estimatedHoursPerDay: estimatedHoursPerDay || 2.0,
         isActive: true,
-        includeModules: includeModules || [],
-        excludeModules: excludeModules || [],
-        minDifficulty,
-        maxDifficulty,
-        rules: rules || {},
       },
     });
 
