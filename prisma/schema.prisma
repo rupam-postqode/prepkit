@@ -6,6 +6,7 @@ datasource db {
   provider = "postgresql"
 }
 
+
 model User {
   id                  String             @id @default(cuid())
   email               String             @unique
@@ -29,6 +30,9 @@ model User {
   pathProgress        UserPathProgress[]
   videos              Video[]
   resetHistory       ResetHistory[]
+  interviewSessions   InterviewSession[]     @relation("InterviewSessions")
+  interviewStatistics InterviewStatistics?   @relation("InterviewStatistics")
+  interviewPayments  InterviewPayment[]
 
   @@index([email])
   @@index([subscriptionStatus])
@@ -641,6 +645,203 @@ model PaceAdjustment {
 
   @@index([userPathProgressId])
   @@index([createdAt])
+}
+
+// Mock Interview Models
+model InterviewSession {
+  id                  String              @id @default(cuid())
+  userId              String
+  type                InterviewType
+  difficulty          InterviewDifficulty
+  status              InterviewStatus     @default(SETUP)
+  
+  // Vapi Integration
+  vapiCallId          String?             @unique
+  vapiSessionId       String?
+  vapiRecordingUrl    String?
+  
+  // Timing
+  createdAt           DateTime            @default(now())
+  startedAt           DateTime?
+  endedAt             DateTime?
+  durationSeconds     Int?
+  
+  // Configuration & Questions
+  configuration       Json                // {focusAreas, requirements, duration}
+  questionsGenerated   Json                // Full questions array
+  
+  // Results
+  reportGenerated      Boolean             @default(false)
+  costCalculated      Float?               // Changed from Decimal to Float for compatibility
+  paymentStatus       PaymentStatus?      @default(CREATED)
+  
+  // Metadata
+  metadata            Json?
+  updatedAt           DateTime            @updatedAt
+  
+  // Relations
+  user                User                @relation("InterviewSessions", fields: [userId], references: [id], onDelete: Cascade)
+  questions           InterviewQuestion[]
+  transcript          InterviewTranscript?
+  report              InterviewReport?
+  payment             InterviewPayment?
+  statistics          InterviewStatistics?     @relation("InterviewStatistics")
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([type])
+  @@index([difficulty])
+}
+
+model InterviewQuestion {
+  id                  String              @id @default(cuid())
+  sessionId           String
+  questionOrder        Int
+  questionId          String?
+  questionText        String
+  difficulty          Int?
+  expectedKeyPoints   Json                 // Changed from String[] to Json for compatibility
+  
+  // User Response
+  userResponseText     String?
+  userResponseDuration Int?                // seconds
+  responseScore       Int?                 // Removed @db.SmallInt for compatibility
+  
+  // Follow-ups
+  followUpAsked       Boolean             @default(false)
+  followUpQuestions   Json                 // Changed from String[] to Json for compatibility
+  
+  metadata            Json?
+  createdAt           DateTime            @default(now())
+  
+  // Relations
+  session             InterviewSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@unique([sessionId, questionOrder])
+  @@index([sessionId])
+}
+
+model InterviewTranscript {
+  id                  String              @id @default(cuid())
+  sessionId           String              @unique
+  rawTranscript       String
+  transcriptSegments   Json?               // Parsed Q&A pairs
+  confidenceScore     Float?
+  
+  createdAt           DateTime            @default(now())
+  
+  // Relations
+  session             InterviewSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionId])
+}
+
+model InterviewReport {
+  id                  String              @id @default(cuid())
+  sessionId           String              @unique
+  
+  // Scoring
+  overallScore        Int?                 // Removed @db.SmallInt for compatibility
+  scoreBreakdown      Json?               // {technicalDepth, communication, problemSolving, etc}
+  
+  // Analysis
+  strengths           Json                 // Changed from String[] to Json for compatibility
+  weaknesses          Json                 // Changed from String[] to Json for compatibility
+  recommendations     Json                 // Changed from String[] to Json for compatibility
+  detailedAnalysis    String?
+  
+  // Comparison
+  averageScoreForDifficulty Int?         // Removed @db.SmallInt for compatibility
+  topPerformerScore   Int?                 // Removed @db.SmallInt for compatibility
+  percentileRank      Int?                 // Removed @db.SmallInt for compatibility
+  
+  // Generated Content
+  reportJson          Json
+  
+  generatedAt         DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  
+  // Relations
+  session             InterviewSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionId])
+}
+
+model InterviewStatistics {
+  id                  String              @id @default(cuid())
+  userId              String              @unique
+  sessionId           String?             @unique
+  
+  totalInterviews     Int                 @default(0)
+  totalSpent          Float?               @default(0) // Changed from Decimal to Float for compatibility
+  averageScore        Int?                 // Removed @db.SmallInt for compatibility
+  
+  // By type
+  javascriptInterviews Int                 @default(0)
+  machinecodingInterviews Int              @default(0)
+  dsaInterviews       Int                 @default(0)
+  systemdesignInterviews Int               @default(0)
+  behavioralInterviews Int                 @default(0)
+  
+  // Progress
+  lastInterviewAt     DateTime?
+  bestScoreAchieved   Int?                 // Removed @db.SmallInt for compatibility
+  improvementTrend    Int?                 // Removed @db.SmallInt for compatibility
+  
+  updatedAt           DateTime            @updatedAt
+  
+  // Relations
+  user                User                @relation("InterviewStatistics", fields: [userId], references: [id], onDelete: Cascade)
+  session             InterviewSession?     @relation("InterviewStatistics", fields: [sessionId], references: [id])
+  
+  @@index([userId])
+}
+
+model InterviewPayment {
+  id                  String              @id @default(cuid())
+  userId              String
+  sessionId           String              @unique // Added unique for one-to-one relationship
+  
+  amount              Float               // Changed from Decimal to Float for compatibility
+  currency            String              @default("INR")
+  status              PaymentStatus       @default(CREATED)
+  
+  paymentMethodId     String?             // Stripe/Razorpay ID
+  transactionId       String?             @unique
+  
+  createdAt           DateTime            @default(now())
+  completedAt         DateTime?
+  
+  // Relations
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session             InterviewSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([status])
+}
+
+// New enums
+enum InterviewType {
+  JAVASCRIPT
+  MACHINE_CODING
+  DSA
+  SYSTEM_DESIGN
+  BEHAVIORAL
+}
+
+enum InterviewDifficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum InterviewStatus {
+  SETUP
+  IN_PROGRESS
+  COMPLETED
+  FAILED
 }
 
 model TimelineAlert {
