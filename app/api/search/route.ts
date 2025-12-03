@@ -1,132 +1,168 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/db";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/db';
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const searchParams = req.nextUrl.searchParams;
+    const query = searchParams.get('q');
 
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q')?.trim();
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = parseInt(searchParams.get('offset') || '0');
-
-    if (!query || query.length < 2) {
+    if (!query || query.trim().length < 2) {
       return NextResponse.json({
+        success: true,
         results: [],
-        total: 0,
-        query: query || '',
+        message: 'Query too short',
       });
     }
 
-    // Search across lessons using PostgreSQL full-text search
-    // We'll search in title, description, and markdown content
+    const searchTerm = query.trim().toLowerCase();
+
+    // Search lessons
     const lessons = await prisma.lesson.findMany({
       where: {
-        AND: [
-          { publishedAt: { not: null } }, // Only published lessons
-          {
-            OR: [
-              { title: { contains: query, mode: 'insensitive' } },
-              { description: { contains: query, mode: 'insensitive' } },
-              { markdownContent: { contains: query, mode: 'insensitive' } },
-            ],
-          },
+        OR: [
+          { title: { contains: searchTerm, mode: 'insensitive' } },
+          { description: { contains: searchTerm, mode: 'insensitive' } },
         ],
       },
-      include: {
-        chapter: {
-          include: {
-            module: true,
-          },
-        },
-        _count: {
-          select: {
-            practiceLinks: true,
-          },
-        },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        difficulty: true,
       },
-      orderBy: [
-        // Prioritize exact title matches, then description, then content
-        {
-          title: query.length > 3 ? 'asc' : undefined,
-        },
-        { updatedAt: 'desc' },
-      ],
-      take: Math.min(limit, 50), // Max 50 results
-      skip: offset,
+      take: 20,
     });
 
-    // Get total count for pagination
-    const total = await prisma.lesson.count({
+    // Search jobs
+    const jobs = await prisma.job.findMany({
       where: {
-        AND: [
-          { publishedAt: { not: null } },
-          {
-            OR: [
-              { title: { contains: query, mode: 'insensitive' } },
-              { description: { contains: query, mode: 'insensitive' } },
-              { markdownContent: { contains: query, mode: 'insensitive' } },
-            ],
-          },
+        isActive: true,
+        OR: [
+          { title: { contains: searchTerm, mode: 'insensitive' } },
+          { company: { contains: searchTerm, mode: 'insensitive' } },
+          { description: { contains: searchTerm, mode: 'insensitive' } },
         ],
       },
+      select: {
+        id: true,
+        title: true,
+        company: true,
+        description: true,
+        type: true,
+        location: true,
+      },
+      take: 10,
     });
 
-    // Format results with highlights
-    const results = lessons.map((lesson) => {
-      // Create a snippet from the content if the query matches
-      let snippet = lesson.description;
-      if (lesson.markdownContent && lesson.markdownContent.toLowerCase().includes(query.toLowerCase())) {
-        // Find the query in the content and create a snippet around it
-        const content = lesson.markdownContent;
-        const queryIndex = content.toLowerCase().indexOf(query.toLowerCase());
-        const start = Math.max(0, queryIndex - 100);
-        const end = Math.min(content.length, queryIndex + 200);
-        snippet = (start > 0 ? '...' : '') + content.slice(start, end) + (end < content.length ? '...' : '');
-      }
-
-      return {
+    // Build results array
+    const results: any[] = [
+      // Lessons
+      ...lessons.map(lesson => ({
         id: lesson.id,
+        type: 'lesson',
         title: lesson.title,
-        description: lesson.description,
-        snippet,
-        difficulty: lesson.difficulty,
-        module: {
-          id: lesson.chapter.module.id,
-          title: lesson.chapter.module.title,
-          emoji: lesson.chapter.module.emoji,
+        description: lesson.description || '',
+        url: `/lessons/${lesson.id}`,
+        metadata: {
+          difficulty: lesson.difficulty,
         },
-        chapter: {
-          id: lesson.chapter.id,
-          title: lesson.chapter.title,
+      })),
+
+      // Jobs
+      ...jobs.map(job => ({
+        id: job.id,
+        type: 'job',
+        title: job.title,
+        description: job.description,
+        url: `/jobs?highlight=${job.id}`,
+        metadata: {
+          company: job.company,
+          duration: job.type,
         },
-        hasVideo: !!lesson.videoUrl,
-        practiceCount: lesson._count.practiceLinks,
-        updatedAt: lesson.updatedAt,
-      };
-    });
+      })),
+    ];
+
+    // Add learning path results (hardcoded for now)
+    const pathKeywords = ['path', 'roadmap', 'learning', 'course', 'track'];
+    if (pathKeywords.some(keyword => searchTerm.includes(keyword))) {
+      results.push({
+        id: 'paths',
+        type: 'path',
+        title: 'Learning Paths',
+        description: 'Explore structured learning paths for interview preparation',
+        url: '/paths',
+        metadata: {
+          company: 'All Companies',
+          duration: 'Various',
+        },
+      });
+    }
+
+    // Company-specific searches
+    if (searchTerm.includes('google')) {
+      results.push({
+        id: 'google-path',
+        type: 'path',
+        title: 'Google Interview Preparation',
+        description: '12-week structured path for Google interviews',
+        url: '/paths',
+        metadata: {
+          company: 'Google',
+          duration: '12 weeks',
+        },
+      });
+    }
+
+    if (searchTerm.includes('amazon')) {
+      results.push({
+        id: 'amazon-path',
+        type: 'path',
+        title: 'Amazon Interview Preparation',
+        description: '10-week path covering Amazon Leadership Principles',
+        url: '/paths',
+        metadata: {
+          company: 'Amazon',
+          duration: '10 weeks',
+        },
+      });
+    }
+
+    // Topic-specific searches
+    const topicMappings: Record<string, string[]> = {
+      'javascript': ['JavaScript Fundamentals', 'Advanced JavaScript'],
+      'react': ['React Basics', 'React Advanced Patterns'],
+      'dsa': ['Data Structures', 'Algorithms'],
+      'system design': ['System Design Fundamentals', 'Scalable Systems'],
+    };
+
+    for (const [keyword, topics] of Object.entries(topicMappings)) {
+      if (searchTerm.includes(keyword)) {
+        topics.forEach((topic, idx) => {
+          results.push({
+            id: `topic-${keyword}-${idx}`,
+            type: 'lesson',
+            title: topic,
+            description: `Learn ${topic} for interview preparation`,
+            url: '/lessons',
+            metadata: {
+              module: keyword.toUpperCase(),
+            },
+          });
+        });
+      }
+    }
 
     return NextResponse.json({
+      success: true,
       results,
-      total,
+      count: results.length,
       query,
-      limit,
-      offset,
-      hasMore: offset + limit < total,
     });
+
   } catch (error) {
-    console.error("Search API error:", error);
+    console.error('Search failed:', error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: 'Search failed' },
       { status: 500 }
     );
   }

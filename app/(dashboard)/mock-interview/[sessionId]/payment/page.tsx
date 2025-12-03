@@ -65,8 +65,7 @@ export default function PaymentPage({ params }: { params: { sessionId: string } 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: params.sessionId,
-          amount: session?.costCalculated,
-          type: 'mock_interview',
+          interviewType: session?.type,
         }),
       });
 
@@ -77,17 +76,10 @@ export default function PaymentPage({ params }: { params: { sessionId: string } 
       }
 
       // Redirect to Stripe Checkout
-      const stripe = await stripePromise;
-      if (!stripe) {
-        throw new Error('Stripe not loaded');
-      }
-
-      const { error: stripeError } = await stripe.redirectToCheckout({
-        sessionId: data.checkoutSessionId,
-      });
-
-      if (stripeError) {
-        throw new Error(stripeError.message);
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        throw new Error('No checkout URL received');
       }
 
     } catch (err) {
