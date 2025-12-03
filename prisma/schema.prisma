@@ -33,6 +33,9 @@ model User {
   interviewSessions   InterviewSession[]     @relation("InterviewSessions")
   interviewStatistics InterviewStatistics?   @relation("InterviewStatistics")
   interviewPayments  InterviewPayment[]
+  userDevices        UserDevice[]
+  videoAccessLogs    VideoAccessLog[]
+  suspiciousActivities SuspiciousActivity[]
 
   @@index([email])
   @@index([subscriptionStatus])
@@ -98,6 +101,7 @@ model Lesson {
   pathLessons      PathLesson[]
   practiceLinks    PracticeLink[]
   videos           Video[]
+  videoAccessLogs  VideoAccessLog[]
 
   @@unique([chapterId, slug])
   @@index([chapterId])
@@ -862,4 +866,54 @@ model TimelineAlert {
   @@index([userPathProgressId])
   @@index([isRead])
   @@index([scheduledFor])
+}
+
+// Video DRM Models
+model UserDevice {
+  id          String   @id @default(cuid())
+  userId      String
+  fingerprint String
+  deviceName  String?
+  isActive    Boolean  @default(true)
+  lastUsed    DateTime @default(now())
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, fingerprint])
+  @@index([userId])
+  @@index([fingerprint])
+}
+
+model VideoAccessLog {
+  id                String   @id @default(cuid())
+  userId            String
+  lessonId          String
+  deviceFingerprint String
+  ipAddress         String
+  userAgent         String
+  accessedAt        DateTime @default(now())
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson            Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([lessonId])
+  @@index([accessedAt])
+}
+
+model SuspiciousActivity {
+  id           String   @id @default(cuid())
+  userId       String
+  lessonId     String
+  activityType String
+  details      Json?
+  timestamp    DateTime @default(now())
+  resolved     Boolean  @default(false)
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([activityType])
+  @@index([resolved])
 }

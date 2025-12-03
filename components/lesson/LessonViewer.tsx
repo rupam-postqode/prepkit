@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import rehypeHighlight from "rehype-highlight";
+import SecureVideoPlayer from "@/components/SecureVideoPlayer";
 
 // Dynamically import the markdown preview to avoid SSR issues
 const MDEditorPreview = dynamic(() => import("@uiw/react-markdown-preview"), {
@@ -253,7 +254,15 @@ export function LessonViewer({ lesson, progress, userId }: LessonViewerProps) {
             </TabsContent>
 
             <TabsContent value="video" className="m-0 h-full">
-              <VideoTab videoUrl={lesson.videoUrl} />
+              <VideoTab 
+                lessonId={lesson.id}
+                videoUrl={lesson.videoUrl} 
+                userEmail={session?.user?.email || 'user'}
+                onProgress={(seconds) => {
+                  // Update progress in real-time
+                  console.log(`Video progress: ${seconds}s`);
+                }}
+              />
             </TabsContent>
 
             <TabsContent value="notes" className="m-0 h-full">
@@ -374,7 +383,17 @@ function MarkdownTab({ content, loading, error }: { content: string; loading: bo
   );
 }
 
-function VideoTab({ videoUrl }: { videoUrl: string | null }) {
+function VideoTab({ 
+  lessonId,
+  videoUrl, 
+  userEmail,
+  onProgress 
+}: { 
+  lessonId: string;
+  videoUrl: string | null;
+  userEmail: string;
+  onProgress?: (seconds: number) => void;
+}) {
   if (!videoUrl) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -392,46 +411,12 @@ function VideoTab({ videoUrl }: { videoUrl: string | null }) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 lg:p-8 space-y-6">
-      <div className="aspect-video bg-black rounded-lg overflow-hidden relative shadow-lg">
-        {/* Video Protection Overlay */}
-        <div className="absolute inset-0 pointer-events-none z-10">
-          <div className="absolute top-4 right-4 bg-black/70 text-white text-xs px-3 py-1.5 rounded-md font-medium backdrop-blur-sm">
-            <Lock className="w-3 h-3 inline mr-1" />
-            Protected Content
-          </div>
-        </div>
-
-        <video
-          src={videoUrl}
-          controls
-          controlsList="nodownload"
-          className="w-full h-full"
-          poster="/video-placeholder.jpg"
-          onContextMenu={(e) => {
-            e.preventDefault();
-            alert('Right-click is disabled for protected content');
-          }}
-          onLoadedData={(e) => {
-            // Disable picture-in-picture
-            const video = e.target as HTMLVideoElement;
-            if (video.disablePictureInPicture) {
-              video.disablePictureInPicture = true;
-            }
-          }}
-        >
-          Your browser does not support the video tag.
-        </video>
-      </div>
-
-      {/* Video Protection Notice */}
-      <Alert>
-        <Lock className="h-4 w-4" />
-        <AlertDescription>
-          <strong>Protected Video Content:</strong> Downloads, screenshots, and sharing are disabled.
-          Right-click functionality is restricted for content security.
-        </AlertDescription>
-      </Alert>
+    <div className="max-w-4xl mx-auto p-6 lg:p-8">
+      <SecureVideoPlayer 
+        lessonId={lessonId}
+        userEmail={userEmail}
+        onProgress={onProgress}
+      />
     </div>
   );
 }
