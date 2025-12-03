@@ -1,46 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
-import Razorpay from "razorpay";
 import { prisma } from "@/lib/db";
-
-// Type definitions for Razorpay webhook payloads
-interface RazorpayPayment {
-  id: string;
-  order_id: string;
-  subscription_id?: string;
-  method: string;
-}
-
-interface RazorpayOrder {
-  id: string;
-}
-
-interface RazorpayRefund {
-  id: string;
-  payment_id: string;
-}
-
-interface RazorpayWebhookEvent {
-  event: string;
-  payload: {
-    payment?: { entity: RazorpayPayment };
-    order?: { entity: RazorpayOrder };
-    refund?: { entity: RazorpayRefund };
-  };
-}
-
-// Initialize Razorpay (lazy initialization)
-const getRazorpay = () => {
-  return new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || "",
-    key_secret: process.env.RAZORPAY_KEY_SECRET || "",
-  });
-};
+import { verifyWebhookSignature } from "@/lib/stripe";
+import Stripe from "stripe";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const signature = request.headers.get("x-razorpay-signature");
+    const signature = request.headers.get("stripe-signature");
 
     if (!signature) {
       console.error("Webhook received without signature");
@@ -48,46 +14,43 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify webhook signature
-    const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET || "")
-      .update(body)
-      .digest("hex");
-
-    if (signature !== expectedSignature) {
-      console.error("Invalid webhook signature");
+    let event: Stripe.Event;
+    try {
+      event = verifyWebhookSignature(
+        body,
+        signature,
+        process.env.STRIPE_WEBHOOK_SECRET || ""
+      );
+    } catch (err) {
+      console.error("Webhook signature verification failed:", err);
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
-    const event = JSON.parse(body);
-    console.log("Received webhook event:", event.event);
+    console.log("Received webhook event:", event.type);
 
     // Handle different webhook events
-    switch (event.event) {
-      case "payment.captured":
-        await handlePaymentCaptured(event.payload.payment.entity);
+    switch (event.type) {
+      case "checkout.session.completed":
+        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
         break;
 
-      case "payment.failed":
-        await handlePaymentFailed(event.payload.payment.entity);
+      case "payment_intent.succeeded":
+        await handlePaymentIntentSucceeded(event.data.object as Stripe.PaymentIntent);
         break;
 
-      case "order.paid":
-        await handleOrderPaid(event.payload.order.entity);
+      case "payment_intent.payment_failed":
+        await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
         break;
 
-      case "refund.created":
-        await handleRefundCreated(event.payload.refund.entity);
-        break;
-
-      case "refund.processed":
-        await handleRefundProcessed(event.payload.refund.entity);
+      case "charge.refunded":
+        await handleChargeRefunded(event.data.object as Stripe.Charge);
         break;
 
       default:
-        console.log("Unhandled webhook event:", event.event);
+        console.log("Unhandled webhook event:", event.type);
     }
 
-    return NextResponse.json({ status: "ok" });
+    return NextResponse.json({ received: true });
 
   } catch (error) {
     console.error("Webhook processing error:", error);
@@ -98,91 +61,148 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handlePaymentCaptured(payment: RazorpayPayment) {
+async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   try {
-    console.log("Processing payment captured:", payment.id);
+    console.log("Processing checkout session completed:", session.id);
+
+    const userId = session.client_reference_id;
+    if (!userId) {
+      console.error("No user ID in checkout session");
+      return;
+    }
 
     // Find the payment record
     const existingPayment = await prisma.payment.findFirst({
-      where: { razorpayOrderId: payment.order_id },
+      where: { stripePaymentIntentId: session.id },
       include: { subscription: true },
     });
 
     if (!existingPayment) {
-      console.error("Payment record not found for order:", payment.order_id);
+      console.error("Payment record not found for session:", session.id);
       return;
     }
+
+    const paymentIntentId = session.payment_intent as string;
 
     // Update payment status
     await prisma.payment.update({
       where: { id: existingPayment.id },
       data: {
-        razorpayPaymentId: payment.id,
+        stripePaymentId: paymentIntentId,
+        stripePaymentIntentId: paymentIntentId,
         status: "CAPTURED",
-        method: payment.method,
+        method: session.payment_method_types?.[0] || 'card',
         updatedAt: new Date(),
       },
     });
 
-    // Update subscription status if not already active
-    if (existingPayment.subscription && existingPayment.subscription.status !== "ACTIVE") {
-      // For yearly subscriptions, ensure we have an end date
-      let subscriptionEndDate = existingPayment.subscription.endDate;
-      if (existingPayment.subscription.plan === "YEARLY" && !subscriptionEndDate) {
-        subscriptionEndDate = new Date();
-        subscriptionEndDate.setFullYear(subscriptionEndDate.getFullYear() + 1);
-      }
+    // Update subscription if payment is for subscription
+    if (session.metadata?.plan === "YEARLY") {
+      const subscriptionEndDate = new Date();
+      subscriptionEndDate.setFullYear(subscriptionEndDate.getFullYear() + 1);
 
-      await prisma.subscription.update({
-        where: { id: existingPayment.subscription.id },
-        data: {
-          status: "ACTIVE",
-          razorpaySubscriptionId: payment.subscription_id || null,
-          endDate: subscriptionEndDate,
-          updatedAt: new Date(),
-        },
+      const existingSubscription = await prisma.subscription.findFirst({
+        where: { userId },
       });
+
+      if (existingSubscription) {
+        await prisma.subscription.update({
+          where: { id: existingSubscription.id },
+          data: {
+            status: "ACTIVE",
+            endDate: subscriptionEndDate,
+            updatedAt: new Date(),
+          },
+        });
+      } else {
+        await prisma.subscription.create({
+          data: {
+            userId,
+            plan: "YEARLY",
+            status: "ACTIVE",
+            endDate: subscriptionEndDate,
+            amount: 99900,
+            payments: {
+              connect: { id: existingPayment.id },
+            },
+          },
+        });
+      }
 
       // Update user subscription status
       await prisma.user.update({
-        where: { id: existingPayment.userId },
+        where: { id: userId },
         data: {
           subscriptionStatus: "ACTIVE",
-          subscriptionPlan: existingPayment.subscription.plan,
+          subscriptionPlan: "YEARLY",
           subscriptionEndDate: subscriptionEndDate,
           updatedAt: new Date(),
         },
       });
 
-      console.log("Subscription activated for user:", existingPayment.userId, "Plan:", existingPayment.subscription.plan);
+      console.log("Subscription activated for user:", userId);
     }
 
   } catch (error) {
-    console.error("Error handling payment captured:", error);
+    console.error("Error handling checkout session completed:", error);
   }
 }
 
-async function handlePaymentFailed(payment: RazorpayPayment) {
+async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   try {
-    console.log("Processing payment failed:", payment.id);
+    console.log("Processing payment intent succeeded:", paymentIntent.id);
 
-    // Find the payment record
-    const existingPayment = await prisma.payment.findFirst({
-      where: { razorpayOrderId: payment.order_id },
+    // Find payment by payment intent ID
+    const payment = await prisma.payment.findFirst({
+      where: { stripePaymentId: paymentIntent.id },
     });
 
-    if (!existingPayment) {
-      console.error("Payment record not found for order:", payment.order_id);
+    if (!payment) {
+      console.log("No payment record found for payment intent:", paymentIntent.id);
       return;
     }
 
-    // Update payment status
+    // Update payment status if not already captured
+    if (payment.status !== "CAPTURED") {
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: "CAPTURED",
+          updatedAt: new Date(),
+        },
+      });
+      console.log("Payment status updated to CAPTURED:", payment.id);
+    }
+
+  } catch (error) {
+    console.error("Error handling payment intent succeeded:", error);
+  }
+}
+
+async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
+  try {
+    console.log("Processing payment intent failed:", paymentIntent.id);
+
+    // Find payment by payment intent ID or session ID
+    const payment = await prisma.payment.findFirst({
+      where: {
+        OR: [
+          { stripePaymentId: paymentIntent.id },
+          { stripePaymentIntentId: paymentIntent.id },
+        ],
+      },
+    });
+
+    if (!payment) {
+      console.log("No payment record found for failed payment intent:", paymentIntent.id);
+      return;
+    }
+
+    // Update payment status to failed
     await prisma.payment.update({
-      where: { id: existingPayment.id },
+      where: { id: payment.id },
       data: {
-        razorpayPaymentId: payment.id,
         status: "FAILED",
-        method: payment.method,
         updatedAt: new Date(),
       },
     });
@@ -190,85 +210,24 @@ async function handlePaymentFailed(payment: RazorpayPayment) {
     console.log("Payment marked as failed:", payment.id);
 
   } catch (error) {
-    console.error("Error handling payment failed:", error);
+    console.error("Error handling payment intent failed:", error);
   }
 }
 
-async function handleOrderPaid(order: RazorpayOrder) {
+async function handleChargeRefunded(charge: Stripe.Charge) {
   try {
-    console.log("Processing order paid:", order.id);
+    console.log("Processing charge refunded:", charge.id);
 
-    // Find the payment record
-    const existingPayment = await prisma.payment.findFirst({
-      where: { razorpayOrderId: order.id },
-      include: { subscription: true },
-    });
-
-    if (!existingPayment) {
-      console.error("Payment record not found for order:", order.id);
-      return;
-    }
-
-    // Update payment status if not already captured
-    if (existingPayment.status !== "CAPTURED") {
-      await prisma.payment.update({
-        where: { id: existingPayment.id },
-        data: {
-          status: "CAPTURED",
-          updatedAt: new Date(),
-        },
-      });
-    }
-
-    // Ensure subscription is active
-    if (existingPayment.subscription && existingPayment.subscription.status !== "ACTIVE") {
-      // For yearly subscriptions, ensure we have an end date
-      let subscriptionEndDate = existingPayment.subscription.endDate;
-      if (existingPayment.subscription.plan === "YEARLY" && !subscriptionEndDate) {
-        subscriptionEndDate = new Date();
-        subscriptionEndDate.setFullYear(subscriptionEndDate.getFullYear() + 1);
-      }
-
-      await prisma.subscription.update({
-        where: { id: existingPayment.subscription.id },
-        data: {
-          status: "ACTIVE",
-          endDate: subscriptionEndDate,
-          updatedAt: new Date(),
-        },
-      });
-
-      // Update user subscription status
-      await prisma.user.update({
-        where: { id: existingPayment.userId },
-        data: {
-          subscriptionStatus: "ACTIVE",
-          subscriptionPlan: existingPayment.subscription.plan,
-          subscriptionEndDate: subscriptionEndDate,
-          updatedAt: new Date(),
-        },
-      });
-
-      console.log("Subscription activated via order paid for user:", existingPayment.userId, "Plan:", existingPayment.subscription.plan);
-    }
-
-  } catch (error) {
-    console.error("Error handling order paid:", error);
-  }
-}
-
-async function handleRefundCreated(refund: RazorpayRefund) {
-  try {
-    console.log("Processing refund created:", refund.id);
+    const paymentIntentId = charge.payment_intent as string;
 
     // Find the payment record
     const payment = await prisma.payment.findFirst({
-      where: { razorpayPaymentId: refund.payment_id },
+      where: { stripePaymentId: paymentIntentId },
       include: { subscription: true },
     });
 
     if (!payment) {
-      console.error("Payment record not found for refund:", refund.payment_id);
+      console.error("Payment record not found for refunded charge:", charge.id);
       return;
     }
 
@@ -281,7 +240,7 @@ async function handleRefundCreated(refund: RazorpayRefund) {
       },
     });
 
-    // Cancel subscription for any refunded payment
+    // Cancel subscription if exists
     if (payment.subscription) {
       await prisma.subscription.update({
         where: { id: payment.subscription.id },
@@ -302,22 +261,10 @@ async function handleRefundCreated(refund: RazorpayRefund) {
         },
       });
 
-      console.log("Subscription cancelled due to refund for user:", payment.userId, "Plan was:", payment.subscription.plan);
+      console.log("Subscription cancelled due to refund for user:", payment.userId);
     }
 
   } catch (error) {
-    console.error("Error handling refund created:", error);
-  }
-}
-
-async function handleRefundProcessed(refund: RazorpayRefund) {
-  try {
-    console.log("Processing refund processed:", refund.id);
-
-    // Additional processing if needed for completed refunds
-    // This event indicates the refund has been successfully processed
-
-  } catch (error) {
-    console.error("Error handling refund processed:", error);
+    console.error("Error handling charge refunded:", error);
   }
 }

@@ -121,7 +121,7 @@ export function validatePaymentInput(
       break;
 
     case "verify-payment":
-      if (!data.razorpay_order_id || !data.razorpay_payment_id || !data.razorpay_signature) {
+      if (!data.session_id || typeof data.session_id !== 'string') {
         return NextResponse.json(
           { error: "Missing required payment verification fields" },
           { status: 400 }
@@ -129,11 +129,7 @@ export function validatePaymentInput(
       }
 
       // Validate Razorpay IDs format
-      if (
-        !/^order_[a-zA-Z0-9]+$/.test(String(data.razorpay_order_id)) ||
-        !/^pay_[a-zA-Z0-9]+$/.test(String(data.razorpay_payment_id)) ||
-        typeof data.razorpay_signature !== "string"
-      ) {
+      if (!/^cs_[a-zA-Z0-9_]+$/.test(String(data.session_id))) {
         return NextResponse.json(
           { error: "Invalid payment verification data format" },
           { status: 400 }
@@ -176,7 +172,7 @@ export function addSecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-XSS-Protection", "1; mode=block");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://checkout.razorpay.com; frame-src https://checkout.razorpay.com;");
+  response.headers.set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com; frame-src https://js.stripe.com https://checkout.stripe.com; connect-src 'self' https://api.stripe.com;");
 
   return response;
 }

@@ -178,20 +178,20 @@ model Video {
 }
 
 model Subscription {
-  id                     String             @id @default(cuid())
-  userId                 String
-  plan                   SubscriptionPlan
-  status                 SubscriptionStatus
-  razorpaySubscriptionId String?            @unique
-  razorpayCustomerId     String?
-  startDate              DateTime           @default(now())
-  endDate                DateTime?
-  amount                 Int
-  currency               String             @default("INR")
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
-  payments               Payment[]
-  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String             @id @default(cuid())
+  userId               String
+  plan                 SubscriptionPlan
+  status               SubscriptionStatus
+  stripeSubscriptionId String?            @unique
+  stripeCustomerId     String?
+  startDate            DateTime           @default(now())
+  endDate              DateTime?
+  amount               Int
+  currency             String             @default("INR")
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  payments             Payment[]
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([status])
@@ -199,37 +199,37 @@ model Subscription {
 }
 
 model Payment {
-  id                String        @id @default(cuid())
-  subscriptionId    String?
-  userId            String
-  razorpayPaymentId String?       @unique
-  razorpayOrderId   String
-  amount            Int
-  currency          String        @default("INR")
-  status            PaymentStatus
-  method            String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  subscription      Subscription? @relation(fields: [subscriptionId], references: [id])
-  refunds           Refund[]
+  id                    String        @id @default(cuid())
+  subscriptionId        String?
+  userId                String
+  stripePaymentId       String?       @unique
+  stripePaymentIntentId String
+  amount                Int
+  currency              String        @default("INR")
+  status                PaymentStatus
+  method                String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  subscription          Subscription? @relation(fields: [subscriptionId], references: [id])
+  refunds               Refund[]
 
   @@index([userId])
   @@index([status])
 }
 
 model Refund {
-  id               String       @id @default(cuid())
-  paymentId        String
-  razorpayRefundId String       @unique
-  amount           Int
-  currency         String       @default("INR")
-  status           RefundStatus @default(PROCESSED)
-  reason           String?
-  processedBy      String
-  processedAt      DateTime     @default(now())
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  payment          Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  paymentId      String
+  stripeRefundId String       @unique
+  amount         Int
+  currency       String       @default("INR")
+  status         RefundStatus @default(PROCESSED)
+  reason         String?
+  processedBy    String
+  processedAt    DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  payment        Payment      @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
   @@index([paymentId])
   @@index([status])

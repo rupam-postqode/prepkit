@@ -12,8 +12,8 @@ import { AlertCircle, CreditCard, RefreshCw, IndianRupee } from "lucide-react";
 
 interface Payment {
   id: string;
-  razorpayPaymentId: string | null;
-  razorpayOrderId: string;
+  stripePaymentId: string | null;
+  stripePaymentIntentId: string;
   amount: number;
   currency: string;
   status: string;
@@ -29,7 +29,7 @@ interface Payment {
 
 interface Refund {
   id: string;
-  razorpayRefundId: string;
+  stripeRefundId: string;
   amount: number;
   currency: string;
   status: string;
@@ -214,11 +214,11 @@ export default function PaymentHistoryPage() {
                         ₹{formatAmount(payment.amount)}
                       </h3>
                       <p className="text-sm text-gray-600">
-                        Order ID: {payment.razorpayOrderId}
+                        Payment Intent ID: {payment.stripePaymentIntentId}
                       </p>
-                      {payment.razorpayPaymentId && (
+                      {payment.stripePaymentId && (
                         <p className="text-sm text-gray-600">
-                          Payment ID: {payment.razorpayPaymentId}
+                          Payment ID: {payment.stripePaymentId}
                         </p>
                       )}
                     </div>
@@ -264,7 +264,7 @@ export default function PaymentHistoryPage() {
                                 -₹{formatAmount(refund.amount)}
                               </p>
                               <p className="text-sm text-red-700">
-                                Refund ID: {refund.razorpayRefundId}
+                                Refund ID: {refund.stripeRefundId}
                               </p>
                               {refund.reason && (
                                 <p className="text-sm text-red-600">

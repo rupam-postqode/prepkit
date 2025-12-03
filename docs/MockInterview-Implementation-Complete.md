@@ -271,8 +271,9 @@ VAPI_WEBHOOK_SECRET=your_webhook_secret (optional)
 DATABASE_URL=your_postgresql_url
 
 # Payment (for Phase 5)
-RAZORPAY_KEY_ID=your_razorpay_key_id
-RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
+STRIPE_SECRET_KEY=your_stripe_secret_key
+STRIPE_WEBHOOK_SECRET=your_stripe_webhook_secret
 ```
 
 ## 🎯 Interview Types & Pricing
@@ -415,8 +416,8 @@ export async function POST(req: NextRequest) {
     where: { id: sessionId }
   });
   
-  // Create Razorpay order
-  const order = await razorpay.orders.create({
+  // Create Stripe checkout session
+  const session = await stripe.checkout.sessions.create({
     amount: session.costCalculated * 100, // Convert to paise
     currency: 'INR',
     receipt: sessionId
@@ -498,7 +499,7 @@ export async function POST(req: NextRequest) {
 
 - [Gemini API Documentation](https://ai.google.dev/gemini-api/docs)
 - [Vapi AI Documentation](https://docs.vapi.ai/)
-- [Razorpay Documentation](https://razorpay.com/docs/)
+- [Stripe Documentation](https://stripe.com/docs)
 - [Implementation FRD](./MockInterview-FRD-Complete.md)
 - [Architecture Diagrams](./MockInterview-Architecture-Diagram.md)
 

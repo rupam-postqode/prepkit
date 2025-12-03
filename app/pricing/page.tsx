@@ -6,37 +6,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-interface RazorpayResponse {
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
-}
-
-interface RazorpayOptions {
-  key: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  order_id: string;
-  handler: (response: RazorpayResponse) => void;
-  prefill: {
-    name: string;
-    email: string;
-  };
-  theme: {
-    color: string;
-  };
-}
-
-declare global {
-  interface Window {
-    Razorpay: new (options: RazorpayOptions) => {
-      open: () => void;
-    };
-  }
-}
-
 export default function PricingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -53,7 +22,7 @@ export default function PricingPage() {
     setIsLoading(true);
 
     try {
-      // Create payment order
+      // Create Stripe checkout session
       const response = await fetch("/api/payments/create-order", {
         method: "POST",
         headers: {
@@ -62,61 +31,25 @@ export default function PricingPage() {
         body: JSON.stringify({ plan: "YEARLY" }),
       });
 
-      const orderData = await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
-        alert(orderData.error || "Failed to create payment order");
+        alert(data.error || "Failed to create payment session");
         setIsLoading(false);
         return;
       }
 
-      // Initialize Razorpay checkout
-      const options = {
-        key: orderData.key,
-        amount: orderData.amount,
-        currency: orderData.currency,
-        name: "PrepKit",
-        description: "1 Year Access to Interview Preparation",
-        order_id: orderData.orderId,
-        handler: async function (response: RazorpayResponse) {
-          // Verify payment on server
-          const verifyResponse = await fetch("/api/payments/verify", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            }),
-          });
-
-          const verifyData = await verifyResponse.json();
-
-          if (verifyResponse.ok) {
-            alert("Payment successful! You now have 1 year access to PrepKit.");
-            router.push("/dashboard");
-          } else {
-            alert("Payment verification failed. Please contact support.");
-          }
-        },
-        prefill: {
-          name: session.user?.name || "",
-          email: session.user?.email || "",
-        },
-        theme: {
-          color: "#2563eb",
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      // Redirect to Stripe Checkout
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Failed to get payment URL");
+        setIsLoading(false);
+      }
 
     } catch (error) {
       console.error("Payment error:", error);
       alert("Payment failed. Please try again.");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -195,7 +128,7 @@ export default function PricingPage() {
               className="w-full py-4 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700"
               size="lg"
             >
-              {isLoading ? "Processing..." :
+              {isLoading ? "Redirecting to Checkout..." :
                !session ? "Sign In to Purchase" :
                "Get 1 Year Access"}
             </Button>
@@ -213,7 +146,7 @@ export default function PricingPage() {
             )}
 
             <div className="mt-6 text-xs text-gray-500">
-              Secure payment powered by Razorpay • 14-day money-back guarantee
+              Secure payment powered by Stripe • 14-day money-back guarantee
             </div>
           </Card>
         </div>

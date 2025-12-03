@@ -3,22 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { withPaymentSecurity, addSecurityHeaders } from "@/lib/payment-security";
-import Razorpay from "razorpay";
-
-// Initialize Razorpay (lazy initialization)
-const getRazorpay = () => {
-  return new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || "",
-    key_secret: process.env.RAZORPAY_KEY_SECRET || "",
-  });
-};
-
-// Single pricing plan (in rupees)
-const PRICING_PLAN = {
-  amount: 99900, // ₹999 in paise
-  name: "1 Year Access",
-  duration: 365, // 1 year in days
-};
+import { createYearlySubscriptionCheckout, PRICING_CONFIG } from "@/lib/stripe";
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,38 +45,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create Razorpay order for ₹999 yearly access
-    const options = {
-      amount: PRICING_PLAN.amount,
-      currency: "INR",
-      receipt: `rcpt_${userId}_${Date.now()}`,
-      notes: {
-        userId,
-        plan: "YEARLY",
-        planName: PRICING_PLAN.name,
-      },
-    };
-
-    const razorpay = getRazorpay();
-    const order = await razorpay.orders.create(options);
+    // Create Stripe Checkout Session
+    const checkoutSession = await createYearlySubscriptionCheckout(
+      userId,
+      session.user?.email || "",
+      session.user?.name || ""
+    );
 
     // Store order details in database for verification
     await prisma.payment.create({
       data: {
         userId,
-        razorpayOrderId: order.id,
-        amount: PRICING_PLAN.amount,
+        stripePaymentIntentId: checkoutSession.id, // Store session ID temporarily
+        amount: PRICING_CONFIG.YEARLY.amount,
         currency: "INR",
         status: "CREATED",
       },
     });
 
     return NextResponse.json({
-      orderId: order.id,
-      amount: PRICING_PLAN.amount,
+      sessionId: checkoutSession.id,
+      url: checkoutSession.url,
+      amount: PRICING_CONFIG.YEARLY.amount,
       currency: "INR",
-      plan: PRICING_PLAN.name,
-      key: process.env.RAZORPAY_KEY_ID,
+      plan: PRICING_CONFIG.YEARLY.name,
     });
 
   } catch (error) {

@@ -40,8 +40,8 @@ export async function GET(request: NextRequest) {
     // Format the response
     const formattedPayments = payments.map((payment) => ({
       id: payment.id,
-      razorpayPaymentId: payment.razorpayPaymentId,
-      razorpayOrderId: payment.razorpayOrderId,
+      stripePaymentId: payment.stripePaymentId,
+      stripePaymentIntentId: payment.stripePaymentIntentId,
       amount: payment.amount,
       currency: payment.currency,
       status: payment.status,
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       createdAt: payment.createdAt.toISOString(),
       refunds: payment.refunds.map((refund) => ({
         id: refund.id,
-        razorpayRefundId: refund.razorpayRefundId,
+        stripeRefundId: refund.stripeRefundId,
         amount: refund.amount,
         currency: refund.currency,
         status: refund.status,

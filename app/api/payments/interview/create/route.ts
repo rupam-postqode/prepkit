@@ -2,12 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import Razorpay from 'razorpay';
-
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!
-});
+import { createInterviewCheckout } from '@/lib/stripe';
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,18 +35,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create Razorpay order
-    const order = await razorpay.orders.create({
-      amount: Math.round((interviewSession.costCalculated || 149) * 100), // Convert to paise
-      currency: 'INR',
-      receipt: sessionId,
-      notes: {
-        sessionId,
-        userId: session.user.id,
-        type: interviewSession.type,
-        difficulty: interviewSession.difficulty
-      }
-    });
+    // Create Stripe Checkout Session
+    const checkoutSession = await createInterviewCheckout(
+      session.user.id,
+      sessionId,
+      interviewSession.costCalculated || 149,
+      session.user.email || '',
+      interviewSession.type,
+      interviewSession.difficulty
+    );
 
     // Create payment record
     await prisma.interviewPayment.create({
@@ -61,15 +53,16 @@ export async function POST(req: NextRequest) {
         amount: interviewSession.costCalculated || 149,
         currency: 'INR',
         status: 'CREATED',
-        paymentMethodId: order.id
+        paymentMethodId: checkoutSession.id
       }
     });
 
     return NextResponse.json({
       success: true,
-      orderId: order.id,
-      amount: order.amount,
-      currency: order.currency
+      sessionId: checkoutSession.id,
+      url: checkoutSession.url,
+      amount: Math.round((interviewSession.costCalculated || 149) * 100),
+      currency: 'INR'
     });
   } catch (error) {
     console.error('Error creating payment order:', error);
